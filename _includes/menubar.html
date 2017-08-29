@@ -1,38 +1,20 @@
 <div id="Menubar">
+	<a class="brand logo" href="{{site.github.url}}/">W3DEVELOPS🔥</a>
+
     <ul>
+		{% for item in site.pages%}
+		{% if item.place == "menubar" %}
+		<li class="{% if item.url == page.url %}active{% endif %}">
+			<a href="{{ item.url }}">{{ item.title }}</a>
+		</li>
+		{% endif%}
+		{% endfor%}
+	</ul>
 
-        <li>
-            <a class="active" href="Home">W3DEVELOPS🔥</a>
-        </li>
-
-           <li>
-            <a href="Tutorials">Tutorials</a>
-        </li>
-
-           <li>
-            <a href="Practice">Practice</a>
-        </li>
-
-           <li>
-            <a href="Projects">Projects</a>
-        </li>
-
-        <li>
-          <a href="#">More</a>
-        </li>
-
-        <li style="float:right">
-        <a href="Login">Login</a>
-        </li>
-
-        <li>
-  <li style="float:right">
-          <a href="Search">
-            <form>
-              <input type="text" placeholder="Search..." maxlength="20" id="search"><input type="submit" value="go">
-          </form>
-          </a>
-        </li>
-    </ul>
-  </div>
+	<div style="float:right">
+		<form action="#">
+			<input type="text" placeholder="Search..." maxlength="20" id="search"><input type="submit" value="go">
+		</form>
+	</div>
+</div>
 

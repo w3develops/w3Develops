@@ -24,16 +24,23 @@
 }
 
 #Menubar {
-  height: 40px;
+  background-color: black;
+}
+#Menubar::after {
+	content: "";
+	display: block;
+}
 
+.brand {
+	padding: 10px 6px;
+	float: left;
 }
 
 #Menubar ul {
 list-style-type: none;
 margin: 0;
 padding: 0;
-overflow: hidden;
-  background-color: black;
+float: left;
 }
 
 #Menubar li {
@@ -62,7 +69,6 @@ color: white;
   top: 0;
   left: 0;
   right: 0;
-  height: 0%
 }
 
 #Sidebar {
