@@ -1,0 +1,93 @@
+#Container {
+    max-width: 900px;
+    height: auto;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 11px;
+    margin-bottom: 21px;
+	overflow: hidden;
+}
+
+#Header {
+  background-color: #000000;
+  text-align: center;
+
+}
+
+.text-center {
+  text-align: center;
+}
+
+.image-header {
+ width: 100%;
+ height: auto;
+}
+
+#Menubar {
+  height: 40px;
+
+}
+
+#Menubar ul {
+list-style-type: none;
+margin: 0;
+padding: 0;
+overflow: hidden;
+  background-color: black;
+}
+
+#Menubar li {
+  float: left;
+}
+
+#Menubar li a {
+display: block;
+text-align: center;
+padding: 10px 30px;
+text-decoration: none;
+color: white;
+}
+
+#Menubar li a:hover:not(.active){
+  color: #000000;
+}
+
+.active {
+  background-color: #000000;
+  color: white;
+}
+
+#Menubar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0%
+}
+
+#Sidebar {
+  width: 200px;
+  min-height: 400px;
+  background-color: rgba(255, 255, 255, 0.8);
+  float: left;
+}
+
+#Mainbody {
+  width: 700px;
+  min-height: 400px;
+  background-color: rgba(255, 255, 255, 0.7);
+  float: right;
+
+}
+
+#Footer {
+  margin-bottom: 21px;
+  color: #5c5c3d;
+  background-color: black;
+  text-align: center;
+  clear: both;
+}
+
+ul li {
+	margin-bottom: .75em;
+}
