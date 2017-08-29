@@ -1,11 +1,11 @@
 <div id="Menubar">
-	<a class="brand logo" href="{{site.github.url}}/">W3DEVELOPS🔥</a>
+	<a class="brand logo" href="{{ site.github.url }}/">W3DEVELOPS🔥</a>
 
     <ul>
 		{% for item in site.pages%}
 		{% if item.place == "menubar" %}
 		<li class="{% if item.url == page.url %}active{% endif %}">
-			<a href="{{ item.url }}">{{ item.title }}</a>
+			<a href="{{ item.url | prepend: site.github.url }}">{{ item.title }}</a>
 		</li>
 		{% endif%}
 		{% endfor%}
