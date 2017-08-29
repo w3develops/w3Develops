@@ -6,8 +6,8 @@
   <title>{% if page.title %}{{ page.title | escape }}{% else %}{{ site.title | escape }}{% endif %}</title>
   <meta name="description" content="{{ page.excerpt | default: site.description | strip_html | normalize_whitespace | truncate: 160 | escape }}">
 
-  <link rel="stylesheet" href="{{ "/assets/Mainbody.css" | relative_url }}">
-  <link rel="stylesheet" href="{{ "/assets/main.css" | relative_url }}">
+  <link rel="stylesheet" href="{{ site.github.url }}{{ "/assets/Mainbody.css" | relative_url }}">
+  <link rel="stylesheet" href="{{ site.github.url }}{{ "/assets/main.css" | relative_url }}">
   <link rel="canonical" href="{{ page.url | replace:'index.html','' | absolute_url }}">
   <link rel="alternate" type="application/rss+xml" title="{{ site.title | escape }}" href="{{ "/feed.xml" | relative_url }}">
   
@@ -17,7 +17,7 @@
 
   <style>
 	body {
-		background: url(assets/images/w3develops.image.jpg) no-repeat center center fixed;
+		background: url({{ site.github.url }}/assets/images/w3develops.image.jpg) no-repeat center center fixed;
 		background-size: cover;
 	}
 	</style>
