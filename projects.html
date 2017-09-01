@@ -10,7 +10,7 @@ title: Projects
 		<ul>
 			{% for item in proj.items %}
 			<li>
-				<h3><a href="{{ item.url }}">{{item.title}}</a></h3>
+				<h3><a href="{{ item.url | prepend: site.github.url }}">{{item.title}}</a></h3>
 				<div class="type">type: {{ item.type }} </div>
 				<div class="difficulty">Dificulty: {{ proj.dificulty }}
 			</li>
