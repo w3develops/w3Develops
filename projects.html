@@ -1,0 +1,20 @@
+---
+layout: page
+place: menubar
+title: Projects
+---
+{% assign projects = site.projects | group_by: 'type' %}
+{% for proj in projects %}
+	<article>
+		<h2>{{ proj.type }}</h2>
+		<ul>
+			{% for item in proj.items %}
+			<li>
+				<h3><a href="{{ item.url }}">{{item.title}}</a></h3>
+				<div class="type">type: {{ item.type }} </div>
+				<div class="difficulty">Dificulty: {{ proj.dificulty }}
+			</li>
+			{% endfor %}
+		</ul>
+	</article>
+{% endfor %}
