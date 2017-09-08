@@ -66,10 +66,25 @@ color: white;
 }
 
 #Sidebar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 200px;
   min-height: 400px;
   background-color: rgba(255, 255, 255, 0.8);
   float: left;
+
+}
+#Sidebar ul{
+  list-style:none;
+
+}
+#Sidebar ul a{
+  color: black;
+  text-decoration: none;
+}
+ #Sidebar ul li :hover{
+  text-decoration: underline;
 }
 
 #Mainbody {
@@ -81,7 +96,10 @@ color: white;
 }
 
 
-
+.forAncor{
+  color: black;
+  text-decoration: none;
+}
 #Footer {
   height: 60px;
   margin-bottom: 21px;
