@@ -1,0 +1,44 @@
+body{background: url(w3developsimage.jpg) no-repeat center fixed;
+background-size:cover;}
+#topbar{background-color:black;
+color:white;}
+.form-horizontal{float:right;}
+#sidebar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 200px;
+  min-height: 400px;
+  background-color: rgba(255, 255, 255, 0.8);
+  float: left;
+
+}
+#sidebar ul{
+  list-style-type:square;
+display: inline;
+}
+#sidebar ul a{
+  color:green;
+  text-decoration: none;
+    display: inline;
+    padding: 10px 
+}
+ #sidebar ul li :hover{
+  text-decoration:underline;
+     
+}
+#footer{text-align: center;
+align-content: center;
+align-self: center;}
+
+h2,h1{color: aqua;}
+
+#p{color:aliceblue;}
+
+#p a:hover{background-color:aliceblue;
+    color:green;}
+
+#copy{color:aqua}
+
+#footer a:hover{background-color:aliceblue;}
+
