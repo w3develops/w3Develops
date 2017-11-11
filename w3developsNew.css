@@ -1,4 +1,4 @@
-body{background: url(w3developsimage.jpg) no-repeat center fixed;
+body{
 background-size:cover;}
 #topbar{background-color:black;
 color:white;}
@@ -18,10 +18,9 @@ color:white;}
 display: inline;
 }
 #sidebar ul a{
-  color:green;
   text-decoration: none;
     display: inline;
-    padding: 10px 
+    padding: 10px; 
 }
  #sidebar ul li :hover{
   text-decoration:underline;
@@ -30,15 +29,19 @@ display: inline;
 #footer{text-align: center;
 align-content: center;
 align-self: center;}
+#footer img{padding-bottom: 20px;}
 
-h2,h1{color: aqua;}
+h2,h1,#connect{color:lightseagreen;}
 
-#p{color:aliceblue;}
+#p{color:limegreen;}
+#p a{color:aqua;}
 
-#p a:hover{background-color:aliceblue;
-    color:green;}
+#p a:hover{background-color:black;
+    color:aqua;}
 
-#copy{color:aqua}
+#copy{color:lightseagreen;
+font-size:15.5px;
+line-height: 15px;}
 
 #footer a:hover{background-color:aliceblue;}
-
+#connect{align-content: center;}
