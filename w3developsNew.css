@@ -1,0 +1,47 @@
+body{
+background-size:cover;}
+#topbar{background-color:black;
+color:white;}
+.form-horizontal{float:right;}
+#sidebar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 200px;
+  min-height: 400px;
+  background-color: rgba(255, 255, 255, 0.8);
+  float: left;
+
+}
+#sidebar ul{
+  list-style-type:square;
+display: inline;
+}
+#sidebar ul a{
+  text-decoration: none;
+    display: inline;
+    padding: 10px; 
+}
+ #sidebar ul li :hover{
+  text-decoration:underline;
+     
+}
+#footer{text-align: center;
+align-content: center;
+align-self: center;}
+#footer img{padding-bottom: 20px;}
+
+h2,h1,#connect{color:lightseagreen;}
+
+#p{color:limegreen;}
+#p a{color:aqua;}
+
+#p a:hover{background-color:black;
+    color:aqua;}
+
+#copy{color:lightseagreen;
+font-size:15.5px;
+line-height: 15px;}
+
+#footer a:hover{background-color:aliceblue;}
+#connect{align-content: center;}
