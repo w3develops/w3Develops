@@ -1,4 +1,6 @@
 # w3develops
+
+[![Join the chat at https://gitter.im/w3develops/w3develops](https://badges.gitter.im/w3develops/w3develops.svg)](https://gitter.im/w3develops/w3develops?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 The w3develops source codebase. Learn to code. Meet new people.
 
 Tasks:
