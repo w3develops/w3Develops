@@ -3,6 +3,39 @@
 [![Join the chat at https://gitter.im/w3develops/w3develops](https://badges.gitter.im/w3develops/w3develops.svg)](https://gitter.im/w3develops/w3develops?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 The w3develops source codebase. Learn to code. Meet new people.
 
+
+What is W3Develops?
+
+The goal of W3Develops is to provide a simple learning, collaborating, networking website for programmers.
+
+It is not "industrial quality", with an emphasis on allowing the novice user to be able to contribute to the code.
+
+It is a work in progress and is not feature complete at this point, however it is usable as an educational tool.
+
+W3Develops has the following constraint: 
+
+This initial version was put together in a couple of weeks as a solo Chingu Collabs, #100DaysofCode, freeCodeCamp project. 
+
+Repo Overview
+
+    LICENSE -- MIT License
+    README.md -- This File
+   index.html -- The landing page source code 
+
+TODO
+
+    Make our own collab challenges
+    Fix bugs in the code
+    Refactor the group chat to be simpler
+    Start live code collabs via atom code editor
+    Come up with some labs for adding certain features.
+    More todos ;)
+
+Pull requests welcome! Please keep in mind simplicity & teaching over correctness.
+
+
+
+
 Tasks:
 
 For the job and internships section, i want to be able to simulteaneusly search all the job sites listed in out group files. and have filters for the newest jobs, freelance jobs, filter which sites to search(if you want to search 1,2,3,or more).
