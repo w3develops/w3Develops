@@ -19,8 +19,9 @@ This initial version was put together in a couple of weeks as a solo Chingu Coll
 Repo Overview
 
     LICENSE -- MIT License
+    index.html -- 
     README.md -- This File
-   index.html -- The landing page source code 
+   
 
 TODO
 
@@ -31,7 +32,7 @@ TODO
     Come up with some labs for adding certain features.
     More todos ;)
 
-Pull requests welcome! Please keep in mind simplicity & teaching over correctness.
+
 
 
 
@@ -69,3 +70,9 @@ tutorials will be websites like freecodecamp.org , cs50, a nano degree you've ta
 Practice will be practice projects like the ones offered at chingu where there are 3 tiers of web developer(beginner, intermediate, advanced) and the practice projects will reflect their skill level. This is in essence a variation of a build to learn project where users are learning through hands on building(practice), team collaboration, and resources like freecodecamp at the same time.
 
 projects will be projects will be categorized by programming languages and skill level and will be up to the members of our site to create and host on our site for other people to see and collaborate or ask to collaborate on.
+
+
+
+
+
+Pull requests welcome! Please keep in mind simplicity & teaching over correctness.
