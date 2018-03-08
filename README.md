@@ -2,7 +2,7 @@
 
 [![Join the chat at https://gitter.im/w3develops/w3develops](https://badges.gitter.im/w3develops/w3develops.svg)](https://gitter.im/w3develops/w3develops?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![first-timers-only Friendly](https://img.shields.io/badge/first--timers--only-friendly-blue.svg)](http://www.firsttimersonly.com/)
-
+[![Pull Requests Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](http://makeapullrequest.com)
 The w3develops source codebase. Learn to code. Meet new people.
 
 
