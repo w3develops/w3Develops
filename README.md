@@ -4,9 +4,9 @@
 
 # Welcome to W3Develops' open source codebase
 
-What is W3Develops?
+The w3develops source codebase. Learn to code. Meet new people. Collaborate on more projects
 
-The w3develops source codebase. Learn to code. Meet new people. Collaborate on fun projects
+What is W3Develops?
 
 The goal of W3Develops is to provide a simple learning, collaborating, networking website for programmers.
 
