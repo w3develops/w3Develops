@@ -2,13 +2,11 @@
 [![first-timers-only Friendly](https://img.shields.io/badge/first--timers--only-friendly-blue.svg)](http://www.firsttimersonly.com/)
 [![Pull Requests Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](http://makeapullrequest.com)
 
-# Welcome to W3Develops' open source codebase!
-
-
-The w3develops source codebase. Learn to code. Meet new people.
-
+# Welcome to W3Develops' open source codebase
 
 What is W3Develops?
+
+The w3develops source codebase. Learn to code. Meet new people. Collaborate on fun projects
 
 The goal of W3Develops is to provide a simple learning, collaborating, networking website for programmers.
 
