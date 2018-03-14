@@ -1,4 +1,4 @@
-.jumbotron {
+/* .jumbotron {
   margin-bottom: 0px;
   background: url(../jumbotron.jpg) no-repeat center center;
   background-position: 0% 25%;
@@ -6,7 +6,18 @@
   background-repeat: no-repeat;
   color: white;
   min-height: 500px;
+} */
+
+.jumbotron {
+  background: url(../jumbotron.jpg) no-repeat center center;
+  background-size: cover;
+  height: 100%;
+  color: white;
+  padding-top: 50px;
+  margin-bottom:50px;
+  /* min-height: 100vh; */
 }
+
 
 .center {
   text-align: center;
@@ -15,7 +26,7 @@
 h1 {
   font-size: 3em;
   letter-spacing: -2px;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
   text-align: center;
 }
 
@@ -38,5 +49,6 @@ footer {
   height: 60px;
   position: fixed;
   width: 100%;
-  z-index: 3;
+  z-index: 4;
+  margin-bottom: 30px;
 }
