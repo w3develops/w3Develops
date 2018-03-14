@@ -32,3 +32,11 @@ h2 {
 footer {
   margin: auto;
 }
+
+#navbar {
+  padding: 10px;
+  height: 60px;
+  position: fixed;
+  width: 100%;
+  z-index: 3;
+}
