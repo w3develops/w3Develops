@@ -1,26 +1,13 @@
-/* .jumbotron {
-  margin-bottom: 0px;
-  background: url(../jumbotron.jpg) no-repeat center center;
-  background-position: 0% 25%;
-  background-size: cover;
-  background-repeat: no-repeat;
-  color: white;
-  min-height: 500px;
-} */
+.wrapper {
+  margin-top: 70px;
+}
 
 .jumbotron {
   background: url(../jumbotron.jpg) no-repeat center center;
   background-size: cover;
-  height: 100%;
-  color: white;
-  padding-top: 50px;
+  height: 210px;
+  padding-top: 150px;
   margin-bottom:50px;
-  /* min-height: 100vh; */
-}
-
-
-.center {
-  text-align: center;
 }
 
 h1 {
@@ -44,11 +31,3 @@ footer {
   margin: auto;
 }
 
-#navbar {
-  padding: 10px;
-  height: 60px;
-  position: fixed;
-  width: 100%;
-  z-index: 4;
-  margin-bottom: 30px;
-}

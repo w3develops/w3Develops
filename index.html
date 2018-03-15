@@ -7,7 +7,7 @@
     <!-- Link to custom js files and bootstrap files  -->
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+   
 
     <!-- Link to custom css files and bootstrap files -->
     <link href="CSS/custom.css" rel="stylesheet" type="text/css">
@@ -21,92 +21,73 @@
 
   <!--BODY STARTS HERE-->
   <body>
-    <!-- Navbar start -->
-    <nav id="navbar" class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <a class="navbar-brand" href="/Home">W3Develops🔥</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+  	<!-- NAVBAR STARTS HERE -->
+  	<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+  		<a class="navbar-brand" href="#">#W3Develops</a>
+  		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    		<span class="navbar-toggler-icon"></span>
+  		</button>
 
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
+  		<div class="collapse navbar-collapse" id="navbarSupportedContent">
+    		<ul class="navbar-nav mr-auto">
+      			<li class="nav-item active">
+        			<a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+      			</li>
+      			<li class="nav-item dropdown">
+        			<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          			Community
+        			</a>
+        			<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+			          <a class="dropdown-item" href="#">Forum</a>
+			          <a class="dropdown-item" href="#">Guide</a>
+			          <a class="dropdown-item" href="#">Medium</a>
+			          <a class="dropdown-item" href="#">YouTube</a>
+			          <a class="dropdown-item" href="#">Gitter</a>
+			          <a class="dropdown-item" href="#">In Your City</a>
+				      <a class="dropdown-item" href="#">Contribute</a>
+			          <a class="dropdown-item" href="#">About</a>
+        			</div>
+      			</li>
+ 	  			<li class="nav-item dropdown">
+        		<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          		Map
+        		</a>
+        			<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+			          <a class="dropdown-item" href="#">Challenges</a>
+			          <a class="dropdown-item" href="#">Hacker Games</a>
+			          <a class="dropdown-item" href="#">Chingu Projects and 100 Days of Code</a>
+			          <a class="dropdown-item" href="#">Build to Learn</a>
+			          <a class="dropdown-item" href="#">Meetups</a>
+        			</div>
+      			</li>
+      			<li class="nav-item">
+        			<a class="nav-link" href="#">Donate</a>
+      			</li>
+    		</ul>
+    		<ul>
+    			<button class = "btn btn-outline-success">Login</button>
+    		</ul>
+  		</div>
+	</nav>
 
-          <!-- Community dropdown -->
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Community</a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-              <a class="dropdown-item" href="#">Forum</a>
-              <a class="dropdown-item" href="#">Guide</a>
-              <a class="dropdown-item" href="#">Medium</a>
-              <a class="dropdown-item" href="https://www.youtube.com/channel/UCCf9xpbgNEO0G1NdqhGvtjA">Youtube</a>
-              <a class="dropdown-item" href="https://gitter.im/w3develops">Chat</a>
-              <a class="dropdown-item" href="#">In your city</a>
-              <a class="dropdown-item" href="#">Contribute</a>
-              <a class="dropdown-item" href="#">About</a>
-            </div>
-          </li>
+  	<div class = "container wrapper">
+  		<h1>#W3Develops</h1>
+  		<h2>A Global Hackerspace</h2>
+    	<div class = "jumbotron">
+        
+     	</div>
+     		<a class = "btn btn-primary btn-block" href="#" role="botton">Learn More</a>
+  	</div>
+  
 
-          <!-- Map dropdown -->
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Map</a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-              <a class="dropdown-item" href="#">Challenges</a>
-              <a class="dropdown-item" href="#">Hacker Games</a>
-              <a class="dropdown-item" href="#">Challenges(chingu projects and 100daysofcode)</a>
-              <a class="dropdown-item" href="#">Build to Learn Projects(solo & team collaboration)</a>
-              <a class="dropdown-item" href="#">Meetups</a>
-            </div>
-          </li>
-
-          <!--Donate button-->
-          <span class="navbar-text" >
-            <a href="#">Donate</a>
-          </span>
-
-        </ul>
-
-  <!--  search form
-        <form class="form-inline my-2 my-lg-0">
-          <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-        </form>
--->
-
-<!--Login button-->
-        <span class="navbar-text" style="padding-left:20px">
-          <a href="#">Sign in</a>
-        </span>
-      </div>
-    </nav>
-
-    <!-- Top image jumbotron -->
-  <!-- <div id ="jumbotron-container" class = "container">
-    <div class="jumbotron">
-      <h1>#W3Develops</h1>
-      <h2>A Global Hackerspace</h2>
-      <br>
-      <p class="center">
-        <a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
-      </p>
-    </div>
-  </div> -->
-  <div class = "container">
-    <div class = "jumbotron">
-      <h1>#W3Develops</h1>
-      <h2>A Global Hackerspace</h2>
-      <div class = "text-center">
-        <a class = "btn btn-primary btn-lg" href="#" role="botton">Learn More</a>
-      </div>
-    </div>
-  </div>
-
-    <div class="container">
+	<div class="container">
       <div class="row">
         <!-- Sidebar -->
         <nav class="col-sm-12 col-md-2 bg-light sidebar">
           <ul class="nav nav-pills">
             <li class="nav-item">
-              <a class="nav-link" href="#">Signup (It's FREE and always will be!)</a>
+              <a class="nav-link" href="#">Signup
+              	<p>(It's FREE and always will be!)</p></a>
             </li>
             <!--create different road maps for different types of programming(web,oop,digital marketing, etc)-->
             <li class="nav-item">
@@ -179,4 +160,5 @@
       </div><!-- end row -->
     </div><!-- end container -->
   </body>
+ <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
 </html>
