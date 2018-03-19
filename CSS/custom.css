@@ -1,21 +1,19 @@
-.jumbotron {
-  margin-bottom: 0px;
-  background: url(../jumbotron.jpg) no-repeat center center;
-  background-position: 0% 25%;
-  background-size: cover;
-  background-repeat: no-repeat;
-  color: white;
-  min-height: 500px;
+.wrapper {
+  margin-top: 70px;
 }
 
-.center {
-  text-align: center;
+.jumbotron {
+  background: url(../jumbotron.jpg) no-repeat center center;
+  background-size: cover;
+  height: 210px;
+  padding-top: 150px;
+  margin-bottom:50px;
 }
 
 h1 {
   font-size: 3em;
   letter-spacing: -2px;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
   text-align: center;
 }
 
@@ -32,3 +30,4 @@ h2 {
 footer {
   margin: auto;
 }
+
