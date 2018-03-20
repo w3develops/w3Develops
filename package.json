@@ -1,0 +1,22 @@
+{
+  "name": "w3develops",
+  "version": "1.0.0",
+  "description": "A global hackerspace",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abutler911/w3develops.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/abutler911/w3develops/issues"
+  },
+  "homepage": "https://github.com/abutler911/w3develops#readme",
+  "dependencies": {
+    "express": "^4.16.3"
+  }
+}
