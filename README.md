@@ -41,37 +41,37 @@ TODO
 
 Tasks:
 
-For the job and internships section, i want to be able to simulteaneusly search all the job sites listed in out group files. and have filters for the newest jobs, freelance jobs, filter which sites to search(if you want to search 1,2,3,or more).
+For the job and internships section, I want to be able to simultaneously search all the job sites listed in our group files. and have filters for the newest jobs, freelance jobs, and filter which sites to search(if you want to search 1,2,3, or more).
 
-i want to have our own messanger thats email like protonmail and facebook messanger mixed.
+I want to have our own messenger that's email like Protonmail and Facebook messanger mixed.
 
-i want a question and answer forum like quora, stack exchange, and freecodecamps forum.
+I want a question and answer forum like quora, stack exchange, and freecodecamps forum.
 
-i want users to be able to customize the site and add their own features others can opt in to, kinda like firefox plugins.
+I want users to be able to customize the site and add their own features others can opt in to, kinda like Firefox plugins.
 
-i want the search bar to just be a magnify glass to the left of the login/sign up button on the navigation bar. i want it to be like the one on developer.mozilla.org, where you click it and then it expands.
+I want the search bar to just be a magnifying glass to the left of the login/sign up button on the navigation bar. I want it to be like the one on developer.mozilla.org, where you click it and then it expands.
 
-i want the search bar to be able to search mozilla.developer.org and google.com and w3develops. with check boxes above the search bar that allow us to search results from just one or from all of those sites in one search.
+I want the search bar to be able to search mozilla.developer.org and google.com and w3develops. with check boxes above the search bar that allow us to search results from just one or from all of those sites in one search.
 
-courses and roadmaps will be a curated list of courses we have personally tried and succeeded using. roadmaps are lists of path beginners should follow to reach their path to becoming a professional.
+Courses and roadmaps will be a curated list of courses we have personally tried and succeeded using. roadmaps are lists of path beginners should follow to reach their path to becoming a professional.
 
-web technologies will be a link to mozilla developer.org's list of web technologies
+Web technologies will be a link to Mozilla developer.org's list of web technologies
 
-we will have a meetup section, for scheduled online meetups and were people can host meetups for their state or territory in theri country.
+We will have a meetup section, for scheduled online meetups and where people can host meetups for their state or territory in their country.
 
-our team will be the names and pictures of everybody who helped build and maintain the site
+Our team will be the names and pictures of everybody who helped build and maintain the site
 
-references and guides will be like technologies and roadmaps, except instead of just web technologies references it will be all major programming languages and such. Also the guides will be more about how to use the stuff unlike roadmaps which is just about which path to follow
+references and guides will be like technologies and roadmaps, except instead of just web technologies references it will be all major programming languages and such. Also, the guides will be more about how to use the stuff unlike roadmaps which is just about which path to follow
 
-sitemap should be the entire site laid out in laymens terms so people can see how to use it, what its about and where to go if theyre looking for something
+The sitemap should be the entire site laid out in laymen's terms so people can see how to use it, what it's about and where to go if they're looking for something
 
-i want to make the login page popout like the one on quora.com and also allow people to login via github
+I want to make the login page popout like the one on quora.com and also allow people to login via GitHub
 
-tutorials will be websites like freecodecamp.org , cs50, a nano degree you've taken and can vouche for, and so on.
+Tutorials will be websites like freecodecamp.org, cs50, a nano degree you've taken and can vouch for, and so on.
 
-Practice will be practice projects like the ones offered at chingu where there are 3 tiers of web developer(beginner, intermediate, advanced) and the practice projects will reflect their skill level. This is in essence a variation of a build to learn project where users are learning through hands on building(practice), team collaboration, and resources like freecodecamp at the same time.
+Practice will be practice projects like the ones offered at Chingu where there are 3 tiers of web developer (beginner, intermediate, advanced) and the practice projects will reflect their skill level. This is, in essence, a variation of a build to learn project where users are learning through hands-on building(practice), team collaboration, and resources like freecodecamp at the same time.
 
-projects will be projects will be categorized by programming languages and skill level and will be up to the members of our site to create and host on our site for other people to see and collaborate or ask to collaborate on.
+Projects will be categorized by programming languages and skill level and will be up to the members of our site to create and host on our site for other people to see and collaborate or ask to collaborate on.
 
 
 
