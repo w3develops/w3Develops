@@ -9,5 +9,5 @@ $(document).ready(function() {
 	var myRandomQuote = Math.floor(Math.random()*myTaglines.length);
 
 	$("#taglines").html(myTaglines[myRandomQuote]);
-
+	
 });
