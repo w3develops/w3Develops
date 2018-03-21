@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/abutler911/w3develops#readme",
   "dependencies": {
+    "ejs": "^2.5.7",
     "express": "^4.16.3"
   }
 }
