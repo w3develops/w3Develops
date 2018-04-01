@@ -1,0 +1,50 @@
+body {
+  font-family: 'Open Sans', sans-serif !important;
+}
+
+.navbar-brand {
+  font-size: 2rem !important;
+}
+
+#taglines {
+  -webkit-animation: fadein 2s;
+}
+
+@keyframes fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.wrapper {
+  margin-top: 70px;
+}
+
+.jumbotron {
+  background: url(../jumbotron.jpg) no-repeat center center;
+  background-size: cover;
+  height: 210px;
+  padding-top: 150px;
+  margin-bottom:50px;
+}
+
+h1 {
+  font-size: 3em;
+  letter-spacing: -2px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+h2 {
+  line-height: 1;
+  font-size: 1.4em;
+  letter-spacing: -1px;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  text-align: center;
+  font-weight: normal;
+}
+
+footer {
+  margin: auto;
+}
+
