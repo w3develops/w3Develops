@@ -1,80 +1,74 @@
-[![Join the chat at https://gitter.im/w3develops/w3develops](https://badges.gitter.im/w3develops/w3develops.svg)](https://gitter.im/w3develops/w3develops?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![first-timers-only Friendly](https://img.shields.io/badge/first--timers--only-friendly-blue.svg)](http://www.firsttimersonly.com/)
-[![Pull Requests Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](http://makeapullrequest.com)
+# [Start Bootstrap - Agency](https://startbootstrap.com/template-overviews/agency/)
 
-# Welcome to W3Develops' open source codebase
+[Agency](https://startbootstrap.com/template-overviews/agency/) is a one page agency portfolio theme for [Bootstrap](http://getbootstrap.com/) created by [Start Bootstrap](http://startbootstrap.com/). This theme features several content sections, a responsive portfolio grid with hover effects, full page portfolio item modals, a responsive timeline, and a working PHP contact form.
 
-The w3develops source codebase. Learn to code. Meet new people. Collaborate on more projects
+## Preview
 
-What is W3Develops?
+[![Agency Preview](https://startbootstrap.com/assets/img/templates/agency.jpg)](https://blackrockdigital.github.io/startbootstrap-agency/)
 
-The goal of W3Develops is to provide a simple learning, collaborating, networking website for programmers.
+**[View Live Preview](https://blackrockdigital.github.io/startbootstrap-agency/)**
 
-It is not "industrial quality", with an emphasis on allowing the novice user to be able to contribute to the code.
+## Status
 
-It is a work in progress and is not feature complete at this point, however it is usable as an educational tool.
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/BlackrockDigital/startbootstrap-agency/master/LICENSE)
+[![npm version](https://img.shields.io/npm/v/startbootstrap-agency.svg)](https://www.npmjs.com/package/startbootstrap-agency)
+[![Build Status](https://travis-ci.org/BlackrockDigital/startbootstrap-agency.svg?branch=master)](https://travis-ci.org/BlackrockDigital/startbootstrap-agency)
+[![dependencies Status](https://david-dm.org/BlackrockDigital/startbootstrap-agency/status.svg)](https://david-dm.org/BlackrockDigital/startbootstrap-agency)
+[![devDependencies Status](https://david-dm.org/BlackrockDigital/startbootstrap-agency/dev-status.svg)](https://david-dm.org/BlackrockDigital/startbootstrap-agency?type=dev)
 
-W3Develops has the following constraint: 
+## Download and Installation
 
-This initial version was put together in a couple of weeks as a solo Chingu Collabs, #100DaysofCode, freeCodeCamp project. 
+To begin using this template, choose one of the following options to get started:
+* [Download the latest release on Start Bootstrap](https://startbootstrap.com/template-overviews/agency/)
+* Install via npm: `npm i startbootstrap-agency`
+* Clone the repo: `git clone https://github.com/BlackrockDigital/startbootstrap-agency.git`
+* [Fork, Clone, or Download on GitHub](https://github.com/BlackrockDigital/startbootstrap-agency)
 
-Repo Overview
+## Usage
 
-    LICENSE -- MIT License
-    index.html -- 
-    README.md -- This File
-   
+### Basic Usage
 
-TODO
+After downloading, simply edit the HTML and CSS files included with the template in your favorite text editor to make changes. These are the only files you need to worry about, you can ignore everything else! To preview the changes you make to the code, you can open the `index.html` file in your web browser.
 
-    Make our own collab challenges
-    Fix bugs in the code
-    Refactor the group chat to be simpler
-    Start live code collabs via atom code editor
-    Come up with some labs for adding certain features.
-    More todos ;)
+### Advanced Usage
 
+After installation, run `npm install` and then run `gulp dev` which will open up a preview of the template in your default browser, watch for changes to core template files, and live reload the browser when changes are saved. You can view the `gulpfile.js` to see which tasks are included with the dev environment.
 
+#### Gulp Tasks
 
+- `gulp` the default task that builds everything
+- `gulp dev` browserSync opens the project in your default browser and live reloads when changes are made
+- `gulp css` compiles SCSS files into CSS and minifies the compiled CSS
+- `gulp js` minifies the themes JS file
+- `gulp vendor` copies dependencies from node_modules to the vendor directory
 
+You must have npm and Gulp installed globally on your machine in order to use these features.
 
+## Troubleshooting and Help
 
-Tasks:
+Start Bootstrap has a public Slack channel which is a great place to ask questions about this template and all things related to Start Bootstrap.
 
-For the job and internships section, I want to be able to simultaneously search all the job sites listed in our group files. and have filters for the newest jobs, freelance jobs, and filter which sites to search(if you want to search 1,2,3, or more).
+**[Click here to join the Slack channel!](https://startbootstrap-slack.herokuapp.com/)**
 
-I want to have our own messenger that's email like Protonmail and Facebook messanger mixed.
+## Bugs and Issues
 
-I want a question and answer forum like quora, stack exchange, and freecodecamps forum.
+Have a bug or an issue with this template? [Open a new issue](https://github.com/BlackrockDigital/startbootstrap-agency/issues) here on GitHub or leave a comment on the [template overview page at Start Bootstrap](http://startbootstrap.com/template-overviews/agency/).
 
-I want users to be able to customize the site and add their own features others can opt in to, kinda like Firefox plugins.
+## About
 
-I want the search bar to just be a magnifying glass to the left of the login/sign up button on the navigation bar. I want it to be like the one on developer.mozilla.org, where you click it and then it expands.
+Start Bootstrap is an open source library of free Bootstrap templates and themes. All of the free templates and themes on Start Bootstrap are released under the MIT license, which means you can use them for any purpose, even for commercial projects.
 
-I want the search bar to be able to search mozilla.developer.org and google.com and w3develops. with check boxes above the search bar that allow us to search results from just one or from all of those sites in one search.
+* https://startbootstrap.com
+* https://twitter.com/SBootstrap
 
-Courses and roadmaps will be a curated list of courses we have personally tried and succeeded using. roadmaps are lists of path beginners should follow to reach their path to becoming a professional.
+Start Bootstrap was created by and is maintained by **[David Miller](http://davidmiller.io/)**, Owner of [Blackrock Digital](http://blackrockdigital.io/).
 
-Web technologies will be a link to Mozilla developer.org's list of web technologies
+* http://davidmiller.io
+* https://twitter.com/davidmillerskt
+* https://github.com/davidtmiller
 
-We will have a meetup section, for scheduled online meetups and where people can host meetups for their state or territory in their country.
+Start Bootstrap is based on the [Bootstrap](http://getbootstrap.com/) framework created by [Mark Otto](https://twitter.com/mdo) and [Jacob Thorton](https://twitter.com/fat).
 
-Our team will be the names and pictures of everybody who helped build and maintain the site
+## Copyright and License
 
-references and guides will be like technologies and roadmaps, except instead of just web technologies references it will be all major programming languages and such. Also, the guides will be more about how to use the stuff unlike roadmaps which is just about which path to follow
-
-The sitemap should be the entire site laid out in laymen's terms so people can see how to use it, what it's about and where to go if they're looking for something
-
-I want to make the login page popout like the one on quora.com and also allow people to login via GitHub
-
-Tutorials will be websites like freecodecamp.org, cs50, a nano degree you've taken and can vouch for, and so on.
-
-Practice will be practice projects like the ones offered at Chingu where there are 3 tiers of web developer (beginner, intermediate, advanced) and the practice projects will reflect their skill level. This is, in essence, a variation of a build to learn project where users are learning through hands-on building(practice), team collaboration, and resources like freecodecamp at the same time.
-
-Projects will be categorized by programming languages and skill level and will be up to the members of our site to create and host on our site for other people to see and collaborate or ask to collaborate on.
-
-
-
-
-
-Pull requests welcome! Please keep in mind simplicity & teaching over correctness.
+Copyright 2013-2018 Blackrock Digital LLC. Code released under the [MIT](https://github.com/BlackrockDigital/startbootstrap-agency/blob/gh-pages/LICENSE) license.
