@@ -9,6 +9,7 @@
     			window.location.protocol = "https";
     	</script>
 
+    <script type="text/javascript" src="js/html_include.js"> </script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta content="IE=edge, chrome=1" http-equiv="X-UA-Compatible">
@@ -38,69 +39,11 @@
 
   <body id="page-top">
 
-    <!-- Navigation -->
+
+    <!-- Navigation Placeholder (see also: navigation.html) -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
-      <div class="container">
-        <a class="navbar-brand js-scroll-trigger" href="https://www.w3develops.org" >W3Develops</a>
-        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-          Menu
-          <i class="fa fa-bars"></i>
-        </button>
-        <div class="collapse navbar-collapse text-center" id="navbarResponsive">
-          <ul class="navbar-nav text-uppercase ml-auto">
-            <!--Community dropdown-->
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Community
-              </a>
-              <div class="dropdown-menu text-center" aria-labelledby="navbarDropdown">
-              <a class="dropdown-item" href="#" target="_blank" rel="noopener noreferrer">Local Devs</a>
-              <a class="dropdown-item" href="#" target="_blank" rel="noopener noreferrer">Meetups</a>
-              <a class="dropdown-item" href="https://gitter.im/w3develops" target="_blank" rel="noopener noreferrer">Chat</a>
-              <a class="dropdown-item" href="#" target="_blank" rel="noopener noreferrer">Forum</a>
-              <a class="dropdown-item" href="https://github.com/w3develops" target="_blank" rel="noopener noreferrer">Github</a>
-              <a class="dropdown-item" href="https://www.youtube.com/channel/UCCf9xpbgNEO0G1NdqhGvtjA" target="_blank" rel="noopener noreferrer">YouTube</a>
-              <a class="dropdown-item" href="https://www.facebook.com/groups/w3develops/" target="_blank" rel="noopener noreferrer">Facebook Group</a>
-              <a class="dropdown-item" href="https://www.instagram.com/w3develops/" target="_blank" rel="noopener noreferrer">Instagram</a>
-              <a class="dropdown-item" href="https://www.linkedin.com/company/w3develops" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-              <a class="dropdown-item" href="https://medium.com/w3develops" target="_blank" rel="noopener noreferrer">Medium</a>
-              <a class="dropdown-item" href="https://twitter.com/w3develops" target="_blank" rel="noopener noreferrer">Twitter</a>
-
-                <!--
-          <a class="dropdown-item" href="#" target="_blank" rel="noopener noreferrer">In Your City</a>
-          -->
-              </div>
-            </li>
-
-            <!--Map dropdown-->
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Map
-              </a>
-              <div class="dropdown-menu text-center" aria-labelledby="navbarDropdown">
-
-              <a class="dropdown-item" href="#">W3Develops Cohorts</a>
-              <a class="dropdown-item" href="#">Code Incubator<!--(Where people from past cohorts can start their own cohort and other can join)--></a>
-	      <a class="dropdown-item" href="#">Code Sprint</a>
-	      <a class="dropdown-item" href="#">FCC Speedrun</a>
-	      <a class="dropdown-item" href="#">Team Guides</a>
-              <a class="dropdown-item" href="#">Study Material</a>
-              <a class="dropdown-item" href="#">Scoreboards</a>
-              <a class="dropdown-item" href="#">About</a>
-
-              </div>
-            </li>
-
-            <li class="nav-item">
-              <a class="nav-link js-scroll-trigger" href="https://www.patreon.com/w3develops" target="_blank" rel="noopener noreferrer">DONATE</a>
-            </li>
-            <!--<li class="nav-item">
-              <a class="nav-link js-scroll-trigger" href="#">SIGN IN</a>
-            </li>-->
-          </ul>
-        </div>
-      </div>
     </nav>
+
 
     <!-- Header -->
     <header class="masthead">
@@ -864,6 +807,12 @@ w3develops@gmail.com
     <!-- Custom scripts for this template -->
     <script src="js/agency.min.js"></script>
 
+    <!-- Script for html_include -->
+    <script type="text/javascript">
+    window.onload = function() {
+        html_include("mainNav", "navigation.html");
+    }
+    </script>
   </body>
 
 </html>
