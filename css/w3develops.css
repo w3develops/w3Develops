@@ -1,0 +1,8 @@
+.hidden {
+    display: none;
+}
+
+section#services #btnHide{
+    margin:auto;
+    display:block;
+}
