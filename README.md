@@ -16,7 +16,7 @@ It is a work in progress and is not feature complete at this point, however it i
 
 W3Develops has the following constraint:
 
-This initial version was put together in a couple of weeks as a solo Chingu Collabs, #100DaysofCode, freeCodeCamp project.
+It's free so resources are sometimes stretched.
 
 Repo Overview
 
@@ -66,7 +66,7 @@ I want to make the login page popout like the one on quora.com and also allow pe
 
 Tutorials will be websites like freecodecamp.org, cs50, a nano degree you've taken and can vouch for, and so on.
 
-Practice will be practice projects like the ones offered at Chingu where there are 3 tiers of web developer (beginner, intermediate, advanced) and the practice projects will reflect their skill level. This is, in essence, a variation of a build to learn project where users are learning through hands-on building(practice), team collaboration, and resources like freecodecamp at the same time.
+Practice will be practice projects, where there are 3 tiers of web developer (beginner, intermediate, advanced) and the practice projects will reflect their skill level. This is, in essence, a variation of a build to learn project where users are learning through hands-on building(practice), team collaboration, and resources like freecodecamp at the same time.
 
 Projects will be categorized by programming languages and skill level and will be up to the members of our site to create and host on our site for other people to see and collaborate or ask to collaborate on.
 
