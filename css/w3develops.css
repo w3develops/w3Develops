@@ -16,8 +16,14 @@ iframe#googleForm {
     width:100%;
 }
 
-.dropdown-list.dropdown-list-item:hover,
-.dropdown-list.dropdown-list-item:focus,
-.dropdown-listn.dropdow-list-item:active {
+.dropdow-list.dropdow-list-item:hover {
+    color: #fed136;
+}
+
+.dropdow-list.dropdow-list-item:focus {
+    color: #fed136;
+}
+
+.dropdow-list.dropdow-list-item:active {
     color: #fed136;
 }
