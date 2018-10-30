@@ -21,3 +21,7 @@ iframe#googleForm {
 .dropdown-listn.dropdow-list-item:active {
     color: #fed136;
 }
+
+.col-md-4:hover {
+    color: #fec810 !important;
+}
