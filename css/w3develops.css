@@ -16,7 +16,7 @@ iframe#googleForm {
     width:100%;
 }
 
-.dropdow-list.dropdow-list-item:hover {
+.dropdow-list.dropdow-list-item.dropdown-menu:hover {
     color: #fed136;
 }
 
@@ -26,4 +26,7 @@ iframe#googleForm {
 
 .dropdow-list.dropdow-list-item:active {
     color: #fed136;
+}
+#navbarResponsive:hover{
+  color:red;
 }
