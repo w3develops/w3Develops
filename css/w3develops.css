@@ -2,25 +2,16 @@
     display: none;
 }
 
-section#services #btnHide {
-    margin: auto;
-    display: block;
+section#services #btnHide{
+    margin:auto;
+    display:block;
 }
 
 .black-background {
-    background-color: black !important;
+    background-color:black !important;
 }
 
 iframe#googleForm {
-    height: 800em;
-    width: 100%;
-}
-
-.dropdown-item:hover {
-    color: #fec503;
-}
-
-.dropdown-item:active {
-    background-color: #fec503;
-    color: #fff;
+    height:800em;
+    width:100%;
 }
