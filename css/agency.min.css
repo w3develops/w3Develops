@@ -99,7 +99,7 @@ img::-moz-selection {
 }
 
 #mainNav {
-  background-color:#222222;
+  background-color: #222222
 }
 
 #mainNav .navbar-toggler {
@@ -109,7 +109,7 @@ img::-moz-selection {
   text-transform: uppercase;
   color: #fff;
   border: 0;
-  background-color:#fed136;
+  background-color: #fed136;
   font-family: Montserrat, 'Helvetica Neue', Helvetica, Arial, sans-serif
 }
 
@@ -119,7 +119,7 @@ img::-moz-selection {
 }
 
 #mainNav .navbar-brand.active, #mainNav .navbar-brand:active, #mainNav .navbar-brand:focus, #mainNav .navbar-brand:hover {
-  color: #fec503;
+  color: #fec503
 }
 
 #mainNav .navbar-nav .nav-item .nav-link {
@@ -131,14 +131,8 @@ img::-moz-selection {
   font-family: Montserrat, 'Helvetica Neue', Helvetica, Arial, sans-serif
 }
 
-#mainNav .navbar-nav .nav-item .nav-link.active{
-  color: #fed136;
-}
-#mainNav .navbar-nav .nav-item .nav-link:hover {
-  color:#fed136;
-}
-.dropdown-item:hover{
-  background-color:#fec503;
+#mainNav .navbar-nav .nav-item .nav-link.active, #mainNav .navbar-nav .nav-item .nav-link:hover {
+  color: #fed136
 }
 
 @media (min-width:992px) {
@@ -149,7 +143,7 @@ img::-moz-selection {
     -moz-transition: padding-top .3s, padding-bottom .3s;
     transition: padding-top .3s, padding-bottom .3s;
     border: none;
-    background-color:transparent;
+    background-color: transparent
   }
   #mainNav .navbar-brand {
     font-size: 1.75em;
@@ -163,11 +157,11 @@ img::-moz-selection {
   #mainNav.navbar-shrink {
     padding-top: 0;
     padding-bottom: 0;
-    background-color: #212529;
+    background-color: #212529
   }
   #mainNav.navbar-shrink .navbar-brand {
     font-size: 1.25em;
-    padding: 12px 0;
+    padding: 12px 0
   }
 }
 

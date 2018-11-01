@@ -103,7 +103,7 @@ img::-moz-selection {
 }
 
 #mainNav {
-  background-color: red;
+  background-color: #212529;
 }
 
 #mainNav .navbar-toggler {
@@ -113,7 +113,7 @@ img::-moz-selection {
   text-transform: uppercase;
   color: white;
   border: 0;
-  background-color:red;
+  background-color: #fed136;
   font-family: 'Montserrat', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
@@ -148,9 +148,6 @@ img::-moz-selection {
     transition: padding-top 0.3s, padding-bottom 0.3s;
     border: none;
     background-color: transparent;
-  }
-  #mainNav ul{
-    color:red;
   }
   #mainNav .navbar-brand {
     font-size: 1.75em;
