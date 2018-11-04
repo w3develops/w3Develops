@@ -1,16 +1,5 @@
-<p align="center">
 [![first-timers-only Friendly](https://img.shields.io/badge/first--timers--only-friendly-blue.svg)](http://www.firsttimersonly.com/)
 [![Pull Requests Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](http://makeapullrequest.com)
-<a href="https://github.com/badges/shields/compare/gh-pages...master">
-        <img src="https://img.shields.io/github/commits-since/badges/shields/gh-pages.svg?label=commits%20to%20be%20deployed"
-            alt="commits to be deployed"></a>
-    <a href="https://discord.gg/ckQ52gA">
-        <img src="https://img.shields.io/discord/308323056592486420.svg?logo=discord"
-            alt="chat on Discord"></a>
-    <a href="https://twitter.com/intent/follow?screen_name=w3develops">
-        <img src="https://img.shields.io/twitter/follow/shields_io.svg?style=social&logo=twitter"
-            alt="follow on Twitter"></a>
-</p>
 
 
 # Welcome to W3Develops' open source codebase
