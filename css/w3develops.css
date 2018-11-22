@@ -22,6 +22,9 @@ nav#mainNav .dropdown-item.dropdown-list-item:active {
     background-color: #fed136;
 }
 
+.txt-gray{
+    color: #ddd !important;
+}
 
 .footer{
     background-color: #DDDDDD;
