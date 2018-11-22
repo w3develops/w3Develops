@@ -21,3 +21,28 @@ nav#mainNav .dropdown-item.dropdown-list-item:focus,
 nav#mainNav .dropdown-item.dropdown-list-item:active {
     background-color: #fed136;
 }
+
+
+.footer{
+    background-color: #DDDDDD;
+    background-image: url('../img/cover_4_blur.jpg');
+    background-attachment: fixed;
+    position: relative;
+}
+.heart{
+    color: #FF3B30;
+}
+.footer .overlayer{
+    background-color: rgba(27, 27, 27, 0.7);
+    position: relative;
+}
+.footer .credits {
+    margin-top: 25px;
+    padding: 20px 0 15px;
+    text-align: center;
+    color: #EEE;
+}
+.footer .credits a{
+    color: #FFFFFF;
+}
+
