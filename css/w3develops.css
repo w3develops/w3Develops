@@ -46,3 +46,7 @@ nav#mainNav .dropdown-item.dropdown-list-item:active {
     color: #FFFFFF;
 }
 
+.fa-heart:before {
+  content: "\f004";
+}
+
