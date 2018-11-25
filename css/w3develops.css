@@ -24,7 +24,6 @@ nav#mainNav .dropdown-item.dropdown-list-item:active {
 
 .footer{
     background-color: #DDDDDD;
-    background-image: url('../img/cover_4_blur.jpg');
     background-attachment: fixed;
     position: relative;
 }
@@ -48,4 +47,3 @@ nav#mainNav .dropdown-item.dropdown-list-item:active {
 .fa-heart:before {
   content: "\f004";
 }
-
