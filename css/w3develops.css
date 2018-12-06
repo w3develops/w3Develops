@@ -35,7 +35,6 @@ nav#mainNav .dropdown-item.dropdown-list-item:active {
     position: relative;
 }
 .footer .credits {
-    margin-top: 25px;
     padding: 20px 0 15px;
     text-align: center;
     color: #EEE;
@@ -45,5 +44,5 @@ nav#mainNav .dropdown-item.dropdown-list-item:active {
 }
 
 .fa-heart:before {
-  content: "\f004";
+    content: "\f004";
 }

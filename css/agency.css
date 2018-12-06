@@ -642,29 +642,32 @@ section#contact :-ms-input-placeholder {
   font-family: Montserrat, 'Helvetica Neue', Helvetica, Arial, sans-serif
 }
 
-footer {
-  padding: 25px 0;
+
+.footer {
   text-align: center
 }
 
-footer span.copyright {
+.footer span.copyright {
   font-size: 90%;
   line-height: 40px;
   text-transform: none;
   font-family: Montserrat, 'Helvetica Neue', Helvetica, Arial, sans-serif
 }
 
-footer ul.quicklinks {
+.footer ul.quicklinks {
+  width:fit-content;
+  margin: 10px auto;
   font-size: 90%;
   line-height: 40px;
-  margin-bottom: 0;
   text-transform: none;
   font-family: Montserrat, 'Helvetica Neue', Helvetica, Arial, sans-serif
 }
 
 ul.social-buttons {
-  margin-bottom: 0
+  margin: 10px auto;
+  width: fit-content;
 }
+
 
 ul.social-buttons li a {
   font-size: 20px;

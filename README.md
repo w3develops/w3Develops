@@ -41,9 +41,9 @@ Tasks:
 
 For the job and internships section, I want to be able to simultaneously search all the job sites listed in our group files. and have filters for the newest jobs, freelance jobs, and filter which sites to search(if you want to search 1,2,3, or more).
 
-I want to have our own messenger that's email like Protonmail and Facebook messanger mixed.
+I want to have our own messenger that's email like Protonmail and Facebook messenger mixed.
 
-I want a question and answer forum like quora, stack exchange, and freecodecamps forum.
+I want a question and answer forum like Quora, Stack Exchange, and freecodecamps forum.
 
 I want users to be able to customize the site and add their own features others can opt in to, kinda like Firefox plugins.
 
