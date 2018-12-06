@@ -291,6 +291,9 @@ header.masthead .intro-text .intro-heading {
   margin: 0;
   font-family: 'Droid Serif', 'Helvetica Neue', Helvetica, Arial, sans-serif
 }
+#portfolio .portfolio-item .portfolio-caption a{
+  margin-top: 10px;
+}
 
 #portfolio * {
   z-index: 2
