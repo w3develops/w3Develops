@@ -21,9 +21,17 @@ It's free so resources are sometimes stretched.
 
 Repo Overview
 
-    LICENSE -- MIT License
+    LICENSE -- BSD 3
     index.html --
     README.md -- This File
+    navigation.html -- 
+    contributors.html -- 
+    apply.html -- 
+    CODE_OF_CONDUCT.md -- 
+    js -- 
+    img -- 
+    css -- 
+    dev -- our open source source social network 
 
 
 TODO
@@ -31,7 +39,7 @@ TODO
     Make our own collab challenges
     Fix bugs in the code
     Refactor the group chat to be simpler
-    Start live code collabs via atom code editor
+    Start live code collabs via atom, vscode, fiddle, etc.
     Come up with some labs for adding certain features.
     More todos ;)
 
