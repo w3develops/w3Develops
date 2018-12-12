@@ -7,7 +7,7 @@
 
 The w3develops source codebase. Learn to code. Meet new people. Collaborate on more projects
 
-What is W3Develops?
+## What is W3Develops?
 
 The goal of W3Develops is to provide a simple learning, collaborating, networking website for programmers.
 
