@@ -1,3 +1,6 @@
+[![UNA Official Website](https://img.shields.io/badge/website-una.io-blue.svg)](https://w3develops.org)
+[![license](https://img.shields.io/github/license/unaio/una.svg)](https://github.com/unaio/una/blob/master/license.txt)
+
 [![first-timers-only Friendly](https://img.shields.io/badge/first--timers--only-friendly-blue.svg)](http://www.firsttimersonly.com/)
 [![Pull Requests Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](http://makeapullrequest.com)
 [![Discord Chat](https://img.shields.io/badge/chat-online-green.svg?logo=discord)](https://discord.gg/ckQ52gA)
