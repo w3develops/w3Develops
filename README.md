@@ -1,4 +1,4 @@
-![freeCodeCamp Social Banner](https://imgur.com/RUxbr2g)
+![freeCodeCamp Social Banner](https://imgur.com/RUxbr2g) ![alt text](https://imgur.com/RUxbr2g.png)
 [![first-timers-only Friendly](https://img.shields.io/badge/first--timers--only-friendly-blue.svg)](http://www.firsttimersonly.com/)
 [![Pull Requests Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](http://makeapullrequest.com)
 [![Discord Chat](https://img.shields.io/badge/chat-online-green.svg?logo=discord)](https://discord.gg/ckQ52gA)
