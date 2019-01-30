@@ -2,9 +2,6 @@
 
 
 <p align="center">
-  <a href="https://github.com/sindresorhus/awesome">
-    <img alt="Awesome" src="https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg">
-  </a>
 	  <a href="http://www.firsttimersonly.com/">
     <img alt="First Timers Only Friendly" src="https://img.shields.io/badge/first--timers--only-friendly-blue.svg">
   	 </a>
@@ -17,6 +14,9 @@
   </a>
   <a href="https://www.patreon.com/w3develops">
 	<img alt="Contribute with w3Develops on Patreon" src="https://img.shields.io/badge/Patreon-contribute-yellow.svg">
+  </a>
+   <a href="https://github.com/sindresorhus/awesome">
+    <img alt="Awesome" src="https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg">
   </a>
 </p>
 
