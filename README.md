@@ -1,16 +1,16 @@
 ![w3Develops Social Banner](https://imgur.com/RUxbr2g.png)
 [![first-timers-only Friendly](https://img.shields.io/badge/first--timers--only-friendly-blue.svg)](http://www.firsttimersonly.com/)
 [![Pull Requests Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](http://makeapullrequest.com)
-[![Discord Chat](https://img.shields.io/badge/chat-online-green.svg?logo=discord)](https://discord.gg/ckQ52gA)
+[![Discord Chat]()]()
 <p align="center">
   <a href="https://github.com/sindresorhus/awesome">
     <img alt="Awesome" src="https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg">
   </a>
-  <a href="https://github.com/ossu/computer-science">
-	<img alt="Open Source Society University - Computer Science" src="https://img.shields.io/badge/OSSU-computer--science-blue.svg">
+  <a href="https://discord.gg/ckQ52gA">
+	<img alt="Discord Chat" src="https://img.shields.io/badge/chat-online-green.svg?logo=discord">
   </a>
-  <a href="https://www.patreon.com/ossu">
-	<img alt="Contribute with OSSU on Patreon" src="https://img.shields.io/badge/Patreon-contribute-yellow.svg">
+  <a href="https://www.patreon.com/w3develops">
+	<img alt="Contribute with w3Develops on Patreon" src="https://img.shields.io/badge/Patreon-contribute-yellow.svg">
   </a>
 </p>
 
