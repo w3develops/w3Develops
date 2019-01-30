@@ -1,11 +1,17 @@
 ![w3Develops Social Banner](https://imgur.com/RUxbr2g.png)
-[![first-timers-only Friendly](https://img.shields.io/badge/first--timers--only-friendly-blue.svg)](http://www.firsttimersonly.com/)
-[![Pull Requests Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](http://makeapullrequest.com)
-[![Discord Chat]()]()
+
+
 <p align="center">
   <a href="https://github.com/sindresorhus/awesome">
     <img alt="Awesome" src="https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg">
   </a>
+	  <a href="http://www.firsttimersonly.com/">
+    <img alt="First Timers Only Friendly" src="https://img.shields.io/badge/first--timers--only-friendly-blue.svg">
+  	 </a>
+	  <a href="http://makeapullrequest.com">
+    <img alt="Pull Requests Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat">
+  	  </a>
+	
   <a href="https://discord.gg/ckQ52gA">
 	<img alt="Discord Chat" src="https://img.shields.io/badge/chat-online-green.svg?logo=discord">
   </a>
