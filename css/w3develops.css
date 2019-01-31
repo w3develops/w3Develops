@@ -46,3 +46,23 @@ nav#mainNav .dropdown-item.dropdown-list-item:active {
 .fa-heart:before {
     content: "\f004";
 }
+
+.label1:after{
+    display: block;
+    white-space: pre;
+    content:'Learn code \A (study groups)';
+}
+.label1:hover:after{
+    display: block;
+    content:'APPLY to a \A learning group';
+}
+
+.label2:after{
+    display: block;
+    white-space: pre;
+    content:'build projects \A (remote teams)';
+}
+.label2:hover:after{
+    display: block;
+    content:'APPLY to a \A Cohort';
+}
