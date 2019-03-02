@@ -1,0 +1,4 @@
+This is a Brave Rewards publisher verification file.
+
+Domain: w3develops.org
+Token: 47ba72ffc39e27c97d3f65f7f665d437a02aa926404aa48a892b167715820d9c
