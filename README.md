@@ -18,6 +18,12 @@
    <a href="https://github.com/sindresorhus/awesome">
     <img alt="Awesome" src="https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg">
   </a>
+  <a href="#backers">
+    <img alt="Backers on Open Collective" src="https://opencollective.com/w3develops-94/backers/badge.svg">
+  </a>
+  <a href="#sponsors">
+    <img alt="Sponsors on Open Collective" src="https://opencollective.com/w3develops-94/sponsors/badge.svg">
+  </a>
 </p>
 
 # Welcome to W3Develops' open source codebase
@@ -101,3 +107,33 @@ Projects will be categorized by programming languages and skill level and will b
 
 
 Pull requests welcome! Please keep in mind simplicity & teaching over correctness.
+
+## Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/w3develops/w3develops/graphs/contributors"><img src="https://opencollective.com/w3develops-94/contributors.svg?width=890&button=false" /></a>
+
+
+## Backers
+
+Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/w3develops-94#backer)]
+
+<a href="https://opencollective.com/w3develops-94#backers" target="_blank"><img src="https://opencollective.com/w3develops-94/backers.svg?width=890"></a>
+
+
+## Sponsors
+
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/w3develops-94#sponsor)]
+
+<a href="https://opencollective.com/w3develops-94/sponsor/0/website" target="_blank"><img src="https://opencollective.com/w3develops-94/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/w3develops-94/sponsor/1/website" target="_blank"><img src="https://opencollective.com/w3develops-94/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/w3develops-94/sponsor/2/website" target="_blank"><img src="https://opencollective.com/w3develops-94/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/w3develops-94/sponsor/3/website" target="_blank"><img src="https://opencollective.com/w3develops-94/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/w3develops-94/sponsor/4/website" target="_blank"><img src="https://opencollective.com/w3develops-94/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/w3develops-94/sponsor/5/website" target="_blank"><img src="https://opencollective.com/w3develops-94/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/w3develops-94/sponsor/6/website" target="_blank"><img src="https://opencollective.com/w3develops-94/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/w3develops-94/sponsor/7/website" target="_blank"><img src="https://opencollective.com/w3develops-94/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/w3develops-94/sponsor/8/website" target="_blank"><img src="https://opencollective.com/w3develops-94/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/w3develops-94/sponsor/9/website" target="_blank"><img src="https://opencollective.com/w3develops-94/sponsor/9/avatar.svg"></a>
+
+
