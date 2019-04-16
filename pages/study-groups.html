@@ -82,12 +82,19 @@
             <h2 class="section-heading">Study Groups</h2>
           </div>
           <div class="col-lg-12 text-center">
-            <h3 class="section-subheading text-muted">This Is What we Do: </h3>
+            <h3 class="section-subheading text-muted">more</h3>
           </div>
         </div>
       </div>
+    
+    <!-- where the group lists are attached -->
+    <section class="bg-light-gray">
+      <div class="container" class="bg-light-gray">
+        <div id="study-groups" class="row" class="bg-dark-gray">
+        </div>
+      </div>
       
-      <div id="study-groups" class="container">
+      <div class="container">
         <div class="row">
           <div class="col text-center">
             <button class="btn btn-primary btn-xl text-uppercase" type="submit">
@@ -221,15 +228,7 @@
                   ${arr[i]}
                 </li>
                 `;
-                htmlString = 
-                `
-                <figure>
-                <figcaption>${arr[0]}</figcaption>
-                  <ul>
-                    ${liString}
-                  </ul>
-                </figure>
-                `;
+                htmlString = makeHTMLString(arr[0], liString);
                 selector.insertAdjacentHTML('beforeend', htmlString);
                 htmlString = '';
                 liString = '';
@@ -259,19 +258,28 @@
                 `;
               }
     
-              htmlString = 
-                `
-                <figure>
-                <figcaption>${arr[0]}</figcaption>
-                  <ul>
-                    ${liString}
-                  </ul>
-                </figure>
-                `;
+              htmlString = makeHTMLString(arr[0], liString);
             }
     
             selector.insertAdjacentHTML('beforeend', htmlString);
           }
+        }
+
+        function makeHTMLString(title, listString) {
+          let html =
+            `
+            <div class="col-sm-12 col-md-4">
+              <div class="card bg-info mb-2">
+                <div class="card-body text-center">
+                  <h5 class="card-title">${title}</h5>
+                  <ul>
+                    ${listString}
+                  </ul>
+                </div>
+              </div>
+            </div>
+            `;
+          return html;
         }
     
         async function grabGroup(link) {
