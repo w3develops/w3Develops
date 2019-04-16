@@ -64,26 +64,30 @@
       <div class="container">
         <div class="intro-text">
           <div class="intro-lead-in">
-            Code projects for free globally with remote teams
+            Study code for free globally with remote teams
           </div>
 
           <div class="intro-heading text-uppercase">
-            Learn, Build, Meetup, Get the Job!
+            Check below for this month's study groups!
           </div>
         </div>
       </div>
     </header>
 
-	  <!-- Team Section -->
-    <section id="fred" class="bg-light-gray">
-      <div class="container">
+	  <!-- Groups Section -->
+    <section class="bg-light-gray">
+      <div id="study-groups" class="container">
         <div class="row">
           <div class="col-lg-12 text-center">
-            <h2 class="section-heading">About</h2>
+            <h2 class="section-heading">Study Groups</h2>
+          </div>
+          <div class="col-lg-12 text-center">
             <h3 class="section-subheading text-muted">This Is What we Do: </h3>
           </div>
         </div>
-        
+      </div>
+      
+      <div id="study-groups" class="container">
         <div class="row">
           <div class="col text-center">
             <button class="btn btn-primary btn-xl text-uppercase" type="submit">
@@ -93,7 +97,7 @@
         </div>
       </div>
     </section>
-    
+
     <!-- Footer -->
     <div class="footer">
       <div class="overlayer">
@@ -121,6 +125,293 @@
 
     <!-- Custom scripts for this template -->
     <script src="../js/agency.js"></script>
+
+    <!-- Script to sort study groups-->
+    <script>
+        // TODO: need to break this into modules rather than one long file
+    
+        // TODO: do we need to hide the links to the page?
+        // private key stuff - check into this
+        // write up a blog post about this procedure - reference other websites:
+        // https://coderwall.com/p/duapqq/use-a-google-spreadsheet-as-your-json-backend
+        // https://stackoverflow.com/questions/24531351/retrieve-google-spreadsheet-worksheet-json
+        const studyLink = 'https://spreadsheets.google.com/feeds/list/1PMWsPEfHFC6myMwhdidyr2hhRK5ZA-JrDQzwRoDTFaw/oua1i2d/public/values?alt=json-in-script&callback=text';
+        const buildLink = 'https://spreadsheets.google.com/feeds/list/1PMWsPEfHFC6myMwhdidyr2hhRK5ZA-JrDQzwRoDTFaw/oua1i2d/public/values?alt=json-in-script&callback=text';
+
+        const studySelector = document.querySelector('#study-groups');
+        const buildSelector = document.querySelector('#build-groups');
+    
+        const htmlFull12am = ['HTML & CSS - Full Time - 12AM'];
+        const htmlFull6am = ['HTML & CSS - Full Time - 6AM'];
+        const htmlFull12pm = ['HTML & CSS - Full Time - 12PM'];
+        const htmlFull6pm = ['HTML & CSS - Full Time - 6PM'];
+        const htmlPart12am = ['HTML & CSS - Part Time - 12AM'];
+        const htmlPart6am = ['HTML & CSS - Part Time - 6AM'];
+        const htmlPart12pm = ['HTML & CSS - Part Time - 12PM'];
+        const htmlPart6pm = ['HTML & CSS - Part Time - 6PM'];
+    
+        const jsFull12am = ['JavaScript - Full Time - 12AM'];
+        const jsFull6am = ['JavaScript - Full Time - 6AM'];
+        const jsFull12pm = ['JavaScript - Full Time - 12PM'];
+        const jsFull6pm = ['JavaScript - Full Time - 6PM'];
+        const jsPart12am = ['JavaScript - Full Time - 12AM'];
+        const jsPart6am = ['JavaScript - Full Time - 6AM'];
+        const jsPart12pm = ['JavaScript - Full Time - 12PM'];
+        const jsPart6pm = ['JavaScript - Full Time - 6PM'];
+    
+        const reactFull12am = ['React - Full Time - 12AM'];
+        const reactFull6am = ['React - Full Time - 6AM'];
+        const reactFull12pm = ['React - Full Time - 12PM'];
+        const reactFull6pm = ['React - Full Time - 6PM'];
+        const reactPart12am = ['React - Full Time - 12AM'];
+        const reactPart6am = ['React - Full Time - 6AM'];
+        const reactPart12pm = ['React - Full Time - 12PM'];
+        const reactPart6pm = ['React - Full Time - 6PM'];
+    
+        appendGroups();
+        
+        async function appendGroups() {
+          const groupsList = await Promise.all([grabGroup(studyLink), grabGroup(buildLink)]);
+          const study = groupsList[0];
+          const build = groupsList[1];
+    
+          sortPeople(study);
+          createUL(htmlFull12am, studySelector);
+          createUL(htmlFull6am, studySelector);
+          createUL(htmlFull12pm, studySelector);
+          createUL(htmlFull6pm, studySelector);
+          createUL(htmlPart12am, studySelector);
+          createUL(htmlPart6am, studySelector);
+          createUL(htmlPart12pm, studySelector);
+          createUL(htmlPart6pm, studySelector);
+    
+          createUL(jsFull12am, studySelector);
+          createUL(jsFull6am, studySelector);
+          createUL(jsFull12pm, studySelector);
+          createUL(jsFull6pm, studySelector);
+          createUL(jsPart12am, studySelector);
+          createUL(jsPart6am, studySelector);
+          createUL(jsPart12pm, studySelector);
+          createUL(jsPart6pm, studySelector);
+    
+          createUL(reactFull12am, studySelector);
+          createUL(reactFull6am, studySelector);
+          createUL(reactFull12pm, studySelector);
+          createUL(htmlFull6pm, studySelector);
+          createUL(reactPart12am, studySelector);
+          createUL(reactPart6am, studySelector);
+          createUL(reactPart12pm, studySelector);
+          createUL(reactPart6pm, studySelector);
+    
+          // function to pass study group arrays to build strings of html that 
+          // are unorderlists of group participants 
+          function createUL(arr, selector) {
+            // conditional to create new list once 6 are in a list
+            let label = arr[0];
+            let len = arr.length;
+    
+            let htmlString = '';
+            let liString = '';
+    
+             for (let i = 1; i < len; i++) {
+              if (i % 6 === 0) {
+                liString +=
+                `
+                <li>
+                  ${arr[i]}
+                </li>
+                `;
+                htmlString = 
+                `
+                <figure>
+                <figcaption>${arr[0]}</figcaption>
+                  <ul>
+                    ${liString}
+                  </ul>
+                </figure>
+                `;
+                selector.insertAdjacentHTML('beforeend', htmlString);
+                htmlString = '';
+                liString = '';
+              // isn't working quite right yet on exactly 6 items makes another group
+              // if len > 6 then it doesn't do the open thing
+              // need another variable
+              }else if (i === len - 1 && (len - 1) % 6 !== 0) {
+                liString +=
+                `
+                <li>
+                  ${arr[i]}
+                </li>
+                `;
+                for (let j = 0; j < 7 - len; j++) {
+                  liString += 
+                  `<li>
+                    open
+                  </li>
+                  `;
+                }
+              }else {
+                liString +=
+                `
+                <li>
+                  ${arr[i]}
+                </li>
+                `;
+              }
+    
+              htmlString = 
+                `
+                <figure>
+                <figcaption>${arr[0]}</figcaption>
+                  <ul>
+                    ${liString}
+                  </ul>
+                </figure>
+                `;
+            }
+    
+            selector.insertAdjacentHTML('beforeend', htmlString);
+          }
+        }
+    
+        async function grabGroup(link) {
+          try {
+            let res = await fetch(link,
+              { headers: {'Content-Type': 'text/plain; charset=utf-8'} });
+            let text = await res.text();
+            let sheetText = await text.replace('// API callback\ntext(', '')
+                                      .replace(');', '');
+            let groupObj = await JSON.parse(sheetText);
+
+            let groupArr = await groupObj.feed.entry;
+            // console.log('groupArr', groupArr);
+            return groupArr;
+          } catch(err) {
+              console.log('error', err);
+              alert('sorry, we have no bananas.')
+            }
+        }
+
+        // async function newParse(json) {
+        //   let newArr = [];
+        //   for (let key in json.feed.entry) {
+        //     let newObj = {};
+        //     newObj.beginning = json.feed.entry[key].gsx$beginning.$t;
+        //     newObj.name = json.feed.entry[key].gsx$username.$t;
+        //     newObj.commitment = json.feed.entry[key].gsx$commitment.$t;
+        //     newObj.technology = json.feed.entry[key].gsx$technology.$t;
+        //     newArr.push(newObj);
+        //   }
+        //   console.log('newArr', newArr);
+        // }
+    
+        function sortPeople(people) {
+          // this giant conditional sort feels really really hacky
+          // TODO: find a better way to sort/filter the users
+          people.forEach((person) => {
+            if (person.gsx$technology.$t === 'HTML & CSS'
+                && person.gsx$commitment.$t === 'full time - 6 hours a day'
+                && person.gsx$beginning.$t === '12 am') {
+              htmlFull12am.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'HTML & CSS'
+                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
+                      && person.gsx$beginning.$t === '6 am') {
+              htmlFull6am.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'HTML & CSS'
+                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
+                      && person.gsx$beginning.$t === '12 pm') {
+              htmlFull12pm.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'HTML & CSS'
+                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
+                      && person.gsx$beginning.$t === '6 pm') {
+              htmlFull6pm.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'HTML & CSS'
+                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
+                      && person.gsx$beginning.$t === '12 am') {
+              htmlPart12am.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'HTML & CSS'
+                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
+                      && person.gsx$beginning.$t === '6 am') {
+              htmlPart6am.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'HTML & CSS'
+                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
+                      && person.gsx$beginning.$t === '12 pm') {
+              htmlPart12pm.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'HTML & CSS'
+                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
+                      && person.gsx$beginning.$t === '6 pm') {
+              htmlFull6pm.push(person.gsx$username.$t);
+            }
+            if (person.gsx$technology.$t === 'JavaScript'
+                && person.gsx$commitment.$t === 'full time - 6 hours a day'
+                && person.gsx$beginning.$t === '12 am') {
+              jsFull12am.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'JavaScript'
+                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
+                      && person.gsx$beginning.$t === '6 am') {
+              jsFull6am.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'JavaScript'
+                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
+                      && person.gsx$beginning.$t === '12 pm') {
+              jsFull12pm.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'JavaScript'
+                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
+                      && person.gsx$beginning.$t === '6 pm') {
+              jsFull6pm.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'JavaScript'
+                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
+                      && person.gsx$beginning.$t === '12 am') {
+              jsPart12am.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'JavaScript'
+                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
+                      && person.gsx$beginning.$t === '6 am') {
+              jsPart6am.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'JavaScript'
+                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
+                      && person.gsx$beginning.$t === '12 pm') {
+              jsPart12pm.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'JavaScript'
+                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
+                      && person.gsx$beginning.$t === '6 pm') {
+              jsFull6pm.push(person.gsx$username.$t);
+            }
+            if (person.gsx$technology.$t === 'React'
+                && person.gsx$commitment.$t === 'full time - 6 hours a day'
+                && person.gsx$beginning.$t === '12 am') {
+              reactFull12am.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'React'
+                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
+                      && person.gsx$beginning.$t === '6 am') {
+              reactFull6am.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'React'
+                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
+                      && person.gsx$beginning.$t === '12 pm') {
+              reactFull12pm.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'React'
+                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
+                      && person.gsx$beginning.$t === '6 pm') {
+              reactFull6pm.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'React'
+                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
+                      && person.gsx$beginning.$t === '12 am') {
+              reactPart12am.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'React'
+                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
+                      && person.gsx$beginning.$t === '6 am') {
+              reactPart6am.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'React'
+                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
+                      && person.gsx$beginning.$t === '12 pm') {
+              reactPart12pm.push(person.gsx$username.$t);
+            }else if (person.gsx$technology.$t === 'React'
+                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
+                      && person.gsx$beginning.$t === '6 pm') {
+              reactFull6pm.push(person.gsx$username.$t);
+            }
+          });
+        }
+    
+      </script>
 
     <!-- Script for html_include -->
     <script type="text/javascript">
