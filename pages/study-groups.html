@@ -66,9 +66,10 @@
           <div class="intro-lead-in">
             Study code for free globally with remote teams
           </div>
-
+          <br>
+          <br>
           <div class="intro-heading text-uppercase">
-            Check below for this month's study groups!
+            Check below for this month's study groups
           </div>
         </div>
       </div>
@@ -81,19 +82,15 @@
           <div class="col-lg-12 text-center">
             <h2 class="section-heading">Study Groups</h2>
           </div>
-          <div class="col-lg-12 text-center">
-            <h3 class="section-subheading text-muted">more</h3>
-          </div>
         </div>
       </div>
     
     <!-- where the group lists are attached -->
-    <section class="bg-light-gray">
-      <div class="container" class="bg-light-gray">
-        <div id="study-groups" class="row" class="bg-dark-gray">
-        </div>
+    <section>
+      <div id="study-groups" class="container" class="bg-dark">
       </div>
       
+      <!-- return to home page -->
       <div class="container">
         <div class="row">
           <div class="col text-center">
@@ -178,243 +175,324 @@
         appendGroups();
         
         async function appendGroups() {
-          const groupsList = await Promise.all([grabGroup(studyLink), grabGroup(buildLink)]);
-          const study = groupsList[0];
-          const build = groupsList[1];
-    
-          sortPeople(study);
-          createUL(htmlFull12am, studySelector);
-          createUL(htmlFull6am, studySelector);
-          createUL(htmlFull12pm, studySelector);
-          createUL(htmlFull6pm, studySelector);
-          createUL(htmlPart12am, studySelector);
-          createUL(htmlPart6am, studySelector);
-          createUL(htmlPart12pm, studySelector);
-          createUL(htmlPart6pm, studySelector);
-    
-          createUL(jsFull12am, studySelector);
-          createUL(jsFull6am, studySelector);
-          createUL(jsFull12pm, studySelector);
-          createUL(jsFull6pm, studySelector);
-          createUL(jsPart12am, studySelector);
-          createUL(jsPart6am, studySelector);
-          createUL(jsPart12pm, studySelector);
-          createUL(jsPart6pm, studySelector);
-    
-          createUL(reactFull12am, studySelector);
-          createUL(reactFull6am, studySelector);
-          createUL(reactFull12pm, studySelector);
-          createUL(htmlFull6pm, studySelector);
-          createUL(reactPart12am, studySelector);
-          createUL(reactPart6am, studySelector);
-          createUL(reactPart12pm, studySelector);
-          createUL(reactPart6pm, studySelector);
-    
-          // function to pass study group arrays to build strings of html that 
-          // are unorderlists of group participants 
-          function createUL(arr, selector) {
-            // conditional to create new list once 6 are in a list
-            let label = arr[0];
-            let len = arr.length;
-    
-            let htmlString = '';
-            let liString = '';
-    
-             for (let i = 1; i < len; i++) {
-              if (i % 6 === 0) {
-                liString +=
-                `
-                <li>
-                  ${arr[i]}
-                </li>
-                `;
-                htmlString = makeHTMLString(arr[0], liString);
-                selector.insertAdjacentHTML('beforeend', htmlString);
-                htmlString = '';
-                liString = '';
-              // isn't working quite right yet on exactly 6 items makes another group
-              // if len > 6 then it doesn't do the open thing
-              // need another variable
-              }else if (i === len - 1 && (len - 1) % 6 !== 0) {
-                liString +=
-                `
-                <li>
-                  ${arr[i]}
-                </li>
-                `;
-                for (let j = 0; j < 7 - len; j++) {
-                  liString += 
-                  `<li>
-                    open
+          try {
+            const groupsList = await Promise.all([grabGroup(studyLink), grabGroup(buildLink)]);
+            const study = groupsList[0];
+            const build = groupsList[1];
+      
+            sortPeople(study);
+            createUL(htmlFull12am, studySelector);
+            createUL(htmlFull6am, studySelector);
+            createUL(htmlFull12pm, studySelector);
+            createUL(htmlFull6pm, studySelector);
+            createUL(htmlPart12am, studySelector);
+            createUL(htmlPart6am, studySelector);
+            createUL(htmlPart12pm, studySelector);
+            createUL(htmlPart6pm, studySelector);
+      
+            createUL(jsFull12am, studySelector);
+            createUL(jsFull6am, studySelector);
+            createUL(jsFull12pm, studySelector);
+            createUL(jsFull6pm, studySelector);
+            createUL(jsPart12am, studySelector);
+            createUL(jsPart6am, studySelector);
+            createUL(jsPart12pm, studySelector);
+            createUL(jsPart6pm, studySelector);
+      
+            createUL(reactFull12am, studySelector);
+            createUL(reactFull6am, studySelector);
+            createUL(reactFull12pm, studySelector);
+            createUL(reactFull6pm, studySelector);
+            createUL(reactPart12am, studySelector);
+            createUL(reactPart6am, studySelector);
+            createUL(reactPart12pm, studySelector);
+            createUL(reactPart6pm, studySelector);
+      
+            // function to pass study group arrays to build strings of html that 
+            // are unorderedlists of group participants
+            function createUL(arr, selector) {
+              const label = arr[0];
+              const len = arr.length;
+              
+              let htmlString = '';
+              let liString = '';
+              
+              let ulArr = [];
+              
+              for (let i = 1; i < len; i++) {
+                if (i % 6 === 0) {
+                  // if on the 6th name finish concatentation THEN
+                  // push string of list items to ul array THEN
+                  // reset liString to ''
+                  liString +=
+                  `
+                  <li>
+                    ${arr[i]}
+                  </li>
+                  `;
+                  ulArr.push(liString);
+                  liString = '';
+                // }else if (i % 6 !== 0 && (len - i) < 6) {
+                //   console.log('here');
+                //   liString +=
+                //   `
+                //   <li>
+                //     ${arr[i]}
+                //   </li>
+                //   `;
+                //   for (let j = 0; j <  - len; j++) {
+                //     liString += 
+                //     `<li>
+                //       open
+                //     </li>
+                //     `;
+                //   }
+                }else{
+                  // add another list item to string
+                  liString +=
+                  `
+                  <li>
+                    ${arr[i]}
                   </li>
                   `;
                 }
-              }else {
-                liString +=
-                `
-                <li>
-                  ${arr[i]}
-                </li>
-                `;
               }
-    
-              htmlString = makeHTMLString(arr[0], liString);
+              ulArr.push(liString)
+              htmlString = makeHTMLString(label, ulArr);
+              selector.insertAdjacentHTML('beforeend', htmlString);
             }
-    
-            selector.insertAdjacentHTML('beforeend', htmlString);
+          } catch(err) {
+            console.log('error', err);
           }
         }
 
-        function makeHTMLString(title, listString) {
-          let html =
-            `
-            <div class="col-sm-12 col-md-4">
-              <div class="card bg-info mb-2">
-                <div class="card-body text-center">
-                  <h5 class="card-title">${title}</h5>
-                  <ul>
-                    ${listString}
-                  </ul>
+        function makeHTMLString(title, ulArr) {
+          let color = '';
+          let htmlString = '';
+          let rowString = '';
+          const len = ulArr.length;
+
+          if (title.includes('HTML')) {color = 'bg-info'}
+          else if (title.includes('JavaScript')) {color = 'bg-success'}
+          else if (title.includes('React')) {color = 'bg-danger'}
+
+          for (let i = 0; i < len; i++) {
+            if ((i + 1) % 4 === 0) {
+              rowString += 
+              `
+              <div class="col-sm-12 col-md-4">
+                <div class="card ${color} mb-2">
+                  <div class="card-body text-center">
+                    <h5 class="card-title">${title}</h5>
+                    <ul>
+                      ${ulArr[i]}
+                    </ul>
+                  </div>
                 </div>
               </div>
-            </div>
-            `;
-          return html;
+              `;
+
+              htmlString +=
+              `
+              <div class="row">
+                ${rowString}
+              </div>
+              `;
+              rowString = '';
+            }else{
+              rowString += 
+              `
+              <div class="col-sm-12 col-md-4">
+                <div class="card ${color} mb-2">
+                  <div class="card-body text-center">
+                    <h5 class="card-title">${title}</h5>
+                    <ul>
+                      ${ulArr[i]}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              `;
+            }
+          }
+
+          htmlString +=
+          `
+          <div class="row">
+            ${rowString}
+          </div>
+          `;
+          return htmlString;
         }
     
         async function grabGroup(link) {
           try {
-            let res = await fetch(link,
+            const res = await fetch(link,
               { headers: {'Content-Type': 'text/plain; charset=utf-8'} });
-            let text = await res.text();
-            let sheetText = await text.replace('// API callback\ntext(', '')
+            const text = await res.text();
+            const sheetText = await text.replace('// API callback\ntext(', '')
                                       .replace(');', '');
-            let groupObj = await JSON.parse(sheetText);
-
-            let groupArr = await groupObj.feed.entry;
-            // console.log('groupArr', groupArr);
-            return groupArr;
+            const groupObj = await JSON.parse(sheetText);
+            const sortedArr = await newParse(groupObj);
+            return sortedArr;
           } catch(err) {
-              console.log('error', err);
-              alert('sorry, we have no bananas.')
-            }
+            console.log('error', err);
+          }
         }
 
-        // async function newParse(json) {
-        //   let newArr = [];
-        //   for (let key in json.feed.entry) {
-        //     let newObj = {};
-        //     newObj.beginning = json.feed.entry[key].gsx$beginning.$t;
-        //     newObj.name = json.feed.entry[key].gsx$username.$t;
-        //     newObj.commitment = json.feed.entry[key].gsx$commitment.$t;
-        //     newObj.technology = json.feed.entry[key].gsx$technology.$t;
-        //     newArr.push(newObj);
-        //   }
-        //   console.log('newArr', newArr);
-        // }
+        async function newParse(json) {
+          try {
+            let newArr = [];
+            let returnArr = [];
+            for (let key in json.feed.entry) {
+              let newObj = {};
+              newObj.technology = json.feed.entry[key].gsx$technology.$t;
+              newObj.commitment = json.feed.entry[key].gsx$commitment.$t;
+              newObj.beginning = json.feed.entry[key].gsx$beginning.$t;
+              newObj.name = json.feed.entry[key].gsx$username.$t;
+              newArr.push(newObj);
+            } 
+
+            returnArr = newArr.sort(sortObjMultProp('technology', 'commitment', 'beginning'));
+          
+            return returnArr;
+          } catch(err) {
+            console.log('error', err);
+          } 
+        }
+
+        function sortObjMultProp() {
+          const props = arguments;
+          
+          return function (obj1, obj2) {
+            let i = 0
+            let result = 0
+            let numberOfProperties = props.length;
+
+            // try getting a different result from 0 (equal) as long as we have // extra properties to compare
+            while(result === 0 && i < numberOfProperties) {
+              result = dynamicSort(props[i])(obj1, obj2);
+              i++;
+            }
+            return result;
+          }
+        }
+
+        function dynamicSort(property) {
+          let sortOrder = 1;
+          if(property[0] === "-") {
+            sortOrder = -1;
+            property = property.substr(1);
+          }
+
+          return function (a,b) {
+            let result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+            return result * sortOrder;
+          }
+        }
     
         function sortPeople(people) {
           // this giant conditional sort feels really really hacky
           // TODO: find a better way to sort/filter the users
           people.forEach((person) => {
-            if (person.gsx$technology.$t === 'HTML & CSS'
-                && person.gsx$commitment.$t === 'full time - 6 hours a day'
-                && person.gsx$beginning.$t === '12 am') {
-              htmlFull12am.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'HTML & CSS'
-                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
-                      && person.gsx$beginning.$t === '6 am') {
-              htmlFull6am.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'HTML & CSS'
-                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
-                      && person.gsx$beginning.$t === '12 pm') {
-              htmlFull12pm.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'HTML & CSS'
-                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
-                      && person.gsx$beginning.$t === '6 pm') {
-              htmlFull6pm.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'HTML & CSS'
-                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
-                      && person.gsx$beginning.$t === '12 am') {
-              htmlPart12am.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'HTML & CSS'
-                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
-                      && person.gsx$beginning.$t === '6 am') {
-              htmlPart6am.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'HTML & CSS'
-                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
-                      && person.gsx$beginning.$t === '12 pm') {
-              htmlPart12pm.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'HTML & CSS'
-                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
-                      && person.gsx$beginning.$t === '6 pm') {
-              htmlFull6pm.push(person.gsx$username.$t);
+            if (person.technology === 'HTML & CSS'
+                && person.commitment === 'full time - 6 hours a day'
+                && person.beginning === '12 am') {
+              htmlFull12am.push(person.name);
+            }else if (person.technology === 'HTML & CSS'
+                      && person.commitment === 'full time - 6 hours a day'
+                      && person.beginning === '6 am') {
+              htmlFull6am.push(person.name);
+            }else if (person.technology === 'HTML & CSS'
+                      && person.commitment === 'full time - 6 hours a day'
+                      && person.beginning === '12 pm') {
+              htmlFull12pm.push(person.name);
+            }else if (person.technology === 'HTML & CSS'
+                      && person.commitment === 'full time - 6 hours a day'
+                      && person.beginning === '6 pm') {
+              htmlFull6pm.push(person.name);
+            }else if (person.technology === 'HTML & CSS'
+                      && person.commitment === 'part time - 3 hours a day'
+                      && person.beginning === '12 am') {
+              htmlPart12am.push(person.name);
+            }else if (person.technology === 'HTML & CSS'
+                      && person.commitment === 'part time - 3 hours a day'
+                      && person.beginning === '6 am') {
+              htmlPart6am.push(person.name);
+            }else if (person.technology === 'HTML & CSS'
+                      && person.commitment === 'part time - 3 hours a day'
+                      && person.beginning === '12 pm') {
+              htmlPart12pm.push(person.name);
+            }else if (person.technology === 'HTML & CSS'
+                      && person.commitment === 'part time - 3 hours a day'
+                      && person.beginning === '6 pm') {
+              htmlFull6pm.push(person.name);
             }
-            if (person.gsx$technology.$t === 'JavaScript'
-                && person.gsx$commitment.$t === 'full time - 6 hours a day'
-                && person.gsx$beginning.$t === '12 am') {
-              jsFull12am.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'JavaScript'
-                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
-                      && person.gsx$beginning.$t === '6 am') {
-              jsFull6am.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'JavaScript'
-                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
-                      && person.gsx$beginning.$t === '12 pm') {
-              jsFull12pm.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'JavaScript'
-                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
-                      && person.gsx$beginning.$t === '6 pm') {
-              jsFull6pm.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'JavaScript'
-                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
-                      && person.gsx$beginning.$t === '12 am') {
-              jsPart12am.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'JavaScript'
-                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
-                      && person.gsx$beginning.$t === '6 am') {
-              jsPart6am.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'JavaScript'
-                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
-                      && person.gsx$beginning.$t === '12 pm') {
-              jsPart12pm.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'JavaScript'
-                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
-                      && person.gsx$beginning.$t === '6 pm') {
-              jsFull6pm.push(person.gsx$username.$t);
+            if (person.technology === 'JavaScript'
+                && person.commitment === 'full time - 6 hours a day'
+                && person.beginning === '12 am') {
+              jsFull12am.push(person.name);
+            }else if (person.technology === 'JavaScript'
+                      && person.commitment === 'full time - 6 hours a day'
+                      && person.beginning === '6 am') {
+              jsFull6am.push(person.name);
+            }else if (person.technology === 'JavaScript'
+                      && person.commitment === 'full time - 6 hours a day'
+                      && person.beginning === '12 pm') {
+              jsFull12pm.push(person.name);
+            }else if (person.technology === 'JavaScript'
+                      && person.commitment === 'full time - 6 hours a day'
+                      && person.beginning === '6 pm') {
+              jsFull6pm.push(person.name);
+            }else if (person.technology === 'JavaScript'
+                      && person.commitment === 'part time - 3 hours a day'
+                      && person.beginning === '12 am') {
+              jsPart12am.push(person.name);
+            }else if (person.technology === 'JavaScript'
+                      && person.commitment === 'part time - 3 hours a day'
+                      && person.beginning === '6 am') {
+              jsPart6am.push(person.name);
+            }else if (person.technology === 'JavaScript'
+                      && person.commitment === 'part time - 3 hours a day'
+                      && person.beginning === '12 pm') {
+              jsPart12pm.push(person.name);
+            }else if (person.technology === 'JavaScript'
+                      && person.commitment === 'part time - 3 hours a day'
+                      && person.beginning === '6 pm') {
+              jsFull6pm.push(person.name);
             }
-            if (person.gsx$technology.$t === 'React'
-                && person.gsx$commitment.$t === 'full time - 6 hours a day'
-                && person.gsx$beginning.$t === '12 am') {
-              reactFull12am.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'React'
-                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
-                      && person.gsx$beginning.$t === '6 am') {
-              reactFull6am.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'React'
-                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
-                      && person.gsx$beginning.$t === '12 pm') {
-              reactFull12pm.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'React'
-                      && person.gsx$commitment.$t === 'full time - 6 hours a day'
-                      && person.gsx$beginning.$t === '6 pm') {
-              reactFull6pm.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'React'
-                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
-                      && person.gsx$beginning.$t === '12 am') {
-              reactPart12am.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'React'
-                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
-                      && person.gsx$beginning.$t === '6 am') {
-              reactPart6am.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'React'
-                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
-                      && person.gsx$beginning.$t === '12 pm') {
-              reactPart12pm.push(person.gsx$username.$t);
-            }else if (person.gsx$technology.$t === 'React'
-                      && person.gsx$commitment.$t === 'part time - 3 hours a day'
-                      && person.gsx$beginning.$t === '6 pm') {
-              reactFull6pm.push(person.gsx$username.$t);
+            if (person.technology === 'React'
+                && person.commitment === 'full time - 6 hours a day'
+                && person.beginning === '12 am') {
+              reactFull12am.push(person.name);
+            }else if (person.technology === 'React'
+                      && person.commitment === 'full time - 6 hours a day'
+                      && person.beginning === '6 am') {
+              reactFull6am.push(person.name);
+            }else if (person.technology === 'React'
+                      && person.commitment === 'full time - 6 hours a day'
+                      && person.beginning === '12 pm') {
+              reactFull12pm.push(person.name);
+            }else if (person.technology === 'React'
+                      && person.commitment === 'full time - 6 hours a day'
+                      && person.beginning === '6 pm') {
+              reactFull6pm.push(person.name);
+            }else if (person.technology === 'React'
+                      && person.commitment === 'part time - 3 hours a day'
+                      && person.beginning === '12 am') {
+              reactPart12am.push(person.name);
+            }else if (person.technology === 'React'
+                      && person.commitment === 'part time - 3 hours a day'
+                      && person.beginning === '6 am') {
+              reactPart6am.push(person.name);
+            }else if (person.technology === 'React'
+                      && person.commitment === 'part time - 3 hours a day'
+                      && person.beginning === '12 pm') {
+              reactPart12pm.push(person.name);
+            }else if (person.technology === 'React'
+                      && person.commitment === 'part time - 3 hours a day'
+                      && person.beginning === '6 pm') {
+              reactFull6pm.push(person.name);
             }
           });
         }
