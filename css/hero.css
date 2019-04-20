@@ -1,4 +1,4 @@
-header {
+header.masthead {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -9,17 +9,27 @@ header {
   height: 110vh;
   transform-style: preserve-3d;
   line-height: 2.4;
+  color: #fff;
 }
 
-header.masthead {
-  color: #fff;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+header.masthead:before {
+  animation: no-transform 2s 0.5s cubic-bezier(0, 0.5, 0, 1) forwards;
+  content: "";
+  opacity: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)),
     url("../img/header-bg.jpg") no-repeat center center;
   background-attachment: scroll;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
   background-size: cover;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  transform: scale(2);
+  z-index: -1;
 }
 
 header.masthead .intro-text {
@@ -41,6 +51,13 @@ header.masthead .intro-text .intro-heading {
   /* line-height: 50px; */
   margin-bottom: 25px;
   font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+@keyframes no-transform {
+  100% {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @media (min-width: 768px) {
