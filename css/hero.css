@@ -1,5 +1,17 @@
-header.masthead {
+header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  perspective: 100px;
+  position: relative;
   text-align: center;
+  height: 110vh;
+  transform-style: preserve-3d;
+  line-height: 2.4;
+}
+
+header.masthead {
   color: #fff;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
     url("../img/header-bg.jpg") no-repeat center center;
@@ -11,14 +23,14 @@ header.masthead {
 }
 
 header.masthead .intro-text {
-  padding-top: 150px;
-  padding-bottom: 100px;
+  /* padding-top: 150px;
+  padding-bottom: 100px; */
 }
 
 header.masthead .intro-text .intro-lead-in {
   font-size: 22px;
   font-style: italic;
-  line-height: 22px;
+  /* line-height: 22px; */
   margin-bottom: 25px;
   font-family: "Droid Serif", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
@@ -26,21 +38,21 @@ header.masthead .intro-text .intro-lead-in {
 header.masthead .intro-text .intro-heading {
   font-size: 50px;
   font-weight: 700;
-  line-height: 50px;
+  /* line-height: 50px; */
   margin-bottom: 25px;
   font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 @media (min-width: 768px) {
   header.masthead .intro-text {
-    padding-top: 300px;
-    padding-bottom: 200px;
+    /* padding-top: 300px;
+    padding-bottom: 200px; */
   }
   header.masthead .intro-text .intro-lead-in {
     font-size: 40px;
     font-style: italic;
     line-height: 40px;
-    margin-bottom: 25px;
+    /* margin-bottom: 25px; */
     font-family: "Droid Serif", "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
 
