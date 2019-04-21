@@ -8,7 +8,7 @@ header.masthead {
   text-align: center;
   height: 130vh;
   transform-style: preserve-3d;
-  line-height: 2.4;
+  line-height: 1;
   color: #fdfdfd;
 }
 
@@ -32,25 +32,55 @@ header.masthead:before {
   z-index: -1;
 }
 
+.animate-pop-in {
+  animation: no-transform 0.6s cubic-bezier(0, 0.4, 0.03, 1.5) forwards;
+  opacity: 0;
+  transform: translateY(4rem) scale(0);
+}
+
 header.masthead .intro-text {
   text-shadow: 0 4px 3px rgba(0, 0, 0, 0.8), 0 8px 13px rgba(0, 0, 0, 0.8),
     0 18px 23px rgba(0, 0, 0, 0.8);
 }
 
 header.masthead .intro-text .intro-lead-in {
-  font-size: 22px;
+  font-size: calc(0.5rem + 5.2vmin);
   font-style: italic;
-  /* line-height: 22px; */
   margin-bottom: 25px;
   font-family: "Droid Serif", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  animation-delay: 0.6s;
 }
 
 header.masthead .intro-text .intro-heading {
   font-size: 50px;
   font-weight: 700;
-  /* line-height: 50px; */
   margin-bottom: 25px;
   font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  animation-delay: 0.8s;
+}
+
+/* Add delay to the first button */
+.intro-text a.btn:nth-of-type(1) {
+  animation-delay: 1s;
+}
+
+/* Add delay to the second button */
+.intro-text a.btn:nth-of-type(2) {
+  animation-delay: 1.4s;
+}
+
+.fade-in {
+  animation: fadein 2s forwards;
+  opacity: 0;
+}
+
+@keyframes fadein {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes no-transform {
@@ -66,17 +96,14 @@ header.masthead .intro-text .intro-heading {
     padding-bottom: 200px; */
   }
   header.masthead .intro-text .intro-lead-in {
-    font-size: 40px;
     font-style: italic;
-    line-height: 40px;
-    /* margin-bottom: 25px; */
     font-family: "Droid Serif", "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
 
   header.masthead .intro-text .intro-heading {
     font-size: 75px;
     font-weight: 700;
-    line-height: 75px;
+    /* line-height: 75px; */
     margin-bottom: 50px;
     font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
