@@ -6,7 +6,7 @@ header.masthead {
   perspective: 100px;
   position: relative;
   text-align: center;
-  height: 130vh;
+  height: 125vh;
   transform-style: preserve-3d;
   line-height: calc(1.25em + (2.2 - 1.25) * ((100vw - 20em) / (35 - 20)));
   color: #fdfdfd;
@@ -62,18 +62,24 @@ header.masthead .intro-text .intro-heading {
 }
 
 /* Add delay to the first button */
-.intro-text a.btn:nth-of-type(1) {
+header.masthead .intro-text a.btn:nth-of-type(1) {
   animation-delay: 1s;
 }
 
 /* Add delay to the second button */
-.intro-text a.btn:nth-of-type(2) {
+header.masthead .intro-text a.btn:nth-of-type(2) {
   animation-delay: 1.4s;
 }
 
 .fade-in {
   animation: fadein 2s forwards;
   opacity: 0;
+}
+
+header.masthead .container #button-group a {
+  display: block;
+  margin-left: 0.7em;
+  margin-right: 0.7em;
 }
 
 @keyframes fadein {
@@ -93,10 +99,6 @@ header.masthead .intro-text .intro-heading {
 }
 
 @media (min-width: 768px) {
-  header.masthead .intro-text {
-    /* padding-top: 300px;
-    padding-bottom: 200px; */
-  }
   header.masthead .intro-text .intro-lead-in {
     font-style: italic;
     font-family: "Droid Serif", "Helvetica Neue", Helvetica, Arial, sans-serif;
