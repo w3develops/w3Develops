@@ -44,7 +44,8 @@ header.masthead .intro-text {
 }
 
 header.masthead .intro-text .intro-lead-in {
-  font-size: calc(0.5rem + 5.2vmin);
+  /* Font size scales up or down depending on screen with. Removes the need to set it on a media query */
+  font-size: calc(15px + (36 - 15) * (100vw - 320px) / (1366 - 320));
   font-style: italic;
   margin-bottom: 25px;
   font-family: "Droid Serif", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -52,7 +53,8 @@ header.masthead .intro-text .intro-lead-in {
 }
 
 header.masthead .intro-text .intro-heading {
-  font-size: 50px;
+  /* Font scales with screen with. Removes the need to set it on a media query */
+  font-size: calc(24px + (75 - 24) * (100vw - 320px) / (1366 - 320));
   font-weight: 700;
   margin-bottom: 25px;
   font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -101,9 +103,7 @@ header.masthead .intro-text .intro-heading {
   }
 
   header.masthead .intro-text .intro-heading {
-    font-size: 75px;
     font-weight: 700;
-    /* line-height: 75px; */
     margin-bottom: 50px;
     font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
