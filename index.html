@@ -47,7 +47,9 @@
     <!-- Styles for this template -->
     	<link href="css/agency.css" rel="stylesheet">
     <!-- Our custom CSS -->
-    	<link href="css/w3develops.css" rel="stylesheet">
+      <link href="css/w3develops.css" rel="stylesheet">
+    <!-- Here are the animation and styles for the hero section -->
+      <link rel="stylesheet" href="css/hero.css">
     <!-- html_util.js-->
     	<script type="text/javascript" src="js/html_util.js"> </script>
     <!--favicon -->
@@ -61,13 +63,15 @@
     </nav>
 
     <!-- Header -->
-    <header class="masthead" style="background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('./img/header-bg.jpg') center center no-repeat;">
+    <header class="masthead">
       <div class="container">
         <div class="intro-text">
-          <div class="intro-lead-in">Code projects for free globally with remote teams</div>
-          <div class="intro-heading text-uppercase">Learn, Build, Meetup, Get the Job!</div>
-          <a class="btn btn-primary btn-xl text-uppercase js-scroll-trigger" href="http://bit.ly/w3dlg"><span class="label1"></span></a> <br><br>
-          <a class="btn btn-primary btn-xl text-uppercase js-scroll-trigger" href="http://bit.ly/w3dcohorts"><span class="label2"></span></a>
+          <div class="intro-lead-in animate-pop-in">Code projects for free globally with remote teams</div>
+          <div class="intro-heading text-uppercase animate-pop-in">Learn, Build, Meetup, Get the Job!</div>
+          <div id="button-group" class="d-flex justify-content-center align-items-center">
+            <a class="btn btn-primary btn-xl text-uppercase js-scroll-trigger fade-in" href="http://bit.ly/w3dlg"><span class="label1"></span></a> <br><br>
+          <a class="btn btn-primary btn-xl text-uppercase js-scroll-trigger fade-in" href="http://bit.ly/w3dcohorts"><span class="label2"></span></a>
+          </div>          
         </div>
       </div>
     </header>
