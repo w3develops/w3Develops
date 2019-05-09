@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component xmlns="http://www.opensource-socialnetwork.org/v/3.0">
+    <name>OssnGroups</name>
+    <id>OssnGroups</id>
+    <author>Core Team</author>
+    <description>Allow users to create groups.</description>
+    <license>Open Source Social Network License (OSSN LICENSE)</license>
+    <author_url>https://www.softlab24.com/</author_url>
+    <license_url>http://www.opensource-socialnetwork.org/licence/</license_url>
+    <version>3.0</version>
+	<requires>
+		<type>ossn_version</type>
+		<version>4.0</version>
+	</requires>
+</component>

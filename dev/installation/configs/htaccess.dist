@@ -1,0 +1,69 @@
+ # OpenSource-SocialNetwork
+ #
+ # @package   (Informatikon.com).ossn
+ # @author    OSSN Core Team <info@opensource-socialnetwork.org>
+ # @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ # @license   General Public Licence http://opensource-socialnetwork.org/licence 
+ # @link      http://www.opensource-socialnetwork.org 
+
+Options -Indexes
+Options +SymlinksIfOwnerMatch
+DirectoryIndex index.php
+
+<Files "error_log">
+	order allow,deny
+	deny from all
+</Files>
+
+<FilesMatch "(nginx|htaccess).dist">
+	order allow,deny
+	deny from all
+</FilesMatch>
+
+<IfModule mod_mime.c>
+    AddType image/vnd.microsoft.icon .ico
+</IfModule>
+
+<IfModule mod_expires.c>
+	ExpiresActive On
+	ExpiresDefault "access plus 1 year"
+</IfModule>
+
+<FilesMatch "\.(jpg|jpeg|gif|png|mp3|flv|mov|avi|3pg|html|htm|swf|js|css|ico)$">
+	FileETag MTime Size
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+#SetEnv HTTP_MOD_REWRITE 1
+
+RewriteEngine on
+
+RewriteRule ^rewrite.php$ installation/tests/apache_rewrite.php [L]
+
+RewriteRule ^action\/([A-Za-z0-9\_\-\/]+)$ system/handlers/actions.php?action=$1&%{QUERY_STRING} [L]
+
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^([A-Za-z0-9\_\-]+)$ index.php?h=$1 [QSA,L]
+
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^([A-Za-z0-9\_\-]+)\/(.*)$ index.php?h=$1&p=$2 [QSA,L]
+
+</IfModule>
+
+<IfModule mod_php5.c>
+	php_value memory_limit 128M
+	php_value register_globals 0
+	php_value post_max_size 8388608
+	php_value upload_max_filesize 5242880
+	php_value default_charset "UTF-8"
+</IfModule>
+
+<IfModule mod_php7.c>
+	php_value memory_limit 128M
+	php_value register_globals 0
+	php_value post_max_size 8388608
+	php_value upload_max_filesize 5242880
+	php_value default_charset "UTF-8"
+</IfModule>
