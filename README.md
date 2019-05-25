@@ -75,7 +75,7 @@ Repo Overview
 
 TODO
 
-    Assemble a development team.
+    Organize the development team and schedule weekly team stand-ups.
 
 
 TASKS

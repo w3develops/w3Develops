@@ -1,28 +1,33 @@
 {
-  "_from": "@fortawesome/fontawesome-free@5.8.1",
-  "_id": "@fortawesome/fontawesome-free@5.8.1",
+  "_args": [
+    [
+      "@fortawesome/fontawesome-free@5.8.2",
+      "/mnt/c/Users/offic/Desktop/New_folder/w3develops"
+    ]
+  ],
+  "_from": "@fortawesome/fontawesome-free@5.8.2",
+  "_id": "@fortawesome/fontawesome-free@5.8.2",
   "_inBundle": false,
-  "_integrity": "sha512-GJtx6e55qLEOy2gPOsok2lohjpdWNGrYGtQx0FFT/++K4SYx+Z8LlPHdQBaFzKEwH5IbBB4fNgb//uyZjgYXoA==",
+  "_integrity": "sha512-E4fDUF4fbu9AxKpaQQqCN3XBnNzb/5e0Gvd9OaQsYkK574LVI57v/EqqPfIm/mC7jYbxaPNrhvT5AF+Yzwyizg==",
   "_location": "/@fortawesome/fontawesome-free",
   "_phantomChildren": {},
   "_requested": {
     "type": "version",
     "registry": true,
-    "raw": "@fortawesome/fontawesome-free@5.8.1",
+    "raw": "@fortawesome/fontawesome-free@5.8.2",
     "name": "@fortawesome/fontawesome-free",
     "escapedName": "@fortawesome%2ffontawesome-free",
     "scope": "@fortawesome",
-    "rawSpec": "5.8.1",
+    "rawSpec": "5.8.2",
     "saveSpec": null,
-    "fetchSpec": "5.8.1"
+    "fetchSpec": "5.8.2"
   },
   "_requiredBy": [
     "/"
   ],
-  "_resolved": "https://registry.npmjs.org/@fortawesome/fontawesome-free/-/fontawesome-free-5.8.1.tgz",
-  "_shasum": "cbafbfe8894c4e3e3c3a9da6774e249ac1f2da8b",
-  "_spec": "@fortawesome/fontawesome-free@5.8.1",
-  "_where": "/Users/DANGER_DAVID/Sites/startbootstrap-themes/startbootstrap-agency",
+  "_resolved": "https://registry.npmjs.org/@fortawesome/fontawesome-free/-/fontawesome-free-5.8.2.tgz",
+  "_spec": "5.8.2",
+  "_where": "/mnt/c/Users/offic/Desktop/New_folder/w3develops",
   "author": {
     "name": "Dave Gandy",
     "email": "dave@fontawesome.com",
@@ -31,7 +36,6 @@
   "bugs": {
     "url": "http://github.com/FortAwesome/Font-Awesome/issues"
   },
-  "bundleDependencies": false,
   "contributors": [
     {
       "name": "Brian Talbot",
@@ -55,7 +59,6 @@
     }
   ],
   "dependencies": {},
-  "deprecated": false,
   "description": "The iconic font, CSS, and SVG framework",
   "engines": {
     "node": ">=6"
@@ -77,5 +80,5 @@
     "url": "git+https://github.com/FortAwesome/Font-Awesome.git"
   },
   "style": "css/fontawesome.css",
-  "version": "5.8.1"
+  "version": "5.8.2"
 }

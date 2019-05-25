@@ -1,0 +1,199 @@
+header.masthead {
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  -webkit-perspective: 100px;
+  -moz-perspective: 100px;
+  -ms-perspective: 100px;
+  perspective: 100px;
+  position: relative;
+  text-align: center;
+  height: 125vh;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+  line-height: calc(1.25em + (2.2 - 1.25) * ((100vw - 20em) / (35 - 20)));
+  color: #fdfdfd;
+}
+
+header.masthead:before {
+  -webkit-animation: no-transform 2s 0.5s cubic-bezier(0, 0.5, 0, 1) forwards;
+  -moz-animation: no-transform 2s 0.5s cubic-bezier(0, 0.5, 0, 1) forwards;
+  -o-animation: no-transform 2s 0.5s cubic-bezier(0, 0.5, 0, 1) forwards;
+  animation: no-transform 2s 0.5s cubic-bezier(0, 0.5, 0, 1) forwards;
+  content: "";
+  opacity: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.9)),
+    url("../img/header-bg.jpg") no-repeat center center;
+  background-attachment: scroll;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  -webkit-transform: scale(2);
+  -moz-transform: scale(2);
+  -ms-transform: scale(2);
+  -o-transform: scale(2);
+  transform: scale(2);
+  z-index: -1;
+}
+
+.animate-pop-in {
+  -webkit-animation: no-transform 0.6s cubic-bezier(0, 0.4, 0.03, 1.5) forwards;
+  -moz-animation: no-transform 0.6s cubic-bezier(0, 0.4, 0.03, 1.5) forwards;
+  -o-animation: no-transform 0.6s cubic-bezier(0, 0.4, 0.03, 1.5) forwards;
+  animation: no-transform 0.6s cubic-bezier(0, 0.4, 0.03, 1.5) forwards;
+  opacity: 0;
+  -webkit-transform: translateY(4rem) scale(0);
+  -moz-transform: translateY(4rem) scale(0);
+  -ms-transform: translateY(4rem) scale(0);
+  -o-transform: translateY(4rem) scale(0);
+  transform: translateY(4rem) scale(0);
+}
+
+header.masthead .intro-text {
+  text-shadow: 0 4px 3px rgba(0, 0, 0, 0.8), 0 8px 13px rgba(0, 0, 0, 0.8),
+    0 18px 23px rgba(0, 0, 0, 0.8);
+}
+
+header.masthead .intro-text .intro-lead-in {
+  /* Font size scales up or down depending on screen with. Removes the need to set it on a media query */
+  font-size: calc(15px + (36 - 15) * (100vw - 320px) / (1366 - 320));
+  font-style: italic;
+  margin-bottom: 25px;
+  font-family: "Droid Serif", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-animation-delay: 0.6s;
+  -moz-animation-delay: 0.6s;
+  -o-animation-delay: 0.6s;
+  animation-delay: 0.6s;
+}
+
+header.masthead .intro-text .intro-heading {
+  /* Font scales with screen with. Removes the need to set it on a media query */
+  font-size: calc(24px + (75 - 24) * (100vw - 320px) / (1366 - 320));
+  font-weight: 700;
+  margin-bottom: 25px;
+  font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-animation-delay: 0.8s;
+  -moz-animation-delay: 0.8s;
+  -o-animation-delay: 0.8s;
+  animation-delay: 0.8s;
+}
+
+/* Add delay to the first button */
+header.masthead .intro-text a.btn:nth-of-type(1) {
+  -webkit-animation-delay: 1s;
+  -moz-animation-delay: 1s;
+  -o-animation-delay: 1s;
+  animation-delay: 1s;
+}
+
+/* Add delay to the second button */
+header.masthead .intro-text a.btn:nth-of-type(2) {
+  -webkit-animation-delay: 1.4s;
+  -moz-animation-delay: 1.4s;
+  -o-animation-delay: 1.4s;
+  animation-delay: 1.4s;
+}
+
+.fade-in {
+  -webkit-animation: fadein 2s forwards;
+  -moz-animation: fadein 2s forwards;
+  -o-animation: fadein 2s forwards;
+  animation: fadein 2s forwards;
+  opacity: 0;
+}
+
+header.masthead .container #button-group a {
+  display: block;
+  margin-left: 0.7em;
+  margin-right: 0.7em;
+}
+
+@-webkit-keyframes fadein {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@-moz-keyframes fadein {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@-o-keyframes fadein {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadein {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes no-transform {
+  100% {
+    opacity: 1;
+    -webkit-transform: none;
+    -ms-transform: none;
+  }
+}
+
+@-moz-keyframes no-transform {
+  100% {
+    opacity: 1;
+    -moz-transform: none;
+    -ms-transform: none;
+  }
+}
+
+@-o-keyframes no-transform {
+  100% {
+    opacity: 1;
+    -o-transform: none;
+    -ms-transform: none;
+  }
+}
+
+@keyframes no-transform {
+  100% {
+    opacity: 1;
+    -ms-transform: none;
+    transform: none;
+  }
+}
+
+@media (min-width: 768px) {
+  header.masthead .intro-text .intro-lead-in {
+    font-style: italic;
+    font-family: "Droid Serif", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  header.masthead .intro-text .intro-heading {
+    font-weight: 700;
+    margin-bottom: 50px;
+    font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+}
