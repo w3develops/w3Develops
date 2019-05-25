@@ -94,8 +94,6 @@ TASKS
 
 ## Preview
 
-[![w3Develops Preview](https://w3develops.org/img/readMePreview.png)](https://w3develops.org/)
-
 **[View Live Preview](https://w3develops.org)**
 
 ## Status
