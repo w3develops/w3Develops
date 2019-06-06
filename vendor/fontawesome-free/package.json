@@ -2,7 +2,7 @@
   "_args": [
     [
       "@fortawesome/fontawesome-free@5.8.2",
-      "/mnt/c/Users/offic/Desktop/New_folder/w3develops"
+      "/mnt/c/Users/offic/Desktop/finalForm/final-v2/startbootstrap-agency-master(v2)/w3develops"
     ]
   ],
   "_from": "@fortawesome/fontawesome-free@5.8.2",
@@ -27,7 +27,7 @@
   ],
   "_resolved": "https://registry.npmjs.org/@fortawesome/fontawesome-free/-/fontawesome-free-5.8.2.tgz",
   "_spec": "5.8.2",
-  "_where": "/mnt/c/Users/offic/Desktop/New_folder/w3develops",
+  "_where": "/mnt/c/Users/offic/Desktop/finalForm/final-v2/startbootstrap-agency-master(v2)/w3develops",
   "author": {
     "name": "Dave Gandy",
     "email": "dave@fontawesome.com",

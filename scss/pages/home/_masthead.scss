@@ -1,4 +1,5 @@
 // Styling for the masthead
+
 header.masthead {
   text-align: center;
   color: white;
@@ -47,4 +48,28 @@ header.masthead {
       }
     }
   }
+}
+
+.apply-btn {
+  background-color: transparent;
+  color: #fff;
+  border-color: $primary;
+  &:active,
+  &:focus,
+  &:hover {
+    background-color: darken($primary, 7.5%) !important;
+    border-color: darken($primary, 7.5%) !important;
+    color: white;
+  }
+  &:active,
+  &:focus {
+    box-shadow: 0 0 0 0.2rem rgba(254, 209, 55,.5) !important;
+  }
+}
+
+header.masthead {
+    
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.9)),
+    url("../img/header-bg.jpg") no-repeat center center;
+  
 }

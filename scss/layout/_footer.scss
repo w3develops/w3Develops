@@ -1,8 +1,14 @@
 // Styling for the footer
+
+#footer{
+  background-color: $gray-900;
+}
+
 .footer {
-  padding: 25px 0;
+  padding: 5px 0;
   text-align: center;
   span.copyright {
+    color: #fff;
     font-size: 90%;
     line-height: 40px;
     text-transform: none;

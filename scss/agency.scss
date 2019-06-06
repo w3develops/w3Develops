@@ -1,14 +1,31 @@
 // Core variables and mixins
-@import "variables.scss";
-@import "mixins.scss";
+@import "base/variables.scss";
+@import "base/mixins.scss";
+
 // Global CSS
-@import "global.scss";
+@import "base/page.scss";
+
 // Components
-@import "navbar.scss";
-@import "masthead.scss";
-@import "services.scss";
-@import "portfolio.scss";
-@import "timeline.scss";
-@import "team.scss";
-@import "contact.scss";
-@import "footer.scss";
+@import "components/buttons.scss";
+
+// Layout
+@import "layout/navbar.scss";
+@import "layout/footer.scss";
+
+// Pages - eventually erase the home folder and create a _home.scss file and add the content in the hgome files to the _home.scss file
+@import "pages/home.scss";
+
+@import "pages/home/studygroups.scss";
+@import "pages/home/about.scss";
+@import "pages/home/masthead.scss";
+@import "pages/home/services.scss";
+@import "pages/home/portfolio.scss";
+@import "pages/home/timeline.scss";
+@import "pages/home/team.scss";
+@import "pages/home/contact.scss";
+
+// Abstracts
+
+// Themes
+
+// Vendors

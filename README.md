@@ -1,5 +1,6 @@
 ![w3Develops Social Banner](https://imgur.com/RUxbr2g.png)
 
+## Status
 
 <p style="text-align:center;">
 	  <a href="http://www.firsttimersonly.com/">
@@ -26,11 +27,19 @@
   </a>
 </p>
 
+<!-- seperate shields, i need to update the one and the one below -->
+
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/BlackrockDigital/startbootstrap-agency/master/LICENSE)
+[![npm version](https://img.shields.io/npm/v/startbootstrap-agency.svg)](https://www.npmjs.com/package/startbootstrap-agency)
+[![Build Status](https://travis-ci.org/BlackrockDigital/startbootstrap-agency.svg?branch=master)](https://travis-ci.org/BlackrockDigital/startbootstrap-agency)
+[![dependencies Status](https://david-dm.org/BlackrockDigital/startbootstrap-agency/status.svg)](https://david-dm.org/BlackrockDigital/startbootstrap-agency)
+[![devDependencies Status](https://david-dm.org/BlackrockDigital/startbootstrap-agency/dev-status.svg)](https://david-dm.org/BlackrockDigital/startbootstrap-agency?type=dev)
+
+
 # Welcome to W3Develops' open source codebase
-## [w3Develops](https://w3develops.org)
 ## What is W3Develops?
 
-[W3Develops](https://w3develops.org/) is a website where programmers and aspiring developers can learn new technologies and build together to level up their knowledge and have projects to showcase to further their career. This website has many features and is continueously adding more such as a programmer meetup tracker, online and in person meetups, podcasts, video walkthroughs, study groups, building groups, a job board, internships, a forum, a social network, and more.
+[W3Develops](https://w3develops.org/) is a community where like minded individuals can learn new technologies and build together to level up their knowledge and have projects to showcase to further their career. This website has many features and is continueously adding more such as a programmer meetup tracker, online and in person meetups, podcasts, video walkthroughs, study groups, building groups, a job board, internships, a forum, a social network, and more.
 
 
 The goal of W3Develops is to provide a simple learning, collaborating, networking website for programmers.
@@ -92,23 +101,12 @@ TASKS
     Update the style guide.
 
 
-## Preview
-
-**[View Live Preview](https://w3develops.org)**
-
-## Status
-
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/BlackrockDigital/startbootstrap-agency/master/LICENSE)
-[![npm version](https://img.shields.io/npm/v/startbootstrap-agency.svg)](https://www.npmjs.com/package/startbootstrap-agency)
-[![Build Status](https://travis-ci.org/BlackrockDigital/startbootstrap-agency.svg?branch=master)](https://travis-ci.org/BlackrockDigital/startbootstrap-agency)
-[![dependencies Status](https://david-dm.org/BlackrockDigital/startbootstrap-agency/status.svg)](https://david-dm.org/BlackrockDigital/startbootstrap-agency)
-[![devDependencies Status](https://david-dm.org/BlackrockDigital/startbootstrap-agency/dev-status.svg)](https://david-dm.org/BlackrockDigital/startbootstrap-agency?type=dev)
 
 ## Download and Installation
 
 To begin contributing to this website, choose one of the following options to get started:
 * [Download the latest release on w3Develops](https://w3develops.org/download/w3develops.html/) 
-* Install via npm: `npm i w3develops` 
+* Install via npm: `npm i w3develops` (This is not currently configured)
 * Clone the repo: `git clone https://github.com/w3develops/w3develops.git`
 * [Fork, Clone, or Download on GitHub](https://github.com/w3develops/w3develops)
 
@@ -138,7 +136,7 @@ Have a bug or an issue with this template? [Open a new issue](https://github.com
 
 ## About
 
-W3Develops is an open source website. The template for this website is released under the MIT license, which means you can use it for any purpose, even for commercial projects.
+W3Develops is an open source community. The template for this website is released under the MIT license, which means you can use it for any purpose, even for commercial projects.
 
 * https://w3develops.org
 * https://youtube.com/w3develops
@@ -158,12 +156,6 @@ W3Develops was created by and is maintained by **[Jonathan Jackson](https://www.
 * https://www.linkedin.com/in/jondevops
 
 W3Develops is based on the [Bootstrap](http://getbootstrap.com/) framework created by [Mark Otto](https://twitter.com/mdo) and [Jacob Thorton](https://twitter.com/fat).
-
-## Copyright and License
-
-Copyright 2017-2019 w3Develops LLC. Code released under the [MIT](https://github.com/w3develops/w3develops/blob/gh-pages/LICENSE) license.
-
-Pull requests welcome! Please keep in mind simplicity & teaching over correctness.
 
 ## Contributors
 
@@ -192,3 +184,9 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 <a href="https://opencollective.com/w3develops-94/sponsor/7/website" target="_blank"><img src="https://opencollective.com/w3develops-94/sponsor/7/avatar.svg"></a>
 <a href="https://opencollective.com/w3develops-94/sponsor/8/website" target="_blank"><img src="https://opencollective.com/w3develops-94/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/w3develops-94/sponsor/9/website" target="_blank"><img src="https://opencollective.com/w3develops-94/sponsor/9/avatar.svg"></a>
+
+## Copyright and License
+
+Copyright 2017-2019 w3Develops LLC. Code released under the [MIT](https://github.com/w3develops/w3develops/blob/gh-pages/LICENSE) license.
+
+Pull requests welcome! Please keep in mind simplicity & teaching over correctness.

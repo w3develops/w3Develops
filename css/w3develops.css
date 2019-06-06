@@ -55,7 +55,7 @@ ul {
 }
 .label1:hover:after{
     display: block;
-    content:'APPLY to a \A study group';
+    content:'APPLY to a \A learning group';
 }
 
 .label2:after{
@@ -65,5 +65,5 @@ ul {
 }
 .label2:hover:after{
     display: block;
-    content:'APPLY to a \A coding Cohort';
+    content:'APPLY to a \A Cohort';
 }
