@@ -29,3 +29,30 @@ A clear and concise description of what you expected to happen.
 
 **Screenshots and Exception Log**
 If applicable, add screenshots and logs to help explain your problem. The log file is located in `%APPDATA%\pooi.moe\QuickLook\QuickLook.Exception.log` (`.msi` or `.zip` version) or `%LOCALAPPDATA%\Packages\21090PaddyXu.QuickLook_egxr34yet59cg\LocalCache\Roaming\pooi.moe\QuickLook\QuickLook.Exception.log` (Windows Store version).
+
+
+
+
+
+freecodecamp version of bug report \\\---
+name: 'Bug Report: Issues with Coding challenges'
+about: Reporting issue with a specific challenge, like broken tests, unclear instructions.
+
+---
+
+<!-- 
+NOTE: If you're reporting a security issue, don't create a GitHub issue. Instead, email security@freecodecamp.org. We will look into it immediately. 
+-->
+**Describe your problem and how to reproduce it:**
+
+
+**Add a Link to the page with the problem:**
+
+
+**Tell us about your browser and operating system:**
+* Browser Name: 
+* Browser Version: 
+* Operating System: 
+
+
+**If possible, add a screenshot here (you can drag and drop, png, jpg, gif, etc. in this box):**
