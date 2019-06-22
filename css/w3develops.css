@@ -17,11 +17,117 @@ nav#mainNav .dropdown-item.dropdown-list-item:focus,
 nav#mainNav .dropdown-item.dropdown-list-item:active {
     background-color: #fed136;
 }
+/* 6/12/2019 Chris L, (Styles for the sidebar menu) *************/
+#group-sorter-application-wrapper {
+    display: flex;
+    flex-direction: row;
+}
+.side-nav-menu-area {
+    color: white;
+    background-color: #212529;
+    width: 200px;
+}
+.mobile-icons {
+    width: 50px;
+    display: none;
+}
+#side-nav-list {
+    padding: 20px 0 20px 0px;
+    margin-top: 100px;
+    text-align: center;
+}
+#side-nav-list div {
+    padding-bottom: 10px;
+    transition: .2s ease-in-out;
+}
+#side-nav-list div:hover {
+    background-color: #464e57;
+    border-right: 5px solid #fec503;
+    cursor: pointer;
+}
+@media only screen and (max-width: 425px) {
+    .side-nav-menu-area {
+        width: 50px;
+    }
+    #side-nav-list h1 {
+        display: none;
+    }
+    .mobile-icons {
+        display: block;
+        width: 50px;
+        padding-bottom: 10px;
+        margin: auto;
+    }
+    .mobile-icons:hover {
+        cursor: pointer;
+    }
+    .course-name {
+        display: none;
+    }
+}
+/***************** 6/17/2019 Chris L, THE DISPLAYED CONTENT ***********************/
+.displayed-content-area {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+}
+/* Turning the row into a column */
+@media (max-width: 1024px) {
+    .displayed-content-area {
+        flex-direction: column;
+    }
+}
+.displayed-content-area h1 {
+    text-align: center;
+}
+.displayed-columns {
+    overflow: scroll;
+    width: 100%;
+    max-height: 730px;
+    padding: 10px;
+}
+.row {
+    display: flex;
+    justify-content: center;
+}
+.card-body {
+    box-shadow: 0px 0px 15px 0px black !important;
+    border: 2px solid black;
+}
+#full-time-wrapper {
+    display: none;
+}
+#part-time-wrapper {
+    display: none;
+}
+#html-full-time-Contents {
+    display: none;
+}
+#html-part-time-Contents {
+    display: none;
+}
+#js_full_time_Contents {
+    display: none;
+}
+#js_part_time_Contents {
+    display: none;
+}
+#react_full_time_Contents {
+    display: none;
+}
+#react_part_time_Contents {
+    display: none;
+}
+/**************************************************/
+
+/*********************** Chris L END *********************************/
 
 ul {
   list-style-type: none;
   margin: 0;
   padding: 0;
+  color: white;
 }
 .footer{
     background-color: #DDDDDD;
