@@ -12,17 +12,10 @@
 @import "layout/navbar.scss";
 @import "layout/footer.scss";
 
-// Pages - eventually erase the home folder and create a _home.scss file and add the content in the hgome files to the _home.scss file
+// Pages
 @import "pages/home.scss";
+@import "pages/studygroups.scss";
 
-@import "pages/home/studygroups.scss";
-@import "pages/home/about.scss";
-@import "pages/home/masthead.scss";
-@import "pages/home/services.scss";
-@import "pages/home/portfolio.scss";
-@import "pages/home/timeline.scss";
-@import "pages/home/team.scss";
-@import "pages/home/contact.scss";
 
 // Abstracts
 
