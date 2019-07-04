@@ -35,10 +35,13 @@
         "jquery.easing": "^1.4.1"
     },
     "devDependencies": {
+        "@babel/core": "^7.4.5",
+        "@babel/preset-env": "^7.4.5",
         "browser-sync": "2.26.7",
         "del": "4.1.1",
         "gulp": "4.0.2",
         "gulp-autoprefixer": "6.1.0",
+        "gulp-babel": "^8.0.0",
         "gulp-clean-css": "4.2.0",
         "gulp-header": "2.0.7",
         "gulp-plumber": "^1.2.1",
