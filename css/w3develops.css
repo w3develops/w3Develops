@@ -25,16 +25,19 @@ nav#mainNav .dropdown-item.dropdown-list-item:active {
 .side-nav-menu-area {
     color: white;
     background-color: #212529;
-    width: 200px;
+    width: 100%;
+    height: 100vh;
 }
 .mobile-icons {
     width: 50px;
     display: none;
 }
 #side-nav-list {
+    text-align: center;
+    margin: 0 auto;
+    width: fit-content;
     padding: 20px 0 20px 0px;
     margin-top: 100px;
-    text-align: center;
 }
 #side-nav-list div {
     padding-bottom: 10px;
@@ -47,7 +50,7 @@ nav#mainNav .dropdown-item.dropdown-list-item:active {
 }
 @media only screen and (max-width: 425px) {
     .side-nav-menu-area {
-        width: 50px;
+        width: 100%;
     }
     #side-nav-list h1 {
         display: none;
@@ -81,10 +84,25 @@ nav#mainNav .dropdown-item.dropdown-list-item:active {
 .displayed-content-area h1 {
     text-align: center;
 }
+.displayed-content-area1 {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+}
+/* Turning the row into a column */
+@media (max-width: 1024px) {
+    .displayed-content-area1 {
+        flex-direction: column;
+    }
+}
+.displayed-content-area1 h1 {
+    text-align: center;
+}
 .displayed-columns {
     overflow: scroll;
     width: 100%;
-    max-height: 730px;
+    height: 100vh;
     padding: 10px;
 }
 .row {
@@ -172,4 +190,50 @@ ul {
 .label2:hover:after{
     display: block;
     content:'APPLY to a \A Cohort';
+}
+/*------------test------------------*/
+.test {
+    display: none;
+}
+
+.test2 {
+    display: none;
+}
+
+.h {
+    width: fit-content;;
+}
+/*--full time--*/
+.Full-Time {
+    cursor: pointer;
+    font-size: 30px;
+    width: fit-content;
+    text-align: center;
+    margin-left: 30%;
+}
+.Full-Time li{
+    display: none;
+    margin-top: 3px;
+}
+
+.Full-Time:hover li {
+    display: block;
+    background-color: #fec503
+}
+/*----part time---*/
+.Part-Time {
+    cursor: pointer;
+    margin-top: 20px;
+    font-size: 30px;
+    width: fit-content;
+    margin-left: 30%;
+}
+.Part-Time li{
+    display: none;
+    margin-top: 3px;
+}
+
+.Part-Time:hover li {
+    display: block;
+    background-color: #fec503
 }
