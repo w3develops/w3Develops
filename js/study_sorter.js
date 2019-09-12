@@ -8,7 +8,7 @@
         const studyLink = 'https://spreadsheets.google.com/feeds/list/1PMWsPEfHFC6myMwhdidyr2hhRK5ZA-JrDQzwRoDTFaw/oua1i2d/public/values?alt=json-in-script&callback=text';
         const buildLink = 'https://spreadsheets.google.com/feeds/list/1PMWsPEfHFC6myMwhdidyr2hhRK5ZA-JrDQzwRoDTFaw/oua1i2d/public/values?alt=json-in-script&callback=text';
 
-        // Getting the side nav buttons.
+        // Getting the side nav buttons.-Tamari
         const html_css_button1 = document.getElementById("HTML&CSS_Tab1");
         const js_button1 = document.getElementById("Javascript_Tab1");
         const react_button1 = document.getElementById("React_Tab1");
@@ -124,7 +124,7 @@
         }
         react_button.addEventListener("click", showReactBoxes, false);
         
-        // part time
+        // part time -Tamari
         const showHtmlBoxes1 = () => {
           full_time.style.display = "block";
           part_time.style.display = "block";
@@ -162,7 +162,7 @@
         }
         react_button1.addEventListener("click", showReactBoxes1, false);
 
-        /*-----testing out new stuff--------------*/
+        /*-----testing out new stuff----Tamari----------*/
 
         html_css_button1.addEventListener('click', function(){
           document.querySelector('.side-nav-menu-area').classList.toggle('test2')
