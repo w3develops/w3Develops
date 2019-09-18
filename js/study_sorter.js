@@ -8,15 +8,10 @@
         const studyLink = 'https://spreadsheets.google.com/feeds/list/1PMWsPEfHFC6myMwhdidyr2hhRK5ZA-JrDQzwRoDTFaw/oua1i2d/public/values?alt=json-in-script&callback=text';
         const buildLink = 'https://spreadsheets.google.com/feeds/list/1PMWsPEfHFC6myMwhdidyr2hhRK5ZA-JrDQzwRoDTFaw/oua1i2d/public/values?alt=json-in-script&callback=text';
 
-        // Getting the side nav buttons.-Tamari
-        const html_css_button1 = document.getElementById("HTML&CSS_Tab1");
-        const js_button1 = document.getElementById("Javascript_Tab1");
-        const react_button1 = document.getElementById("React_Tab1");
-
+        // Getting the side nav buttons.
         const html_css_button = document.getElementById("HTML&CSS_Tab");
         const js_button = document.getElementById("Javascript_Tab");
         const react_button = document.getElementById("React_Tab");
-        
 
         // Getting the side nav mobile icon buttons
         const course_icons = document.querySelectorAll(".mobile-icons");
@@ -85,8 +80,6 @@
         const reactPart6pm = ['React - Part Time - 6PM'];
         
         /* The functions for showing the corresponding course boxes on button clicks */
-        // full time
-        
         const showHtmlBoxes = () => {
           full_time.style.display = "block";
           part_time.style.display = "block";
@@ -109,7 +102,6 @@
           studySelectorReact_Full.style.display = "none";
           studySelectorReact_Part.style.display = "none";
         }
-        
         js_button.addEventListener("click", showJsBoxes, false);
 
         const showReactBoxes = () => {
@@ -123,87 +115,12 @@
           studySelectorReact_Part.style.display = "block";
         }
         react_button.addEventListener("click", showReactBoxes, false);
-        
-        // part time -Tamari
-        const showHtmlBoxes1 = () => {
-          full_time.style.display = "block";
-          part_time.style.display = "block";
-          studySelectorHTML_Full.style.display = "block";
-          studySelectorHTML_Part.style.display = "block";
-          studySelectorJS_Full.style.display = "none";
-          studySelectorJS_Part.style.display = "none";
-          studySelectorReact_Full.style.display = "none";
-          studySelectorReact_Part.style.display = "none";
-        }
-        html_css_button1.addEventListener("click", showHtmlBoxes1, false);
 
-        const showJsBoxes1 = () => {
-          full_time.style.display = "block";
-          part_time.style.display = "block";
-          studySelectorHTML_Full.style.display = "none";
-          studySelectorHTML_Part.style.display = "none";
-          studySelectorJS_Full.style.display = "block";
-          studySelectorJS_Part.style.display = "block";
-          studySelectorReact_Full.style.display = "none";
-          studySelectorReact_Part.style.display = "none";
-        }
-        
-        js_button1.addEventListener("click", showJsBoxes1, false);
-
-        const showReactBoxes1 = () => {
-          full_time.style.display = "block";
-          part_time.style.display = "block";
-          studySelectorHTML_Full.style.display = "none";
-          studySelectorHTML_Part.style.display = "none";
-          studySelectorJS_Full.style.display = "none";
-          studySelectorJS_Part.style.display = "none";
-          studySelectorReact_Full.style.display = "block";
-          studySelectorReact_Part.style.display = "block";
-        }
-        react_button1.addEventListener("click", showReactBoxes1, false);
-
-        /*-----testing out new stuff----Tamari----------*/
-
-        html_css_button1.addEventListener('click', function(){
-          document.querySelector('.side-nav-menu-area').classList.toggle('test2')
-          document.querySelector('.displayed-content-area1').classList.toggle('test2')
- 
-         });
-         js_button1.addEventListener('click', function(){
-          document.querySelector('.side-nav-menu-area').classList.toggle('test2')
-          document.querySelector('.displayed-content-area1').classList.toggle('test2')
- 
-         });
-         react_button1.addEventListener('click', function(){
-          document.querySelector('.side-nav-menu-area').classList.toggle('test2')
-          document.querySelector('.displayed-content-area1').classList.toggle('test2')
- 
-         });
-        html_css_button.addEventListener('click', function(){
-          document.querySelector('.side-nav-menu-area').classList.toggle('test2')
-          document.querySelector('.displayed-content-area').classList.toggle('test2')
- 
-         });
-         js_button.addEventListener('click', function(){
-          document.querySelector('.side-nav-menu-area').classList.toggle('test2')
-          document.querySelector('.displayed-content-area').classList.toggle('test2')
- 
-         });
-         react_button.addEventListener('click', function(){
-          document.querySelector('.side-nav-menu-area').classList.toggle('test2')
-          document.querySelector('.displayed-content-area').classList.toggle('test2')
- 
-         });
-/*
-        // Course icons event listeners
-        course_icons[0].addEventListener("click", showHtmlBoxes1, false);
-        course_icons[1].addEventListener("click", showJsBoxes1, false);
-        course_icons[2].addEventListener("click", showReactBoxes1, false);
         // Course icons event listeners
         course_icons[0].addEventListener("click", showHtmlBoxes, false);
         course_icons[1].addEventListener("click", showJsBoxes, false);
         course_icons[2].addEventListener("click", showReactBoxes, false);
-*/
+
         appendGroups();
         
         async function appendGroups() {
