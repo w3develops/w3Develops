@@ -1,7 +1,5 @@
-edit this 
-
 # -------------------------------------------------
-# CODEOWNERS - For automated review request for 
+# CODEOWNERS - For automated review request for
 # high impact files.
 #
 # Important: The order in this file cascades.
@@ -20,12 +18,12 @@ edit this
 # All files in the root are owned by dev team
 # -------------------------------------------------
 
-/* @freecodecamp/dev-team
+/* @w3develops/dev-team
 
 # -------------------------------------------------
-# All markdown files in the root are owned 
-# by Quincy Larson. 
+# All markdown files in the root are owned
+# by Jonathan Jackson.
 # He oversees the README, LICENSE, etc.
 # -------------------------------------------------
 
-/*.md @QuincyLarson
+/*.md @JonathanJackson

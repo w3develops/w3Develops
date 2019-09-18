@@ -1,3 +1,4 @@
+[//]: (copy freecodecamps most current contributing guidlines, also make a page for the w3develops pages mentioned below.)
 # Contribution Guidelines
 
 Hello 👋!
@@ -46,15 +47,15 @@ To help find a guide to write about go to our [projects page](https://w3develops
 
 ### Create, Update and Fix Bugs in our coding projects
 
-All our coding pojects are curated by the community, bringing in expert knowledge from volunteers like you.
+All our coding projects are curated by the community, bringing in expert knowledge from volunteers like you.
 
 You can help expand them and make their wording clearer. You can update the user stories to explain the concept better and even remove redundant ones. You can also improve the projects themselves and create new ones for users to try to recreate.
 
 ### Translate the website
 
-You can help us translate our Guide for a language that you speak. 
+You can help us translate our Guide for a language that you speak.
 
-We would love your help in improving the quality of these translations. We aim for millions of people to use the English language version of freeCodeCamp.org, and we expect millions more to use these translated versions as well.
+We would love your help in improving the quality of these translations. We aim for millions of people to use the English language version of w3develops.org, and we expect millions more to use these translated versions as well.
 
 ### Help us fix bugs in w3Develops.org's learning platform
 
@@ -98,4 +99,3 @@ If these issues lack clarity on what needs to be done, feel free to ask question
 **I found a typo, should I report an issue before I can make a pull request?**
 
 For typos and other wording changes, you can directly open pull requests without first creating an issue. Issues are more for discussing larger problems associated with code or structural aspects of the curriculum.
-
