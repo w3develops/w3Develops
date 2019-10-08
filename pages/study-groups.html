@@ -90,7 +90,7 @@
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
     <div class="container">
       <a class="navbar-brand" href="https://w3develops.org/">w3Develops</a>
-      <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
         Menu
         <i class="fa fa-bars"></i>
       </button>
@@ -165,10 +165,118 @@
 <div id="group-sorter-application-wrapper">
   <section class="side-nav-menu-area">
     <div id="side-nav-list">
-        <p>Find your team.</p>
-        <div id="HTML&CSS_Tab" class="course-name">HTML & CSS</div><img class="mobile-icons" src="../img/logos/html5Logo.png"/> <!-- Logos for Mobile -->
-        <div id="Javascript_Tab" class="course-name">JavaScript</div><img class="mobile-icons" src="../img/logos/jsLogo.jpg"/>
-        <div id="React_Tab" class="course-name">React</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+        <h1>Teams</h1>                        
+        
+        <div class="container">
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#fullTimeSidebarResponsive" aria-controls="fullTimeSidebarResponsive" aria-expanded="false" aria-label="Toggle Fulltime Sidebar List">
+            Full Time
+            <i class="fa fa-caret-down"></i>
+          </button>
+          <div class="collapse navbar-collapse text-center" id="fullTimeSidebarResponsive">
+            <ul class="navbar-nav text-uppercase ml-auto">
+             
+              <li class="nav-item dropdown">
+                <!--
+                <div id="ft_HTML&CSS_Tab" class="course-name">HTML & CSS</div><img class="mobile-icons" src="../img/logos/html5Logo.png"/>
+                <div id="ft_ResponsiveDesignAndCSSAnimations_Tab" class="course-name">Responsive Design and CSS Animations</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_Javascript_Tab" class="course-name">JavaScript</div><img class="mobile-icons" src="../img/logos/jsLogo.jpg"/>
+                <div id="ft_SQL_Tab" class="course-name">SQL</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_Python_Tab" class="course-name">Python</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_NodeExpress_Tab" class="course-name">Node / Express</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_React_Tab" class="course-name">React</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_Django_Tab" class="course-name">Django</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_Electron_Tab" class="course-name">Electron</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_ReactNative_Tab" class="course-name">React Native</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_Maths_Tab" class="course-name">Maths</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_PHP_Tab" class="course-name">PHP</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_WebDesign_Tab" class="course-name">Web Design</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_DigitalMarketing_Tab" class="course-name">Digital Marketing</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_DataScience_Tab" class="course-name">Data Science</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_WebSecurity_Tab" class="course-name">Web Security</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_E-Commerce_Tab" class="course-name">E-Commerce</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_C++_Tab" class="course-name">C++</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_MobileDevelopment_Tab" class="course-name">Mobile Development</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_Java_Tab" class="course-name">Java</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_VirtualReality_Tab" class="course-name">Virtual Reality</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_Linux_Tab" class="course-name">Linux</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_GitGitHub_Tab" class="course-name">Git / GitHub</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_Wordpress_Tab" class="course-name">Wordpress</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_BlockChain_Tab" class="course-name">Blockchain</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_AI_Tab" class="course-name">AI</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_VideoProduction_Tab" class="course-name">Video Production</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_Laravel_Tab" class="course-name">Laravel</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_ComputerScience_Tab" class="course-name">Computer Science</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_RealEstateInvesting_Tab" class="course-name">Real Estate Investing</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_SmallTalk_Tab" class="course-name">SmallTalk</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_MongoDB_Tab" class="course-name">MongoDB</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_StartupSchool_Tab" class="course-name">Startup School</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_Ruby_Tab" class="course-name">Ruby</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_Swift_Tab" class="course-name">Swift</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_C_Tab" class="course-name">C</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_Firebase_Tab" class="course-name">Firebase</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="ft_AWS_Tab" class="course-name">AWS</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                  -->
+              </li>
+             
+            </ul>
+          </div>
+        </div>
+        
+        <div class="container">
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#partTimeSidebarResponsive" aria-controls="partTimeSidebarResponsive" aria-expanded="false" aria-label="Toggle Parttime Sidebar List">
+           Part Time
+            <i class="fa fa-caret-down"></i>
+          </button>
+          <div class="collapse navbar-collapse text-center" id="partTimeSidebarResponsive">
+            <ul class="navbar-nav text-uppercase ml-auto">
+             
+              <li class="nav-item dropdown">
+                <!--
+                <div id="pt_HTML&CSS_Tab" class="course-name">HTML & CSS</div><img class="mobile-icons" src="../img/logos/html5Logo.png"/> 
+                <div id="pt_ResponsiveDesignAndCSSAnimations_Tab" class="course-name">Responsive Design and CSS Animations</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_Javascript_Tab" class="course-name">JavaScript</div><img class="mobile-icons" src="../img/logos/jsLogo.jpg"/>
+                <div id="pt_SQL_Tab" class="course-name">SQL</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_Python_Tab" class="course-name">Python</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_NodeExpress_Tab" class="course-name">Node / Express</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_React_Tab" class="course-name">React</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_Django_Tab" class="course-name">Django</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_Electron_Tab" class="course-name">Electron</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_ReactNative_Tab" class="course-name">React Native</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_Maths_Tab" class="course-name">Maths</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_PHP_Tab" class="course-name">PHP</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_WebDesign_Tab" class="course-name">Web Design</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_DigitalMarketing_Tab" class="course-name">Digital Marketing</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_DataScience_Tab" class="course-name">Data Science</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_WebSecurity_Tab" class="course-name">Web Security</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_E-Commerce_Tab" class="course-name">E-Commerce</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_C++_Tab" class="course-name">C++</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_MobileDevelopment_Tab" class="course-name">Mobile Development</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_Java_Tab" class="course-name">Java</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_VirtualReality_Tab" class="course-name">Virtual Reality</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_Linux_Tab" class="course-name">Linux</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_GitGitHub_Tab" class="course-name">Git / GitHub</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_Wordpress_Tab" class="course-name">Wordpress</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_BlockChain_Tab" class="course-name">Blockchain</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_AI_Tab" class="course-name">AI</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_VideoProduction_Tab" class="course-name">Video Production</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_Laravel_Tab" class="course-name">Laravel</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_ComputerScience_Tab" class="course-name">Computer Science</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_RealEstateInvesting_Tab" class="course-name">Real Estate Investing</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_SmallTalk_Tab" class="course-name">SmallTalk</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_MongoDB_Tab" class="course-name">MongoDB</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_StartupSchool_Tab" class="course-name">Startup School</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_Ruby_Tab" class="course-name">Ruby</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_Swift_Tab" class="course-name">Swift</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_C_Tab" class="course-name">C</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_Firebase_Tab" class="course-name">Firebase</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                <div id="pt_AWS_Tab" class="course-name">AWS</div><img class="mobile-icons" src="../img/logos/reactLogo.png"/>
+                -->
+              </li>
+             
+            </ul>
+          </div>
+        </div>
+
     </div>
   </section>
 
