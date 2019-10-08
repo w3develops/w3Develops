@@ -7,7 +7,7 @@
         // https://stackoverflow.com/questions/24531351/retrieve-google-spreadsheet-worksheet-json
         const studyLink = 'https://spreadsheets.google.com/feeds/list/1PMWsPEfHFC6myMwhdidyr2hhRK5ZA-JrDQzwRoDTFaw/oua1i2d/public/values?alt=json-in-script&callback=text';
         const buildLink = 'https://spreadsheets.google.com/feeds/list/1PMWsPEfHFC6myMwhdidyr2hhRK5ZA-JrDQzwRoDTFaw/oua1i2d/public/values?alt=json-in-script&callback=text';
-
+        
         // Getting the side nav buttons.
         const html_css_button = document.getElementById("HTML&CSS_Tab");
         const js_button = document.getElementById("Javascript_Tab");
