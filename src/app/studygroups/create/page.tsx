@@ -57,15 +57,19 @@ export default function CreateGroupPage() {
     
     try {
         // Check for existing, non-full, recent groups
-        const oneWeekAgo = new Date(Date.now() - ONE_WEEK_IN_MS);
+        const oneWeekAgoTimestamp = Date.now() - ONE_WEEK_IN_MS;
         const q = query(
             collection(firestore, 'studyGroups'),
             where('topic', '==', finalTopic),
-            where('commitment', '==', finalCommitment),
-            where('createdAt', '>', Timestamp.fromDate(oneWeekAgo))
+            where('commitment', '==', finalCommitment)
         );
         const existingSnapshot = await getDocs(q);
-        const suitableGroups = existingSnapshot.docs.filter(doc => doc.data().memberIds.length < 25);
+        
+        const suitableGroups = existingSnapshot.docs.filter(doc => {
+            const data = doc.data();
+            const createdAt = (data.createdAt as Timestamp).toMillis();
+            return data.memberIds.length < 25 && createdAt > oneWeekAgoTimestamp;
+        });
 
 
         if (suitableGroups.length > 0) {
