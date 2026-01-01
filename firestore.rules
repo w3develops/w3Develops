@@ -70,7 +70,7 @@ service cloud.firestore {
                     && request.resource.data.memberIds[request.resource.data.memberIds.size() - 1] == request.auth.uid;
     
       match /tasks/{taskId} {
-        allow read: if isGroupMember(groupId);
+        allow read: if true;
         allow create: if isGroupMember(groupId) 
                       && request.resource.data.creatorId == request.auth.uid
                       && request.resource.data.isCompleted == false;
@@ -94,7 +94,7 @@ service cloud.firestore {
                     && request.resource.data.memberIds[request.resource.data.memberIds.size() - 1] == request.auth.uid;
 
       match /tasks/{taskId} {
-        allow read: if isCohortMember(cohortId);
+        allow read: if true;
         allow create: if isCohortMember(cohortId)
                       && request.resource.data.creatorId == request.auth.uid
                       && request.resource.data.isCompleted == false;
@@ -128,5 +128,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
