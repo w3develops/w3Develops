@@ -24,6 +24,7 @@ export default function JoinCohortButton({ cohort, onJoinSuccess }: { cohort: Co
     const isMember = cohort.memberIds.includes(user.uid);
     const isFull = cohort.memberIds.length >= 25;
     const isNew = cohort.createdAt && (Date.now() - cohort.createdAt.toMillis()) < ONE_WEEK_IN_MS;
+    const canJoin = isNew && !isFull && !isMember;
 
     if (isMember) {
         return (
@@ -47,7 +48,7 @@ export default function JoinCohortButton({ cohort, onJoinSuccess }: { cohort: Co
             toast({
                 variant: "destructive",
                 title: "Unable to Join",
-                description: "Unable to join projects \"In Progress\". Join a 'New' project or create one.",
+                description: "This project is already in progress. You can only join projects marked as 'New'.",
                 duration: 6000,
             });
             return;
@@ -99,8 +100,17 @@ export default function JoinCohortButton({ cohort, onJoinSuccess }: { cohort: Co
         }
     };
 
+    if (!isNew && !isMember) {
+      return (
+          <Button disabled size="sm">
+              <PlusCircle className="w-4 h-4 mr-2" />
+              Join Project
+          </Button>
+      );
+    }
+
     return (
-        <Button onClick={handleJoin} disabled={isJoining} size="sm">
+        <Button onClick={handleJoin} disabled={isJoining || !canJoin} size="sm">
             <PlusCircle className="w-4 h-4 mr-2" />
             {isJoining ? 'Joining...' : 'Join Project'}
         </Button>

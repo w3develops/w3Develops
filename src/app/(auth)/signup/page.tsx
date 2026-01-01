@@ -137,8 +137,8 @@ function SignupPageContent() {
 
 
   useEffect(() => {
-    // Redirect if user is logged in with a permanent account
-    if (!isUserLoading && user && !user.isAnonymous) {
+    // Redirect if user is logged in
+    if (!isUserLoading && user) {
       router.push(redirectUrl);
     }
   }, [user, isUserLoading, router, redirectUrl]);
@@ -276,7 +276,7 @@ function SignupPageContent() {
     }
   };
   
-  if (isUserLoading || (user && !user.isAnonymous)) {
+  if (isUserLoading || user) {
     return <LoadingSkeleton />;
   }
 

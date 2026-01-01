@@ -24,6 +24,7 @@ export default function JoinGroupButton({ group, onJoinSuccess }: { group: Study
     const isMember = group.memberIds.includes(user.uid);
     const isFull = group.memberIds.length >= 25;
     const isNew = group.createdAt && (Date.now() - group.createdAt.toMillis()) < ONE_WEEK_IN_MS;
+    const canJoin = isNew && !isFull && !isMember;
 
     if (isMember) {
         return (
@@ -47,7 +48,7 @@ export default function JoinGroupButton({ group, onJoinSuccess }: { group: Study
             toast({
                 variant: "destructive",
                 title: "Unable to Join",
-                description: "Unable to join groups \"In Progress\". Join a 'New' group or create one.",
+                description: "This group is already in progress. You can only join groups marked as 'New'.",
                 duration: 6000,
             });
             return;
@@ -97,10 +98,19 @@ export default function JoinGroupButton({ group, onJoinSuccess }: { group: Study
             setIsJoining(false);
         }
     };
+    
+    if (!isNew && !isMember) {
+      return (
+          <Button disabled size="sm">
+              <PlusCircle className="w-4 h-4 mr-2" />
+              Join Group
+          </Button>
+      );
+    }
 
     return (
-        <Button onClick={handleJoin} disabled={isJoining} size="sm">
-            <PlusCircle class="w-4 h-4 mr-2" />
+        <Button onClick={handleJoin} disabled={isJoining || !canJoin} size="sm">
+            <PlusCircle className="w-4 h-4 mr-2" />
             {isJoining ? 'Joining...' : 'Join Group'}
         </Button>
     );
