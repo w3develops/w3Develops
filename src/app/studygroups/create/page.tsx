@@ -11,8 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useUser, useFirestore } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { collection, serverTimestamp, query, where, getDocs, doc, writeBatch, arrayUnion } from 'firebase/firestore';
-import { topics, commitmentLevels } from '@/lib/constants';
+import { collection, serverTimestamp, query, where, getDocs, doc, writeBatch, arrayUnion, Timestamp } from 'firebase/firestore';
+import { topics, commitmentLevels, ONE_WEEK_IN_MS } from '@/lib/constants';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose, DrawerFooter, DrawerDescription } from '@/components/ui/drawer';
 import { ChevronDown } from 'lucide-react';
@@ -57,10 +57,12 @@ export default function CreateGroupPage() {
     
     try {
         // Check for existing, non-full, recent groups
+        const oneWeekAgo = new Date(Date.now() - ONE_WEEK_IN_MS);
         const q = query(
             collection(firestore, 'studyGroups'),
             where('topic', '==', finalTopic),
-            where('commitment', '==', finalCommitment)
+            where('commitment', '==', finalCommitment),
+            where('createdAt', '>', Timestamp.fromDate(oneWeekAgo))
         );
         const existingSnapshot = await getDocs(q);
         const suitableGroups = existingSnapshot.docs.filter(doc => doc.data().memberIds.length < 25);
