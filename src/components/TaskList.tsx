@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { Task, UserProfile } from '@/lib/types';
-import { collection, query, orderBy, Query, doc, addDoc, updateDoc, serverTimestamp, writeBatch, documentId, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, Query, doc, addDoc, updateDoc, serverTimestamp, writeBatch, documentId, getDocs, where } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -217,5 +217,3 @@ export default function TaskList({ groupOrCohortId, collectionPath, memberIds }:
     </Card>
   );
 }
-
-    
