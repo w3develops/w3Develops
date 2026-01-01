@@ -59,6 +59,9 @@ const RESERVED_USERNAMES = [
 ];
 
 function validateUsername(username: string): string | null {
+  if (username.length < 3) {
+    return 'Username must be at least 3 characters long.';
+  }
   if (username.length > 24) {
     return 'Username cannot be longer than 24 characters.';
   }
@@ -96,32 +99,36 @@ function SignupPageContent() {
 
   const checkUsername = useCallback(async (usernameToCheck: string) => {
     setIsUsernameChecking(true);
-    setIsUsernameAvailable(null); // Reset availability on new check
     
     const validationError = validateUsername(usernameToCheck);
-    if (validationError) {
-      setUsernameError(validationError);
-      setIsUsernameChecking(false);
-      return;
-    }
-    setUsernameError(null);
+    setUsernameError(validationError);
 
-    if (!usernameToCheck || usernameToCheck.length < 3) {
-      setIsUsernameChecking(false);
-      return;
+    if (validationError) {
+        setIsUsernameChecking(false);
+        setIsUsernameAvailable(null); // Don't check availability if format is invalid
+        return;
     }
 
     const usernameLower = usernameToCheck.toLowerCase();
-    const usernameDocRef = doc(firestore, 'usernames', usernameLower);
-    const docSnap = await getDoc(usernameDocRef);
-    setIsUsernameAvailable(!docSnap.exists());
-    setIsUsernameChecking(false);
+    try {
+        const usernameDocRef = doc(firestore, 'usernames', usernameLower);
+        const docSnap = await getDoc(usernameDocRef);
+        setIsUsernameAvailable(!docSnap.exists());
+    } catch (err) {
+        // Handle potential firestore errors, e.g. permissions
+        setUsernameError("Couldn't check username. Please try again.");
+        setIsUsernameAvailable(null);
+    } finally {
+        setIsUsernameChecking(false);
+    }
   }, [firestore]);
+
 
   useEffect(() => {
     if (debouncedUsername) {
       checkUsername(debouncedUsername);
     } else {
+      // Clear all status when input is empty
       setUsernameError(null);
       setIsUsernameAvailable(null);
       setIsUsernameChecking(false);
@@ -156,7 +163,7 @@ function SignupPageContent() {
       return;
     }
 
-    if (!isUsernameAvailable) {
+    if (isUsernameAvailable === false) {
         toast({
             variant: "destructive",
             title: "Username taken",
@@ -297,18 +304,18 @@ function SignupPageContent() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={isSubmitting}
-                  className={!isUsernameAvailable || !!usernameError ? 'border-destructive' : ''}
+                  className={(!!usernameError || isUsernameAvailable === false) ? 'border-destructive' : ''}
                   autoComplete="username"
                 />
                 <div className="h-4">
                   {isUsernameChecking && <p className="text-xs text-muted-foreground">Checking...</p>}
-                  {usernameError && (
+                  {!isUsernameChecking && usernameError && (
                     <p className="text-xs text-destructive">{usernameError}</p>
                   )}
-                  {isUsernameAvailable === false && !usernameError && (
-                      <p className="text-xs text-destructive">Username is already taken.</p>
+                  {!isUsernameChecking && !usernameError && isUsernameAvailable === false && (
+                    <p className="text-xs text-destructive">Username is already taken.</p>
                   )}
-                  {isUsernameAvailable === true && !usernameError && username.length > 2 && (
+                  {!isUsernameChecking && !usernameError && isUsernameAvailable === true && username.length > 0 && (
                     <p className="text-xs text-green-600">Username is available!</p>
                   )}
                 </div>
@@ -367,3 +374,5 @@ export default function SignupPage() {
     </Suspense>
   )
 }
+
+    
