@@ -23,7 +23,7 @@ const features = [
     icon: <Code className="h-10 w-10 text-primary" />,
     title: "Group Projects",
     description: "Gain real-world experience by building applications in a team setting.",
-    link: "/cohorts"
+    link: "/groupprojects"
   },
   {
     icon: <Trophy className="h-10 w-10 text-primary" />,

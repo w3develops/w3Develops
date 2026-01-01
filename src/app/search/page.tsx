@@ -95,7 +95,7 @@ function SearchResults() {
   const groupsByNameQuery = useMemo(() => {
     if (!lowerQ) return null;
     return query(
-        collection(firestore, 'studyGroups'), 
+        collection(firestore, 'studygroups'), 
         orderBy('name_lowercase'),
         where('name_lowercase', '>=', lowerQ),
         where('name_lowercase', '<=', lowerQ + '\uf8ff'),
@@ -110,7 +110,7 @@ function SearchResults() {
     if (!matchingTopic) return null;
 
     return query(
-        collection(firestore, 'studyGroups'), 
+        collection(firestore, 'studygroups'), 
         where('topic', '==', matchingTopic),
         limit(10)
     ) as Query<StudyGroup>;
@@ -169,7 +169,7 @@ function SearchResults() {
       {noResults && (
         <div className="text-center py-12">
             <h3 className="text-xl font-semibold">No Results Found</h3>
-            <p className="text-muted-foreground mt-2">We couldn't find any users, groups, or cohorts matching your search.</p>
+            <p className="text-muted-foreground mt-2">We couldn't find any users, groups, or projects matching your search.</p>
         </div>
       )}
 
@@ -231,12 +231,12 @@ function SearchResults() {
 
        {mergedCohorts.length > 0 && (
          <section>
-          <h2 className="text-2xl font-semibold mb-4">Build Cohorts</h2>
+          <h2 className="text-2xl font-semibold mb-4">Group Projects</h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {mergedCohorts.map(cohort => {
               const isNew = cohort.createdAt && (Date.now() - (cohort.createdAt as any).toMillis()) < ONE_WEEK_IN_MS;
               return (
-               <Link href={`/cohorts/${cohort.id}`} key={cohort.id}>
+               <Link href={`/groupprojects/${cohort.id}`} key={cohort.id}>
                 <Card className="hover:bg-accent transition-colors h-full flex flex-col">
                   <CardHeader>
                     <div className="flex justify-between items-start">

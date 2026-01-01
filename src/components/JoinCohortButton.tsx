@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -27,18 +28,18 @@ export default function JoinCohortButton({ cohort, onJoinSuccess }: { cohort: Co
     if (isMember) {
         return (
             <Button variant="outline" asChild size="sm">
-                <Link href={`/cohorts/${cohort.id}`}>View Cohort</Link>
+                <Link href={`/groupprojects/${cohort.id}`}>View Project</Link>
             </Button>
         );
     }
 
     if (isFull) {
-        return <Button size="sm" disabled>Cohort Full</Button>;
+        return <Button size="sm" disabled>Project Full</Button>;
     }
     
     const handleJoin = async () => {
         if(isMember) {
-            toast({ variant: 'destructive', title: 'Already a Member', description: 'You are already a member of this cohort.' });
+            toast({ variant: 'destructive', title: 'Already a Member', description: 'You are already a member of this project.' });
             return;
         }
 
@@ -46,7 +47,7 @@ export default function JoinCohortButton({ cohort, onJoinSuccess }: { cohort: Co
             toast({
                 variant: "destructive",
                 title: "Unable to Join",
-                description: "Unable to join groups \"In Progress\". Join a 'New' group or create one.",
+                description: "Unable to join projects \"In Progress\". Join a 'New' project or create one.",
                 duration: 6000,
             });
             return;
@@ -64,8 +65,8 @@ export default function JoinCohortButton({ cohort, onJoinSuccess }: { cohort: Co
 
 
             if (cohort.memberIds.length + 1 === 25) {
-                const message = `Your build cohort "${cohort.name}" is now full!`;
-                const link = `/cohorts/${cohort.id}`;
+                const message = `Your group project "${cohort.name}" is now full!`;
+                const link = `/groupprojects/${cohort.id}`;
                 const allMemberIds = [...cohort.memberIds, user.uid];
                 
                 allMemberIds.forEach(memberId => {
@@ -78,17 +79,17 @@ export default function JoinCohortButton({ cohort, onJoinSuccess }: { cohort: Co
                         createdAt: serverTimestamp(),
                     });
                 });
-                toast({ title: 'Cohort Full!', description: `Notifications sent to all members.`});
+                toast({ title: 'Project Full!', description: `Notifications sent to all members.`});
             }
             
             await batch.commit();
 
-            toast({ title: 'Success!', description: `You've joined the cohort: ${cohort.name}`});
+            toast({ title: 'Success!', description: `You've joined the project: ${cohort.name}`});
             
             if (onJoinSuccess) {
                 onJoinSuccess(cohort.id);
             } else {
-                router.push(`/cohorts/${cohort.id}`);
+                router.push(`/groupprojects/${cohort.id}`);
             }
 
         } catch (error: any) {
@@ -101,7 +102,7 @@ export default function JoinCohortButton({ cohort, onJoinSuccess }: { cohort: Co
     return (
         <Button onClick={handleJoin} disabled={isJoining} size="sm">
             <PlusCircle className="w-4 h-4 mr-2" />
-            {isJoining ? 'Joining...' : 'Join Cohort'}
+            {isJoining ? 'Joining...' : 'Join Project'}
         </Button>
     );
 }

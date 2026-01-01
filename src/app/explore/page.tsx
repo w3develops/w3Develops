@@ -10,7 +10,7 @@ import {
 const mainLinks = [
     { href: "/learn", label: "Learn", icon: School, description: "Curated resources to learn new skills." },
     { href: "/studygroups", label: "Study Groups", icon: Users, description: "Find a group to learn and grow with." },
-    { href: "/cohorts", label: "Group Projects", icon: Code, description: "Build real-world projects in a team." },
+    { href: "/groupprojects", label: "Group Projects", icon: Code, description: "Build real-world projects in a team." },
 ];
 
 const communityLinks = [

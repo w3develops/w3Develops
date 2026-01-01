@@ -77,7 +77,7 @@ export default function AccountPage() {
 
   const userGroupsQuery = useMemo(() => {
     if (!user) return null;
-    return query(collection(firestore, 'studyGroups'), where('memberIds', 'array-contains', user.uid)) as Query<StudyGroup>;
+    return query(collection(firestore, 'studygroups'), where('memberIds', 'array-contains', user.uid)) as Query<StudyGroup>;
   }, [user, firestore]);
 
   const { data: studyGroups, isLoading: isGroupsLoading } = useCollection<StudyGroup>(userGroupsQuery);
@@ -115,7 +115,7 @@ export default function AccountPage() {
           <Card>
             <CardHeader>
               <CardTitle>Your Group Projects</CardTitle>
-              <CardDescription>Cohorts you have created or joined to build projects.</CardDescription>
+              <CardDescription>Projects you have created or joined to build applications.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {isCohortsLoading ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> : 
@@ -123,20 +123,20 @@ export default function AccountPage() {
                   <ul className="divide-y">
                     {cohorts.map(c => (
                        <li key={c.id} className="py-2">
-                        <Link href={`/cohorts/${c.id}`} className="font-medium hover:underline">{c.name}</Link>
+                        <Link href={`/groupprojects/${c.id}`} className="font-medium hover:underline">{c.name}</Link>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-sm text-muted-foreground">You haven't joined any cohorts yet.</p>
+                  <p className="text-sm text-muted-foreground">You haven't joined any group projects yet.</p>
                 )
               }
                <div className="flex gap-2 pt-4">
                   <Button asChild size="sm" variant="secondary">
-                    <Link href="/cohorts">Explore Cohorts</Link>
+                    <Link href="/groupprojects">Explore Projects</Link>
                   </Button>
                    <Button size="sm" onClick={() => setIsCohortModalOpen(true)}>
-                    Join a Cohort
+                    Join a Project
                   </Button>
               </div>
             </CardContent>

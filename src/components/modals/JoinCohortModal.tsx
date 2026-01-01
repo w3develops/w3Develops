@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo } from 'react';
 import { useUser, useFirestore, useCollection } from '@/firebase';
@@ -70,7 +71,7 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
 
   const handleJoinSuccess = (cohortId: string) => {
     handleClose();
-    router.push(`/cohorts/${cohortId}`);
+    router.push(`/groupprojects/${cohortId}`);
   };
 
   const availableCohorts = useMemo(() => {
@@ -84,11 +85,11 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Join a Build Cohort</DialogTitle>
+          <DialogTitle>Join a Group Project</DialogTitle>
           <DialogDescription>
             {step === 1 
-              ? "Select your preferences to find matching cohorts."
-              : "Here are cohorts that match your criteria. Join one or create a new one."
+              ? "Select your preferences to find matching projects."
+              : "Here are projects that match your criteria. Join one or create a new one."
             }
           </DialogDescription>
         </DialogHeader>
@@ -152,17 +153,17 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
               </RadioGroup>
             </div>
             <Button onClick={handleFindCohorts} disabled={findButtonDisabled}>
-              Find Cohorts
+              Find Projects
             </Button>
           </div>
         )}
 
         {step === 2 && (
           <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto">
-            {isLoading && <p>Searching for cohorts...</p>}
+            {isLoading && <p>Searching for projects...</p>}
             {!isLoading && availableCohorts.length > 0 && (
               <div className="space-y-2">
-                <h4 className="font-semibold">Matching Cohorts</h4>
+                <h4 className="font-semibold">Matching Projects</h4>
                 {availableCohorts.map(cohort => (
                   <div key={cohort.id} className="flex items-center justify-between p-2 border rounded-md">
                     <div>
@@ -176,9 +177,9 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
             )}
              {!isLoading && availableCohorts.length === 0 && (
                 <div className="text-center py-4 space-y-2">
-                    <p className="text-muted-foreground">No matching open cohorts were found.</p>
+                    <p className="text-muted-foreground">No matching open projects were found.</p>
                     <Button asChild onClick={handleClose}>
-                        <Link href="/cohorts/create">Create a New Cohort</Link>
+                        <Link href="/groupprojects/create">Create a New Project</Link>
                     </Button>
                 </div>
             )}

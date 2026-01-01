@@ -132,7 +132,7 @@ function UserActivity({ userId }: { userId: string }) {
 
   const userGroupsQuery = useMemo(() => {
     if (!userId) return null;
-    return query(collection(firestore, 'studyGroups'), where('memberIds', 'array-contains', userId)) as Query;
+    return query(collection(firestore, 'studygroups'), where('memberIds', 'array-contains', userId)) as Query;
   }, [userId, firestore]);
 
   const { data: studyGroups, isLoading: isGroupsLoading } = useCollection<StudyGroup>(userGroupsQuery);
@@ -149,14 +149,14 @@ function UserActivity({ userId }: { userId: string }) {
               <ul className="space-y-2">
                 {cohorts.map(c => (
                   <li key={c.id}>
-                    <Link href={`/cohorts/${c.id}`} className="font-medium p-2 rounded-md hover:bg-accent flex justify-between items-center">
+                    <Link href={`/groupprojects/${c.id}`} className="font-medium p-2 rounded-md hover:bg-accent flex justify-between items-center">
                       <span>{c.name}</span>
                       <Badge variant="secondary">{c.topic}</Badge>
                     </Link>
                   </li>
                 ))}
               </ul>
-            ) : <p className="text-sm text-muted-foreground">Not a member of any cohorts yet.</p>}
+            ) : <p className="text-sm text-muted-foreground">Not a member of any projects yet.</p>}
         </CardContent>
       </Card>
 

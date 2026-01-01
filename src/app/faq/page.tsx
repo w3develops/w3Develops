@@ -24,8 +24,8 @@ const faqItems = [
     answer: "Study Groups are small, collaborative groups focused on a specific topic or technology. You can find and join existing groups based on your interests and time commitment. If you can't find a group that fits, you're welcome to create your own!"
   },
   {
-    question: "What are Group Projects (Cohorts)?",
-    answer: "Group Projects, or 'Build Cohorts', are teams formed to build a real-world application from scratch. It's a great way to get hands-on experience, learn to work in a development team, and build something for your portfolio."
+    question: "What are Group Projects?",
+    answer: "Group Projects are teams formed to build a real-world application from scratch. It's a great way to get hands-on experience, learn to work in a development team, and build something for your portfolio."
   },
   {
     question: "How is w3Develops different from a coding bootcamp?",

@@ -11,7 +11,7 @@ import { useState } from "react";
 const navLinks = [
     { href: "/learn", label: "Learn", icon: School },
     { href: "/studygroups", label: "Study Groups", icon: Users },
-    { href: "/cohorts", label: "Group Projects", icon: Code },
+    { href: "/groupprojects", label: "Group Projects", icon: Code },
     { href: "/solo-projects", label: "Solo Projects", icon: Code },
     { href: "/book-clubs", label: "Book Clubs", icon: BookOpen },
     { href: "/meetups", label: "Meetups", icon: Users },
