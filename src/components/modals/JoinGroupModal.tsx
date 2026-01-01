@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,11 +38,12 @@ export function JoinGroupModal({ isOpen, onClose }: JoinGroupModalProps) {
   const [commitment, setCommitment] = useState('part-time');
   const [step, setStep] = useState(1);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [availableGroups, setAvailableGroups] = useState<StudyGroup[]>([]);
 
   const finalTopic = topic === 'Other' ? customTopic : topic;
 
   const matchingGroupsQuery = useMemo(() => {
-    if (step !== 2 || !finalTopic || !commitment || !user) return null;
+    if (step !== 2 || !finalTopic || !commitment) return null;
     
     const oneWeekAgo = new Date(Date.now() - ONE_WEEK_IN_MS);
     const commitmentValue = commitmentLevels[commitment as keyof typeof commitmentLevels];
@@ -52,10 +53,17 @@ export function JoinGroupModal({ isOpen, onClose }: JoinGroupModalProps) {
       where('topic', '==', finalTopic),
       where('commitment', '==', commitmentValue),
       where('createdAt', '>', Timestamp.fromDate(oneWeekAgo))
-    ) as Query;
-  }, [step, finalTopic, commitment, firestore, user]);
+    ) as Query<StudyGroup>;
+  }, [step, finalTopic, commitment, firestore]);
 
   const { data: matchingGroups, isLoading } = useCollection<StudyGroup>(matchingGroupsQuery);
+
+  useEffect(() => {
+    if (user && matchingGroups) {
+      const filtered = matchingGroups.filter(g => g.memberIds.length < 25 && !g.memberIds.includes(user.uid));
+      setAvailableGroups(filtered);
+    }
+  }, [matchingGroups, user]);
 
   const handleFindGroups = () => {
     if (!finalTopic || !commitment) return;
@@ -67,6 +75,7 @@ export function JoinGroupModal({ isOpen, onClose }: JoinGroupModalProps) {
     setTopic('');
     setCustomTopic('');
     setCommitment('part-time');
+    setAvailableGroups([]);
     onClose();
   }
 
@@ -74,11 +83,6 @@ export function JoinGroupModal({ isOpen, onClose }: JoinGroupModalProps) {
     handleClose();
     router.push(`/studygroups/${groupId}`);
   };
-
-  const availableGroups = useMemo(() => {
-    if (!user || !matchingGroups) return [];
-    return matchingGroups.filter(g => g.memberIds.length < 25 && !g.memberIds.includes(user.uid));
-  }, [matchingGroups, user]);
 
   const findButtonDisabled = !finalTopic || !commitment || (topic === 'Other' && !customTopic);
 

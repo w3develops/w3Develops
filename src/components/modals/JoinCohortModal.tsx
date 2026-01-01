@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,11 +38,12 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
   const [commitment, setCommitment] = useState('part-time');
   const [step, setStep] = useState(1);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [availableCohorts, setAvailableCohorts] = useState<Cohort[]>([]);
 
   const finalTopic = topic === 'Other' ? customTopic : topic;
 
   const matchingCohortsQuery = useMemo(() => {
-    if (step !== 2 || !finalTopic || !commitment || !user) return null;
+    if (step !== 2 || !finalTopic || !commitment) return null;
     
     const oneWeekAgo = new Date(Date.now() - ONE_WEEK_IN_MS);
     const commitmentValue = commitmentLevels[commitment as keyof typeof commitmentLevels];
@@ -52,10 +53,18 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
       where('topic', '==', finalTopic),
       where('commitment', '==', commitmentValue),
       where('createdAt', '>', Timestamp.fromDate(oneWeekAgo))
-    ) as Query;
-  }, [step, finalTopic, commitment, firestore, user]);
+    ) as Query<Cohort>;
+  }, [step, finalTopic, commitment, firestore]);
 
   const { data: matchingCohorts, isLoading } = useCollection<Cohort>(matchingCohortsQuery);
+
+  useEffect(() => {
+    if (user && matchingCohorts) {
+      const filtered = matchingCohorts.filter(c => c.memberIds.length < 25 && !c.memberIds.includes(user.uid));
+      setAvailableCohorts(filtered);
+    }
+  }, [matchingCohorts, user]);
+
 
   const handleFindCohorts = () => {
     if (!finalTopic || !commitment) return;
@@ -67,6 +76,7 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
     setTopic('');
     setCustomTopic('');
     setCommitment('part-time');
+    setAvailableCohorts([]);
     onClose();
   }
 
@@ -74,11 +84,6 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
     handleClose();
     router.push(`/groupprojects/${cohortId}`);
   };
-
-  const availableCohorts = useMemo(() => {
-    if (!user || !matchingCohorts) return [];
-    return matchingCohorts.filter(c => c.memberIds.length < 25 && !c.memberIds.includes(user.uid));
-  }, [matchingCohorts, user]);
   
   const findButtonDisabled = !finalTopic || !commitment || (topic === 'Other' && !customTopic);
 
