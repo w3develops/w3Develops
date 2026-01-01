@@ -7,6 +7,8 @@ import { Firestore, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { Analytics } from 'firebase/analytics';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
+import { errorEmitter } from './error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from './errors';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -95,10 +97,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
             if (!isNewUser) {
                 const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-                updateDoc(userDocRef, { lastLoginAt: serverTimestamp() }).catch(error => {
-                    // This might still fail if the user logs in right after deleting their own account data,
-                    // but it's a safe, non-critical operation.
-                    console.error("Failed to update last login time for returning user:", error);
+                const updateData = { lastLoginAt: serverTimestamp() };
+                updateDoc(userDocRef, updateData)
+                .catch(async (serverError) => {
+                    const permissionError = new FirestorePermissionError({
+                      path: userDocRef.path,
+                      operation: 'update',
+                      requestResourceData: updateData,
+                    } satisfies SecurityRuleContext);
+                    errorEmitter.emit('permission-error', permissionError);
                 });
             }
         }
