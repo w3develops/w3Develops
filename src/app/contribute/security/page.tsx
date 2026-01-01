@@ -66,7 +66,7 @@ export default function SecurityPage() {
                         <li>Dependency alerts without proof of exploit</li>
                         <li>Subdomain enumeration lists</li>
                     </ul>
-                    <p className="text-gray-400 mt-4 italic">We treat low-effort reports as "beg bounties". These are reports that don't meet our quality standards and are not actionable.</p>
+                    <p className="text-gray-400 mt-4 italic">We treat low-effort reports as <Link href="https://www.troyhunt.com/beg-bounties" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:underline">"beg bounties"</Link>. These are reports that don't meet our quality standards and are not actionable.</p>
                 </section>
 
                 <section>
