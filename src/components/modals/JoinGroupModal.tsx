@@ -45,11 +45,12 @@ export function JoinGroupModal({ isOpen, onClose }: JoinGroupModalProps) {
     if (step !== 2 || !finalTopic || !commitment || !user) return null;
     
     const oneWeekAgo = new Date(Date.now() - ONE_WEEK_IN_MS);
+    const commitmentValue = commitmentLevels[commitment as keyof typeof commitmentLevels];
 
     return query(
       collection(firestore, 'studyGroups'),
       where('topic', '==', finalTopic),
-      where('commitment', '==', commitmentLevels[commitment as keyof typeof commitmentLevels]),
+      where('commitment', '==', commitmentValue),
       where('createdAt', '>', Timestamp.fromDate(oneWeekAgo))
     ) as Query;
   }, [step, finalTopic, commitment, firestore, user]);
