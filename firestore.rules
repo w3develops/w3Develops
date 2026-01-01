@@ -7,6 +7,14 @@ service cloud.firestore {
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
+    
+    function isGroupMember(groupId) {
+      return request.auth != null && get(/databases/$(database)/documents/studyGroups/$(groupId)).data.memberIds.hasAny([request.auth.uid]);
+    }
+    
+    function isCohortMember(cohortId) {
+       return request.auth != null && get(/databases/$(database)/documents/cohorts/$(cohortId)).data.memberIds.hasAny([request.auth.uid]);
+    }
 
     function isAddingToList(list, newList) {
       return newList.size() == list.size() + 1 && newList.hasAll(list);
@@ -60,6 +68,15 @@ service cloud.firestore {
                     && request.time - resource.data.createdAt < duration.value(7, 'd')
                     && isAddingToList(resource.data.memberIds, request.resource.data.memberIds)
                     && request.resource.data.memberIds[request.resource.data.memberIds.size() - 1] == request.auth.uid;
+    
+      match /tasks/{taskId} {
+        allow read: if isGroupMember(groupId);
+        allow create: if isGroupMember(groupId) 
+                      && request.resource.data.creatorId == request.auth.uid
+                      && request.resource.data.isCompleted == false;
+        allow update: if isGroupMember(groupId);
+        allow delete: if isGroupMember(groupId) && resource.data.creatorId == request.auth.uid;
+      }
     }
 
     match /cohorts/{cohortId} {
@@ -75,6 +92,15 @@ service cloud.firestore {
                     && request.time - resource.data.createdAt < duration.value(7, 'd')
                     && isAddingToList(resource.data.memberIds, request.resource.data.memberIds)
                     && request.resource.data.memberIds[request.resource.data.memberIds.size() - 1] == request.auth.uid;
+
+      match /tasks/{taskId} {
+        allow read: if isCohortMember(cohortId);
+        allow create: if isCohortMember(cohortId)
+                      && request.resource.data.creatorId == request.auth.uid
+                      && request.resource.data.isCompleted == false;
+        allow update: if isCohortMember(cohortId);
+        allow delete: if isCohortMember(cohortId) && resource.data.creatorId == request.auth.uid;
+      }
     }
 
     match /users/{userId}/notifications/{notificationId} {
@@ -102,3 +128,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

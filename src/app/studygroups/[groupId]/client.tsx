@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { formatTimestamp } from '@/lib/utils';
 import { ONE_WEEK_IN_MS } from '@/lib/constants';
 import { useToast } from '@/components/ui/use-toast';
+import TaskList from '@/components/TaskList';
 
 function MemberList({ memberIds }: { memberIds: string[] }) {
     const firestore = useFirestore();
@@ -133,6 +134,12 @@ export default function GroupDashboardPage({ params }: { params: { groupId: stri
            </div>
         </CardContent>
       </Card>
+      
+      <TaskList 
+        groupOrCohortId={groupId}
+        collectionPath="studyGroups"
+        memberIds={group.memberIds}
+      />
 
       <Card>
         <CardHeader>
@@ -149,3 +156,5 @@ export default function GroupDashboardPage({ params }: { params: { groupId: stri
     </div>
   );
 }
+
+    

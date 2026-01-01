@@ -238,6 +238,23 @@
         "createdAt"
       ]
     },
+    "Task": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Task",
+      "type": "object",
+      "description": "Represents a task within a study group or project cohort.",
+      "properties": {
+        "id": { "type": "string" },
+        "description": { "type": "string" },
+        "isCompleted": { "type": "boolean" },
+        "priority": { "type": "string", "enum": ["low", "medium", "high"] },
+        "creatorId": { "type": "string" },
+        "completedBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "completedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "description", "isCompleted", "priority", "creatorId", "createdAt"]
+    },
     "Notification": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Notification",
@@ -335,6 +352,18 @@
       },
       "description": "Stores project cohort data."
     },
+    "/studyGroups/{groupId}/tasks/{taskId}": {
+        "schema": {
+            "$ref": "#/entities/Task"
+        },
+        "description": "Stores tasks for a specific study group."
+    },
+    "/cohorts/{cohortId}/tasks/{taskId}": {
+        "schema": {
+            "$ref": "#/entities/Task"
+        },
+        "description": "Stores tasks for a specific project cohort."
+    },
     "/users/{userId}/notifications/{notificationId}": {
         "schema": {
             "$ref": "#/entities/Notification"
@@ -355,3 +384,5 @@
     }
   }
 }
+
+    

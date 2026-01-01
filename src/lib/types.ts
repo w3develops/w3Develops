@@ -52,6 +52,17 @@ export interface StudyGroup {
   createdAt: Timestamp;
 }
 
+export interface Task {
+    id: string;
+    description: string;
+    priority: 'low' | 'medium' | 'high';
+    isCompleted: boolean;
+    creatorId: string;
+    completedBy?: string | null;
+    createdAt: Timestamp;
+    completedAt?: Timestamp | null;
+}
+
 export interface User {
   email: string;
   username: string;
@@ -79,3 +90,5 @@ export interface Notification {
     createdAt: Timestamp;
     link?: string;
 }
+
+    
