@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -27,7 +28,7 @@ export default function JoinGroupButton({ group, onJoinSuccess }: { group: Study
     if (isMember) {
         return (
             <Button variant="outline" asChild size="sm">
-                <Link href={`/groups/${group.id}`}>View Group</Link>
+                <Link href={`/studygroups/${group.id}`}>View Group</Link>
             </Button>
         );
     }
@@ -64,7 +65,7 @@ export default function JoinGroupButton({ group, onJoinSuccess }: { group: Study
 
             if (group.memberIds.length + 1 === 25) {
                 const message = `Your study group "${group.name}" is now full!`;
-                const link = `/groups/${group.id}`;
+                const link = `/studygroups/${group.id}`;
                 const allMemberIds = [...group.memberIds, user.uid];
 
                 allMemberIds.forEach(memberId => {
@@ -87,7 +88,7 @@ export default function JoinGroupButton({ group, onJoinSuccess }: { group: Study
             if (onJoinSuccess) {
                 onJoinSuccess(group.id);
             } else {
-                router.push(`/groups/${group.id}`);
+                router.push(`/studygroups/${group.id}`);
             }
 
         } catch (error: any) {
@@ -99,7 +100,7 @@ export default function JoinGroupButton({ group, onJoinSuccess }: { group: Study
 
     return (
         <Button onClick={handleJoin} disabled={isJoining} size="sm">
-            <PlusCircle className="w-4 h-4 mr-2" />
+            <PlusCircle class="w-4 h-4 mr-2" />
             {isJoining ? 'Joining...' : 'Join Group'}
         </Button>
     );
