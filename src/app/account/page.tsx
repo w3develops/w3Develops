@@ -114,36 +114,6 @@ export default function AccountPage() {
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Your Group Projects</CardTitle>
-              <CardDescription>Projects you have created or joined to build applications.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {isCohortsLoading ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> : 
-                (cohorts && cohorts.length > 0) ? (
-                  <ul className="divide-y">
-                    {cohorts.map(c => (
-                       <li key={c.id} className="py-2">
-                        <Link href={`/groupprojects/${c.id}`} className="font-medium hover:underline">{c.name}</Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-muted-foreground">You haven't joined any group projects yet.</p>
-                )
-              }
-               <div className="flex gap-2 pt-4">
-                  <Button asChild size="sm" variant="secondary">
-                    <Link href="/groupprojects">Explore Projects</Link>
-                  </Button>
-                   <Button size="sm" onClick={() => setIsCohortModalOpen(true)}>
-                    Join a Project
-                  </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
               <CardTitle>Your Study Groups</CardTitle>
               <CardDescription>Groups you are a member of to learn and collaborate.</CardDescription>
             </CardHeader>
@@ -167,6 +137,36 @@ export default function AccountPage() {
                   </Button>
                    <Button size="sm" onClick={() => setIsGroupModalOpen(true)}>
                     Join a Group
+                  </Button>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Group Projects</CardTitle>
+              <CardDescription>Projects you have created or joined to build applications.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isCohortsLoading ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> : 
+                (cohorts && cohorts.length > 0) ? (
+                  <ul className="divide-y">
+                    {cohorts.map(c => (
+                       <li key={c.id} className="py-2">
+                        <Link href={`/groupprojects/${c.id}`} className="font-medium hover:underline">{c.name}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">You haven't joined any group projects yet.</p>
+                )
+              }
+               <div className="flex gap-2 pt-4">
+                  <Button asChild size="sm" variant="secondary">
+                    <Link href="/groupprojects">Explore Projects</Link>
+                  </Button>
+                   <Button size="sm" onClick={() => setIsCohortModalOpen(true)}>
+                    Join a Project
                   </Button>
               </div>
             </CardContent>
