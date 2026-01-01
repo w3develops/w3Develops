@@ -15,6 +15,7 @@ import { formatTimestamp } from '@/lib/utils';
 import { ONE_WEEK_IN_MS } from '@/lib/constants';
 import { useToast } from '@/components/ui/use-toast';
 import TaskList from '@/components/TaskList';
+import CheckInSystem from '@/components/CheckInSystem';
 
 function MemberList({ memberIds }: { memberIds: string[] }) {
     const firestore = useFirestore();
@@ -138,6 +139,12 @@ export default function GroupProjectDashboardPage({ params }: { params: { cohort
            </div>
         </CardContent>
       </Card>
+      
+      <CheckInSystem
+        groupOrCohortId={cohortId}
+        collectionPath="cohorts"
+        memberIds={cohort.memberIds}
+      />
       
       <TaskList 
         groupOrCohortId={cohortId}

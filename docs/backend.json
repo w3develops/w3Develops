@@ -256,6 +256,20 @@
       },
       "required": ["id", "description", "isCompleted", "priority", "creatorId", "createdAt", "position"]
     },
+    "CheckIn": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CheckIn",
+      "type": "object",
+      "description": "Represents a daily or weekly check-in for a study group or cohort.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string", "description": "The ID of the user submitting the check-in." },
+        "type": { "type": "string", "enum": ["daily", "weekly"] },
+        "content": { "type": "string", "description": "The content of the check-in." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "type", "content", "createdAt"]
+    },
     "Notification": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Notification",
@@ -364,6 +378,14 @@
             "$ref": "#/entities/Task"
         },
         "description": "Stores tasks for a specific project cohort."
+    },
+    "/studyGroups/{groupId}/checkIns/{checkInId}": {
+      "schema": { "$ref": "#/entities/CheckIn" },
+      "description": "Stores check-ins for a specific study group."
+    },
+    "/cohorts/{cohortId}/checkIns/{checkInId}": {
+      "schema": { "$ref": "#/entities/CheckIn" },
+      "description": "Stores check-ins for a specific project cohort."
     },
     "/users/{userId}/notifications/{notificationId}": {
         "schema": {

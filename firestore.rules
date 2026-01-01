@@ -26,11 +26,8 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if true;
-
       allow create: if request.auth.uid == userId;
-
       allow delete: if isOwner(userId);
-
       allow update: if isOwner(userId) && (
         (
           request.resource.data.keys().hasAny([
@@ -77,6 +74,19 @@ service cloud.firestore {
         allow update: if isGroupMember(groupId);
         allow delete: if isGroupMember(groupId) && resource.data.creatorId == request.auth.uid;
       }
+      
+      match /checkIns/{checkInId} {
+        allow read: if isGroupMember(groupId);
+        allow create: if isGroupMember(groupId) 
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
+                      && request.resource.data.type in ['daily', 'weekly'];
+        allow update: if isOwner(request.resource.data.userId)
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
+        allow delete: if false;
+      }
     }
 
     match /cohorts/{cohortId} {
@@ -100,6 +110,19 @@ service cloud.firestore {
                       && request.resource.data.isCompleted == false;
         allow update: if isCohortMember(cohortId);
         allow delete: if isCohortMember(cohortId) && resource.data.creatorId == request.auth.uid;
+      }
+
+      match /checkIns/{checkInId} {
+        allow read: if isCohortMember(cohortId);
+        allow create: if isCohortMember(cohortId)
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
+                      && request.resource.data.type in ['daily', 'weekly'];
+        allow update: if isOwner(request.resource.data.userId)
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
+        allow delete: if false;
       }
     }
 
@@ -128,3 +151,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

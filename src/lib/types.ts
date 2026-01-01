@@ -92,4 +92,12 @@ export interface Notification {
     link?: string;
 }
 
+export interface CheckIn {
+    id: string;
+    userId: string;
+    type: 'daily' | 'weekly';
+    content: string;
+    createdAt: Timestamp;
+}
+
     
