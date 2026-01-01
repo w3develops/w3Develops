@@ -263,7 +263,7 @@ export default function TaskList({ groupOrCohortId, collectionPath, memberIds }:
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="" disabled>Priority</SelectItem>
+                <SelectItem value="placeholder" disabled>Priority</SelectItem>
                 <SelectItem value="low">Low</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="high">High</SelectItem>
