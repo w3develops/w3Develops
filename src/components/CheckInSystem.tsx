@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -71,15 +70,51 @@ function UserCheckIns({ memberId, memberProfiles, groupOrCohortId, collectionPat
     );
 }
 
+function DailyCheckInStream({ checkIns, memberProfiles, isLoading }: { checkIns: CheckIn[] | null, memberProfiles: Map<string, UserProfile>, isLoading: boolean }) {
+    if (isLoading) {
+        return <p className="text-sm text-muted-foreground">Loading daily check-ins...</p>
+    }
+    if (!checkIns || checkIns.length === 0) {
+        return <p className="text-sm text-muted-foreground">No daily check-ins from the team yet.</p>
+    }
+
+    return (
+        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+            {checkIns.map(checkin => {
+                const member = memberProfiles.get(checkin.userId);
+                return (
+                    <div key={checkin.id} className="flex gap-3">
+                         <Link href={`/users/${checkin.userId}`}>
+                            <Avatar className="h-10 w-10">
+                                <AvatarImage src={member?.profilePictureUrl} />
+                                <AvatarFallback>{member?.username.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                        </Link>
+                        <div className="flex-1 text-sm">
+                            <div className="flex items-baseline gap-2">
+                                <span className="font-semibold">{member?.username || 'Unknown User'}</span>
+                                <span className="text-xs text-muted-foreground">{formatTimestamp(checkin.createdAt, true)}</span>
+                            </div>
+                            <p className="text-muted-foreground whitespace-pre-wrap">{checkin.content}</p>
+                        </div>
+                    </div>
+                )
+            })}
+        </div>
+    )
+}
+
 
 export default function CheckInSystem({ groupOrCohortId, collectionPath, memberIds }: CheckInSystemProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
 
-    const [checkInContent, setCheckInContent] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [activeTab, setActiveTab] = useState<'daily' | 'weekly'>('daily');
+    const [dailyCheckInContent, setDailyCheckInContent] = useState('');
+    const [weeklyCheckInContent, setWeeklyCheckInContent] = useState('');
+    const [isDailySubmitting, setIsDailySubmitting] = useState(false);
+    const [isWeeklySubmitting, setIsWeeklySubmitting] = useState(false);
+
     const [memberProfiles, setMemberProfiles] = useState<Map<string, UserProfile>>(new Map());
 
     const isMember = user ? memberIds.includes(user.uid) : false;
@@ -88,6 +123,16 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
         collection(firestore, collectionPath, groupOrCohortId, 'checkIns'),
         [firestore, collectionPath, groupOrCohortId]
     );
+
+    const dailyCheckinsQuery = useMemo(() => {
+        return query(
+            checkInsCollectionRef,
+            where('type', '==', 'daily'),
+            orderBy('createdAt', 'desc')
+        );
+    }, [checkInsCollectionRef]);
+
+    const { data: dailyCheckins, isLoading: isLoadingDaily } = useCollection<CheckIn>(dailyCheckinsQuery);
 
     useEffect(() => {
         const fetchMemberProfiles = async () => {
@@ -112,21 +157,25 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
     }, [memberIds, firestore, memberProfiles]);
 
 
-    const handleSubmitCheckIn = () => {
-        if (!user || !isMember || !checkInContent.trim()) return;
+    const handleSubmitCheckIn = (type: 'daily' | 'weekly') => {
+        const content = type === 'daily' ? dailyCheckInContent : weeklyCheckInContent;
+        if (!user || !isMember || !content.trim()) return;
+        
+        if (type === 'daily') setIsDailySubmitting(true);
+        else setIsWeeklySubmitting(true);
 
-        setIsSubmitting(true);
         const checkInData = {
             userId: user.uid,
-            type: activeTab,
-            content: checkInContent,
+            type: type,
+            content: content,
             createdAt: serverTimestamp(),
         };
         
         addDoc(checkInsCollectionRef, checkInData)
             .then(() => {
                 toast({ title: "Check-in submitted!", description: "Your update has been posted." });
-                setCheckInContent('');
+                if (type === 'daily') setDailyCheckInContent('');
+                else setWeeklyCheckInContent('');
             })
             .catch(async (serverError) => {
                  const permissionError = new FirestorePermissionError({
@@ -137,12 +186,13 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
                 errorEmitter.emit('permission-error', permissionError);
             })
             .finally(() => {
-                setIsSubmitting(false);
+                 if (type === 'daily') setIsDailySubmitting(false);
+                 else setIsWeeklySubmitting(false);
             });
     };
     
     if (!isMember) {
-        return null; // or a message for non-members
+        return null;
     }
 
     return (
@@ -152,42 +202,52 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
                 <CardDescription>Post your progress and see what others are up to.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'daily' | 'weekly')} className="w-full">
+                <Tabs defaultValue="daily" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="daily">Daily Check-in</TabsTrigger>
-                        <TabsTrigger value="weekly">Weekly Team Check-ins</TabsTrigger>
+                        <TabsTrigger value="daily">Daily Progress</TabsTrigger>
+                        <TabsTrigger value="weekly">Weekly Goals</TabsTrigger>
                     </TabsList>
                     <TabsContent value="daily" className="space-y-4 pt-4">
-                        <h3 className="font-semibold">What did you work on today?</h3>
-                         <Textarea
-                            placeholder="Share your progress, challenges, and goals..."
-                            value={checkInContent}
-                            onChange={(e) => setCheckInContent(e.target.value)}
-                            rows={4}
-                            maxLength={2000}
-                            disabled={isSubmitting}
-                        />
-                        <Button onClick={handleSubmitCheckIn} disabled={isSubmitting || !checkInContent.trim()}>
-                            {isSubmitting ? 'Submitting...' : 'Post Daily Check-in'}
-                        </Button>
+                        <div className="space-y-2">
+                            <h3 className="font-semibold">What did you work on today?</h3>
+                             <Textarea
+                                placeholder="Share your progress, challenges, and goals..."
+                                value={dailyCheckInContent}
+                                onChange={(e) => setDailyCheckInContent(e.target.value)}
+                                rows={4}
+                                maxLength={2000}
+                                disabled={isDailySubmitting}
+                            />
+                            <Button onClick={() => handleSubmitCheckIn('daily')} disabled={isDailySubmitting || !dailyCheckInContent.trim()}>
+                                {isDailySubmitting ? 'Submitting...' : 'Post Daily Update'}
+                            </Button>
+                        </div>
+                         <div className="border-t pt-4 mt-4">
+                            <h3 className="font-semibold mb-2">Team's Daily Progress</h3>
+                            <DailyCheckInStream 
+                                checkIns={dailyCheckins}
+                                memberProfiles={memberProfiles}
+                                isLoading={isLoadingDaily}
+                            />
+                        </div>
                     </TabsContent>
                     <TabsContent value="weekly" className="space-y-4 pt-4">
                         <div className="space-y-2">
                             <h3 className="font-semibold">What are your goals for this week?</h3>
                             <Textarea
                                 placeholder="Post your weekly goals, reflections, and plans..."
-                                value={checkInContent}
-                                onChange={(e) => setCheckInContent(e.target.value)}
+                                value={weeklyCheckInContent}
+                                onChange={(e) => setWeeklyCheckInContent(e.target.value)}
                                 rows={4}
                                 maxLength={2000}
-                                disabled={isSubmitting}
+                                disabled={isWeeklySubmitting}
                             />
-                            <Button onClick={handleSubmitCheckIn} disabled={isSubmitting || !checkInContent.trim()}>
-                                {isSubmitting ? 'Submitting...' : 'Post Weekly Check-in'}
+                            <Button onClick={() => handleSubmitCheckIn('weekly')} disabled={isWeeklySubmitting || !weeklyCheckInContent.trim()}>
+                                {isWeeklySubmitting ? 'Submitting...' : 'Post Weekly Goals'}
                             </Button>
                         </div>
                         <div className="border-t pt-4 mt-4">
-                            <h3 className="font-semibold mb-2">Team's Weekly Check-ins</h3>
+                            <h3 className="font-semibold mb-2">Team's Weekly Goals</h3>
                              {memberIds.length > 0 ? (
                                 <Accordion type="multiple" className="w-full">
                                    {memberIds.map(id => (
@@ -204,5 +264,3 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
         </Card>
     );
 }
-
-    
