@@ -251,9 +251,10 @@
         "creatorId": { "type": "string" },
         "completedBy": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
-        "completedAt": { "type": "string", "format": "date-time" }
+        "completedAt": { "type": "string", "format": "date-time" },
+        "position": { "type": "number", "description": "The order of the task in the list." }
       },
-      "required": ["id", "description", "isCompleted", "priority", "creatorId", "createdAt"]
+      "required": ["id", "description", "isCompleted", "priority", "creatorId", "createdAt", "position"]
     },
     "Notification": {
       "$schema": "http://json-schema.org/draft-07/schema#",

@@ -61,6 +61,7 @@ export interface Task {
     completedBy?: string | null;
     createdAt: Timestamp;
     completedAt?: Timestamp | null;
+    position: number;
 }
 
 export interface User {
