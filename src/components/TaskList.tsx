@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tooltip, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { PlusCircle, Trash2, ChevronUp, ChevronsUp, ChevronDown } from 'lucide-react';
 import { useToast } from './ui/use-toast';
 
@@ -66,7 +66,7 @@ export default function TaskList({ groupOrCohortId, collectionPath, memberIds }:
   );
   
   const tasksQuery = useMemo(() => 
-    query(tasksCollectionRef, orderBy('createdAt', 'desc')),
+    query(tasksCollectionRef),
     [tasksCollectionRef]
   );
   
