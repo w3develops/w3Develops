@@ -33,7 +33,7 @@ service cloud.firestore {
 
       allow update: if isOwner(userId) && (
         (
-          request.resource.data.keys().hasOnly([
+          request.resource.data.keys().hasAny([
             'bio', 'skills', 'socialLinks', 'followInfoPrivate', 'profilePictureUrl', 'isSubscribedToNewsletter', 'lastLoginAt', 'lastLogoutAt'
           ])
         ) ||
