@@ -11,8 +11,8 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { topics, commitmentLevels } from '@/lib/constants';
-import { collection, query, where, Query } from 'firebase/firestore';
+import { topics, commitmentLevels, ONE_WEEK_IN_MS } from '@/lib/constants';
+import { collection, query, where, Query, Timestamp } from 'firebase/firestore';
 import { Cohort } from '@/lib/types';
 import JoinCohortButton from '../JoinCohortButton';
 import Link from 'next/link';
@@ -43,10 +43,13 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
   const matchingCohortsQuery = useMemo(() => {
     if (step !== 2 || !finalTopic || !commitment || !user) return null;
     
+    const oneWeekAgo = new Date(Date.now() - ONE_WEEK_IN_MS);
+
     return query(
       collection(firestore, 'cohorts'),
       where('topic', '==', finalTopic),
-      where('commitment', '==', commitmentLevels[commitment as keyof typeof commitmentLevels])
+      where('commitment', '==', commitmentLevels[commitment as keyof typeof commitmentLevels]),
+      where('createdAt', '>', Timestamp.fromDate(oneWeekAgo))
     ) as Query;
   }, [step, finalTopic, commitment, firestore, user]);
 
@@ -71,7 +74,8 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
   };
 
   const availableCohorts = useMemo(() => {
-    return matchingCohorts?.filter(c => c.memberIds.length < 25 && !c.memberIds.includes(user?.uid || '')) || [];
+    if (!user || !matchingCohorts) return [];
+    return matchingCohorts.filter(c => c.memberIds.length < 25 && !c.memberIds.includes(user.uid));
   }, [matchingCohorts, user]);
   
   const findButtonDisabled = !finalTopic || !commitment || (topic === 'Other' && !customTopic);

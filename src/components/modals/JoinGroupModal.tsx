@@ -12,8 +12,8 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { topics, commitmentLevels } from '@/lib/constants';
-import { collection, query, where, Query } from 'firebase/firestore';
+import { topics, commitmentLevels, ONE_WEEK_IN_MS } from '@/lib/constants';
+import { collection, query, where, Query, Timestamp } from 'firebase/firestore';
 import { StudyGroup } from '@/lib/types';
 import JoinGroupButton from '../JoinGroupButton';
 import Link from 'next/link';
@@ -44,10 +44,13 @@ export function JoinGroupModal({ isOpen, onClose }: JoinGroupModalProps) {
   const matchingGroupsQuery = useMemo(() => {
     if (step !== 2 || !finalTopic || !commitment || !user) return null;
     
+    const oneWeekAgo = new Date(Date.now() - ONE_WEEK_IN_MS);
+
     return query(
       collection(firestore, 'studyGroups'),
       where('topic', '==', finalTopic),
-      where('commitment', '==', commitmentLevels[commitment as keyof typeof commitmentLevels])
+      where('commitment', '==', commitmentLevels[commitment as keyof typeof commitmentLevels]),
+      where('createdAt', '>', Timestamp.fromDate(oneWeekAgo))
     ) as Query;
   }, [step, finalTopic, commitment, firestore, user]);
 
@@ -72,14 +75,15 @@ export function JoinGroupModal({ isOpen, onClose }: JoinGroupModalProps) {
   };
 
   const availableGroups = useMemo(() => {
-    return matchingGroups?.filter(g => g.memberIds.length < 25 && !g.memberIds.includes(user?.uid || '')) || [];
+    if (!user || !matchingGroups) return [];
+    return matchingGroups.filter(g => g.memberIds.length < 25 && !g.memberIds.includes(user.uid));
   }, [matchingGroups, user]);
 
   const findButtonDisabled = !finalTopic || !commitment || (topic === 'Other' && !customTopic);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent class="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Join a Study Group</DialogTitle>
           <DialogDescription>
@@ -91,14 +95,14 @@ export function JoinGroupModal({ isOpen, onClose }: JoinGroupModalProps) {
         </DialogHeader>
         
         {step === 1 && (
-          <div class="grid gap-4 py-4">
-            <div class="grid gap-2">
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
               <Label htmlFor="topic">Topic of Study</Label>
                <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
                   <DrawerTrigger asChild>
-                    <Button variant="outline" class="w-full justify-between">
+                    <Button variant="outline" className="w-full justify-between">
                       {topic || "Select a topic"}
-                      <ChevronDown class="h-4 w-4" />
+                      <ChevronDown className="h-4 w-4" />
                     </Button>
                   </DrawerTrigger>
                   <DrawerContent>
@@ -106,12 +110,12 @@ export function JoinGroupModal({ isOpen, onClose }: JoinGroupModalProps) {
                       <DrawerTitle>Select a Topic</DrawerTitle>
                        <DrawerDescription>Choose the primary focus for the study group.</DrawerDescription>
                     </DrawerHeader>
-                    <div class="p-4 space-y-2 max-h-[70vh] overflow-y-auto">
+                    <div className="p-4 space-y-2 max-h-[70vh] overflow-y-auto">
                       {topics.map(t => (
                         <Button
                           key={t}
                           variant="ghost"
-                          class="w-full justify-start"
+                          className="w-full justify-start"
                           onClick={() => {
                             setTopic(t);
                             setIsDrawerOpen(false);
@@ -130,21 +134,21 @@ export function JoinGroupModal({ isOpen, onClose }: JoinGroupModalProps) {
                 </Drawer>
             </div>
             {topic === 'Other' && (
-              <div class="grid gap-2">
+              <div className="grid gap-2">
                 <Label htmlFor="customTopic">Custom Topic</Label>
                 <Input id="customTopic" placeholder="e.g., Svelte" value={customTopic} onChange={(e) => setCustomTopic(e.target.value)} required />
               </div>
             )}
-            <div class="grid gap-2">
+            <div className="grid gap-2">
               <Label>Time Commitment</Label>
               <RadioGroup defaultValue="part-time" onValueChange={setCommitment} value={commitment}>
-                <div class="flex items-center space-x-2">
-                  <RadioGroupItem value="part-time" id="part-time-modal" />
-                  <Label htmlFor="part-time-modal">{commitmentLevels['part-time']}</Label>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="part-time" id="part-time-modal-group" />
+                  <Label htmlFor="part-time-modal-group">{commitmentLevels['part-time']}</Label>
                 </div>
-                <div class="flex items-center space-x-2">
-                  <RadioGroupItem value="full-time" id="full-time-modal" />
-                  <Label htmlFor="full-time-modal">{commitmentLevels['full-time']}</Label>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="full-time" id="full-time-modal-group" />
+                  <Label htmlFor="full-time-modal-group">{commitmentLevels['full-time']}</Label>
                 </div>
               </RadioGroup>
             </div>
@@ -155,16 +159,16 @@ export function JoinGroupModal({ isOpen, onClose }: JoinGroupModalProps) {
         )}
 
         {step === 2 && (
-          <div class="py-4 space-y-4 max-h-[60vh] overflow-y-auto">
+          <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto">
             {isLoading && <p>Searching for groups...</p>}
             {!isLoading && availableGroups.length > 0 && (
-              <div class="space-y-2">
-                <h4 class="font-semibold">Matching Groups</h4>
+              <div className="space-y-2">
+                <h4 className="font-semibold">Matching Groups</h4>
                 {availableGroups.map(group => (
-                  <div key={group.id} class="flex items-center justify-between p-2 border rounded-md">
+                  <div key={group.id} className="flex items-center justify-between p-2 border rounded-md">
                     <div>
-                      <p class="font-semibold">{group.name}</p>
-                      <p class="text-sm text-muted-foreground">{group.memberIds.length} / 25 members</p>
+                      <p className="font-semibold">{group.name}</p>
+                      <p className="text-sm text-muted-foreground">{group.memberIds.length} / 25 members</p>
                     </div>
                     <JoinGroupButton group={group} onJoinSuccess={handleJoinSuccess} />
                   </div>
@@ -172,14 +176,14 @@ export function JoinGroupModal({ isOpen, onClose }: JoinGroupModalProps) {
               </div>
             )}
              {!isLoading && availableGroups.length === 0 && (
-                <div class="text-center py-4 space-y-2">
-                    <p class="text-muted-foreground">No matching open groups were found.</p>
+                <div className="text-center py-4 space-y-2">
+                    <p className="text-muted-foreground">No matching open groups were found.</p>
                     <Button asChild onClick={handleClose}>
                         <Link href="/studygroups/create">Create a New Group</Link>
                     </Button>
                 </div>
             )}
-            <Button variant="outline" onClick={() => setStep(1)} class="w-full">Back</Button>
+            <Button variant="outline" onClick={() => setStep(1)} className="w-full">Back</Button>
           </div>
         )}
       </DialogContent>
