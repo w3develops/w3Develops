@@ -202,9 +202,9 @@ function SearchResults() {
           <h2 className="text-2xl font-semibold mb-4">Study Groups</h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {mergedGroups.map(group => {
-              const isNew = group.createdAt && (Date.now() - group.createdAt.toMillis()) < ONE_WEEK_IN_MS;
+              const isNew = group.createdAt && (Date.now() - (group.createdAt as any).toMillis()) < ONE_WEEK_IN_MS;
               return (
-                <Link href={`/groups/${group.id}`} key={group.id}>
+                <Link href={`/studygroups/${group.id}`} key={group.id}>
                   <Card className="hover:bg-accent transition-colors h-full flex flex-col">
                     <CardHeader>
                       <div className="flex justify-between items-start">
@@ -218,7 +218,7 @@ function SearchResults() {
                         <div className="flex flex-col text-sm text-muted-foreground gap-2">
                             <div className="flex items-center"><Users className="w-4 h-4 mr-2" />{group.memberIds.length} / 25 Members</div>
                             <Badge variant="outline" className="w-fit">{group.commitment}</Badge>
-                            <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(group.createdAt)}</div>
+                            <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(group.createdAt as any)}</div>
                         </div>
                     </CardContent>
                   </Card>
@@ -234,7 +234,7 @@ function SearchResults() {
           <h2 className="text-2xl font-semibold mb-4">Build Cohorts</h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {mergedCohorts.map(cohort => {
-              const isNew = cohort.createdAt && (Date.now() - cohort.createdAt.toMillis()) < ONE_WEEK_IN_MS;
+              const isNew = cohort.createdAt && (Date.now() - (cohort.createdAt as any).toMillis()) < ONE_WEEK_IN_MS;
               return (
                <Link href={`/cohorts/${cohort.id}`} key={cohort.id}>
                 <Card className="hover:bg-accent transition-colors h-full flex flex-col">
@@ -250,7 +250,7 @@ function SearchResults() {
                        <div className="flex flex-col text-sm text-muted-foreground gap-2">
                           <div className="flex items-center"><Users className="w-4 h-4 mr-2" />{cohort.memberIds.length} / 25 Members</div>
                           <Badge variant="outline" className="w-fit">{cohort.commitment}</Badge>
-                          <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(cohort.createdAt)}</div>
+                          <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(cohort.createdAt as any)}</div>
                       </div>
                   </CardContent>
                 </Card>

@@ -36,18 +36,18 @@ const careerLinks = [
 ];
 
 const Section = ({ title, links }: { title: string, links: typeof mainLinks }) => (
-    <section class="space-y-4">
-        <h2 class="pb-2 text-2xl font-semibold w-fit border-b-4 border-foreground">{title}</h2>
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <section className="space-y-4">
+        <h2 className="pb-2 text-2xl font-semibold w-fit border-b-4 border-foreground">{title}</h2>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {links.map(({ href, label, icon: Icon, description }) => (
                 <Link href={href} key={href}>
-                    <Card class="h-full hover:shadow-lg hover:-translate-y-1 transition-transform duration-300">
-                        <CardHeader class="flex flex-row items-center gap-4">
-                            <Icon class="h-8 w-8 text-primary" />
+                    <Card className="h-full hover:shadow-lg hover:-translate-y-1 transition-transform duration-300">
+                        <CardHeader className="flex flex-row items-center gap-4">
+                            <Icon className="h-8 w-8 text-primary" />
                             <CardTitle>{label}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p class="text-sm text-muted-foreground">{description}</p>
+                            <p className="text-sm text-muted-foreground">{description}</p>
                         </CardContent>
                     </Card>
                 </Link>
@@ -58,10 +58,10 @@ const Section = ({ title, links }: { title: string, links: typeof mainLinks }) =
 
 export default function ExplorePage() {
     return (
-        <div class="p-4 md:p-10 space-y-12">
-            <div class="text-center">
-                <h1 class="text-3xl font-headline">Explore w3Develops</h1>
-                <p class="text-muted-foreground">Discover all the ways you can learn, build, and connect with the community.</p>
+        <div className="p-4 md:p-10 space-y-12">
+            <div className="text-center">
+                <h1 className="text-3xl font-headline">Explore w3Develops</h1>
+                <p className="text-muted-foreground">Discover all the ways you can learn, build, and connect with the community.</p>
             </div>
 
             <Section title="Core Features" links={mainLinks} />

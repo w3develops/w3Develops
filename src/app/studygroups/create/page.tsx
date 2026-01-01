@@ -109,14 +109,14 @@ export default function CreateGroupPage() {
 
   if (isUserLoading || !user) {
     return (
-      <div class="p-4 md:p-10">
+      <div className="p-4 md:p-10">
         <LoadingSkeleton />
       </div>
     );
   }
 
   return (
-    <div class="max-w-2xl mx-auto p-4 md:p-10">
+    <div className="max-w-2xl mx-auto p-4 md:p-10">
       <Card>
         <CardHeader>
           <CardTitle>Create a New Study Group</CardTitle>
@@ -125,19 +125,19 @@ export default function CreateGroupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleCreateGroup} class="grid gap-6">
-            <div class="grid gap-2">
+          <form onSubmit={handleCreateGroup} className="grid gap-6">
+            <div className="grid gap-2">
               <Label htmlFor="name">Group Name</Label>
               <Input id="name" placeholder="e.g., React Rangers" value={name} onChange={(e) => setName(e.target.value)} required maxLength={75} />
             </div>
             
-            <div class="grid gap-2">
+            <div className="grid gap-2">
               <Label htmlFor="topic">Topic of Study</Label>
                <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
                   <DrawerTrigger asChild>
-                    <Button variant="outline" class="w-full justify-between">
+                    <Button variant="outline" className="w-full justify-between">
                       {topic || "Select a topic"}
-                      <ChevronDown class="h-4 w-4" />
+                      <ChevronDown className="h-4 w-4" />
                     </Button>
                   </DrawerTrigger>
                   <DrawerContent>
@@ -145,12 +145,12 @@ export default function CreateGroupPage() {
                       <DrawerTitle>Select a Topic</DrawerTitle>
                       <DrawerDescription>Choose the primary focus for your study group.</DrawerDescription>
                     </DrawerHeader>
-                    <div class="p-4 space-y-2 max-h-[70vh] overflow-y-auto">
+                    <div className="p-4 space-y-2 max-h-[70vh] overflow-y-auto">
                       {topics.map(t => (
                         <Button
                           key={t}
                           variant="ghost"
-                          class="w-full justify-start"
+                          className="w-full justify-start"
                           onClick={() => {
                             setTopic(t);
                             setIsDrawerOpen(false);
@@ -170,27 +170,27 @@ export default function CreateGroupPage() {
             </div>
 
             {topic === 'Other' && (
-              <div class="grid gap-2">
+              <div className="grid gap-2">
                 <Label htmlFor="customTopic">Custom Topic</Label>
                 <Input id="customTopic" placeholder="Enter your custom topic" value={customTopic} onChange={(e) => setCustomTopic(e.target.value)} required maxLength={50} />
               </div>
             )}
 
-            <div class="grid gap-2">
+            <div className="grid gap-2">
                 <Label>Time Commitment</Label>
                 <RadioGroup defaultValue="part-time" onValueChange={setCommitment} value={commitment}>
-                    <div class="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
                         <RadioGroupItem value="part-time" id="part-time" />
                         <Label htmlFor="part-time">{commitmentLevels['part-time']}</Label>
                     </div>
-                    <div class="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
                         <RadioGroupItem value="full-time" id="full-time" />
                         <Label htmlFor="full-time">{commitmentLevels['full-time']}</Label>
                     </div>
                 </RadioGroup>
             </div>
 
-             <div class="grid gap-2">
+             <div className="grid gap-2">
               <Label htmlFor="description">Description (Optional)</Label>
               <Textarea id="description" placeholder="What's the main goal of this group?" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} />
             </div>

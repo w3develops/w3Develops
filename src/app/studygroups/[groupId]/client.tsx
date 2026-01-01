@@ -54,19 +54,19 @@ function MemberList({ memberIds }: { memberIds: string[] }) {
     }
 
     if (!members || members.length === 0) {
-        return <p class="text-muted-foreground text-sm">This group doesn't have any members yet.</p>;
+        return <p className="text-muted-foreground text-sm">This group doesn't have any members yet.</p>;
     }
 
     return (
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {members.map(member => (
                 <Link href={`/users/${member.id}`} key={member.id}>
-                    <div class="flex flex-col items-center text-center gap-2 hover:bg-accent p-2 rounded-lg">
+                    <div className="flex flex-col items-center text-center gap-2 hover:bg-accent p-2 rounded-lg">
                         <Avatar>
                             <AvatarImage src={member.profilePictureUrl} />
                             <AvatarFallback>{member.username?.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <p class="text-sm font-medium truncate w-full">{member.username}</p>
+                        <p className="text-sm font-medium truncate w-full">{member.username}</p>
                     </div>
                 </Link>
             ))}
@@ -88,31 +88,31 @@ export default function GroupDashboardPage({ params }: { params: { groupId: stri
 
 
   if (isGroupLoading) {
-    return <div class="text-center py-10 p-4 md:p-10">Loading group dashboard...</div>;
+    return <div className="text-center py-10 p-4 md:p-10">Loading group dashboard...</div>;
   }
   
   if (groupError) {
-      return <div class="text-center py-10 text-destructive p-4 md:p-10">Error loading group data.</div>
+      return <div className="text-center py-10 text-destructive p-4 md:p-10">Error loading group data.</div>
   }
 
   if (!group) {
-    return <div class="text-center py-10 p-4 md:p-10">Group not found.</div>;
+    return <div className="text-center py-10 p-4 md:p-10">Group not found.</div>;
   }
 
-  const isNew = group.createdAt && (Date.now() - group.createdAt.toMillis()) < ONE_WEEK_IN_MS;
+  const isNew = group.createdAt && (Date.now() - (group.createdAt as any).toMillis()) < ONE_WEEK_IN_MS;
 
   return (
-    <div class="space-y-8 p-4 md:p-10">
-        <Link href="/studygroups" class="flex items-center text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft class="w-4 h-4 mr-2" />
+    <div className="space-y-8 p-4 md:p-10">
+        <Link href="/studygroups" className="flex items-center text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Back to All Groups
         </Link>
       
       <Card>
-        <CardHeader class="flex flex-col sm:flex-row justify-between sm:items-start gap-4">
-            <div class='space-y-2'>
-                <div class="flex flex-wrap items-center gap-4">
-                    <CardTitle class="font-headline text-3xl">{group.name}</CardTitle>
+        <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-start gap-4">
+            <div className='space-y-2'>
+                <div className="flex flex-wrap items-center gap-4">
+                    <CardTitle className="font-headline text-3xl">{group.name}</CardTitle>
                      {isNew ? (
                         <Badge>New</Badge>
                     ) : (
@@ -122,22 +122,22 @@ export default function GroupDashboardPage({ params }: { params: { groupId: stri
                 <CardDescription>{group.description}</CardDescription>
             </div>
         </CardHeader>
-        <CardContent class="space-y-6">
-           <div class="flex flex-wrap gap-4 items-center">
-             <Badge variant="secondary" class="text-base">{group.topic}</Badge>
-             <Badge variant="outline" class="text-base">{group.commitment}</Badge>
+        <CardContent className="space-y-6">
+           <div className="flex flex-wrap gap-4 items-center">
+             <Badge variant="secondary" className="text-base">{group.topic}</Badge>
+             <Badge variant="outline" className="text-base">{group.commitment}</Badge>
            </div>
-           <div class="flex items-center text-sm text-muted-foreground">
-                <CalendarDays class="w-4 h-4 mr-2" />
-                Created on {formatTimestamp(group.createdAt)}
+           <div className="flex items-center text-sm text-muted-foreground">
+                <CalendarDays className="w-4 h-4 mr-2" />
+                Created on {formatTimestamp(group.createdAt as any)}
            </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-            <CardTitle class="flex items-center gap-2">
-                <Users class="w-5 h-5" />
+            <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
                 Members ({group.memberIds.length})
             </CardTitle>
         </CardHeader>
