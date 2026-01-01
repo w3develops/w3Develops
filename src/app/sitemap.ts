@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/contribute/security',
     '/donate',
     '/explore',
+    '/faq',
     '/feedback',
     '/groups',
     '/groups/create',

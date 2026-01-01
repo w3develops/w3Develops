@@ -72,6 +72,7 @@ export default function Footer() {
               <Link href="/feedback" className="text-primary hover:text-primary/80">Feedback</Link>
               <Link href="/support" className="text-primary hover:text-primary/80">Support</Link>
               <Link href="/contribute" className="text-primary hover:text-primary/80">Contribute</Link>
+              <Link href="/faq" className="text-primary hover:text-primary/80">FAQ</Link>
             </div>
           </div>
           <div className="flex justify-center gap-5">
@@ -96,6 +97,7 @@ export default function Footer() {
               <Link href="/feedback" className="text-primary hover:text-primary/80">Feedback</Link>
               <Link href="/support" className="text-primary hover:text-primary/80">Support</Link>
               <Link href="/contribute" className="text-primary hover:text-primary/80">Contribute</Link>
+              <Link href="/faq" className="text-primary hover:text-primary/80">FAQ</Link>
             </div>
           </div>
           <div className="flex justify-end gap-5">
