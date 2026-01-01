@@ -52,6 +52,26 @@ function validatePassword(password: string) {
     return null;
 }
 
+const RESERVED_USERNAMES = [
+  'root', 'admin', 'abuse', 'webmaster', 'spam', 'help',
+  'administratorrequest', 'invalid', 'valid', 'error', 'motd',
+  'authenticateduser', 'login:', 'password:'
+];
+
+function validateUsername(username: string): string | null {
+  if (username.length > 24) {
+    return 'Username cannot be longer than 24 characters.';
+  }
+  if (!/^[a-zA-Z0-9]+$/.test(username)) {
+    return 'Username can only contain letters and numbers.';
+  }
+  if (RESERVED_USERNAMES.includes(username.toLowerCase())) {
+    return 'This username is reserved and cannot be used.';
+  }
+  return null;
+}
+
+
 function SignupPageContent() {
   const auth = useAuth();
   const firestore = useFirestore();
@@ -65,6 +85,7 @@ function SignupPageContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [usernameError, setUsernameError] = useState<string | null>(null);
 
   const [isUsernameChecking, setIsUsernameChecking] = useState(false);
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(true);
@@ -74,6 +95,14 @@ function SignupPageContent() {
   const debouncedUsername = useDebounce(username, 500);
 
   const checkUsername = useCallback(async (usernameToCheck: string) => {
+    const validationError = validateUsername(usernameToCheck);
+    if (validationError) {
+      setUsernameError(validationError);
+      setIsUsernameAvailable(true); // Prevent showing "taken" and "invalid" at the same time
+      return;
+    }
+    setUsernameError(null);
+
     if (!usernameToCheck || usernameToCheck.length < 3) {
       setIsUsernameAvailable(true);
       return;
@@ -89,6 +118,8 @@ function SignupPageContent() {
   useEffect(() => {
     if (debouncedUsername) {
       checkUsername(debouncedUsername);
+    } else {
+      setUsernameError(null);
     }
   }, [debouncedUsername, checkUsername]);
 
@@ -111,6 +142,15 @@ function SignupPageContent() {
       return;
     }
     
+    if (usernameError) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Username",
+        description: usernameError,
+      });
+      return;
+    }
+
     if (!isUsernameAvailable) {
         toast({
             variant: "destructive",
@@ -228,6 +268,8 @@ function SignupPageContent() {
     return <LoadingSkeleton />;
   }
 
+  const isSubmitDisabled = isSubmitting || !isUsernameAvailable || !!usernameError;
+
   return (
     <div className="p-4 md:p-10">
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
@@ -250,11 +292,14 @@ function SignupPageContent() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={isSubmitting}
-                  className={!isUsernameAvailable ? 'border-destructive' : ''}
+                  className={!isUsernameAvailable || !!usernameError ? 'border-destructive' : ''}
                   autoComplete="username"
                 />
                 {isUsernameChecking && <p className="text-xs text-muted-foreground">Checking...</p>}
-                {!isUsernameAvailable && !isUsernameChecking && username.length > 2 && (
+                {usernameError && (
+                  <p className="text-xs text-destructive">{usernameError}</p>
+                )}
+                {!isUsernameAvailable && !isUsernameChecking && !usernameError && username.length > 2 && (
                     <p className="text-xs text-destructive">Username is already taken.</p>
                 )}
               </div>
@@ -287,7 +332,7 @@ function SignupPageContent() {
                     Must contain an uppercase letter, a lowercase letter, a number, a special character, and be at least 6 characters long.
                 </p>
               </div>
-              <Button type="submit" className="w-full" disabled={isSubmitting || !isUsernameAvailable}>
+              <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
                 {isSubmitting ? 'Creating Account...' : 'Create Account'}
               </Button>
             </form>
@@ -312,3 +357,5 @@ export default function SignupPage() {
     </Suspense>
   )
 }
+
+    
