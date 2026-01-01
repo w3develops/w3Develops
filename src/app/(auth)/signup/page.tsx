@@ -120,6 +120,8 @@ function SignupPageContent() {
       checkUsername(debouncedUsername);
     } else {
       setUsernameError(null);
+      setIsUsernameAvailable(true);
+      setIsUsernameChecking(false);
     }
   }, [debouncedUsername, checkUsername]);
 
