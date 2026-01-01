@@ -88,26 +88,29 @@ function SignupPageContent() {
   const [usernameError, setUsernameError] = useState<string | null>(null);
 
   const [isUsernameChecking, setIsUsernameChecking] = useState(false);
-  const [isUsernameAvailable, setIsUsernameAvailable] = useState(true);
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | null>(null);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const debouncedUsername = useDebounce(username, 500);
 
   const checkUsername = useCallback(async (usernameToCheck: string) => {
+    setIsUsernameChecking(true);
+    setIsUsernameAvailable(null); // Reset availability on new check
+    
     const validationError = validateUsername(usernameToCheck);
     if (validationError) {
       setUsernameError(validationError);
-      setIsUsernameAvailable(true); // Prevent showing "taken" and "invalid" at the same time
+      setIsUsernameChecking(false);
       return;
     }
     setUsernameError(null);
 
     if (!usernameToCheck || usernameToCheck.length < 3) {
-      setIsUsernameAvailable(true);
+      setIsUsernameChecking(false);
       return;
     }
-    setIsUsernameChecking(true);
+
     const usernameLower = usernameToCheck.toLowerCase();
     const usernameDocRef = doc(firestore, 'usernames', usernameLower);
     const docSnap = await getDoc(usernameDocRef);
@@ -120,7 +123,7 @@ function SignupPageContent() {
       checkUsername(debouncedUsername);
     } else {
       setUsernameError(null);
-      setIsUsernameAvailable(true);
+      setIsUsernameAvailable(null);
       setIsUsernameChecking(false);
     }
   }, [debouncedUsername, checkUsername]);
@@ -297,13 +300,18 @@ function SignupPageContent() {
                   className={!isUsernameAvailable || !!usernameError ? 'border-destructive' : ''}
                   autoComplete="username"
                 />
-                {isUsernameChecking && <p className="text-xs text-muted-foreground">Checking...</p>}
-                {usernameError && (
-                  <p className="text-xs text-destructive">{usernameError}</p>
-                )}
-                {!isUsernameAvailable && !isUsernameChecking && !usernameError && username.length > 2 && (
-                    <p className="text-xs text-destructive">Username is already taken.</p>
-                )}
+                <div className="h-4">
+                  {isUsernameChecking && <p className="text-xs text-muted-foreground">Checking...</p>}
+                  {usernameError && (
+                    <p className="text-xs text-destructive">{usernameError}</p>
+                  )}
+                  {isUsernameAvailable === false && !usernameError && (
+                      <p className="text-xs text-destructive">Username is already taken.</p>
+                  )}
+                  {isUsernameAvailable === true && !usernameError && username.length > 2 && (
+                    <p className="text-xs text-green-600">Username is available!</p>
+                  )}
+                </div>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
@@ -359,5 +367,3 @@ export default function SignupPage() {
     </Suspense>
   )
 }
-
-    
