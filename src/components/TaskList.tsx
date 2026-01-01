@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { Task, UserProfile } from '@/lib/types';
-import { collection, query, orderBy, addDoc, updateDoc, serverTimestamp, writeBatch, documentId, getDocs, where, doc } from 'firebase/firestore';
+import { collection, query, orderBy, addDoc, updateDoc, serverTimestamp, writeBatch, documentId, getDocs, where, doc, deleteDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,12 +12,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { PlusCircle, Trash2, GripVertical } from 'lucide-react';
+import { PlusCircle, Trash2, GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
 import { useToast } from './ui/use-toast';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 interface TaskListProps {
   groupOrCohortId: string;
@@ -79,7 +81,7 @@ function SortableTaskItem({ task, userProfiles, isMember, onToggle, onDelete, us
                 </span>
                 <UserAvatar userId={task.creatorId} userProfiles={userProfiles} />
                 {task.isCompleted && <UserAvatar userId={task.completedBy} userProfiles={userProfiles} />}
-                {isMember && user?.uid === task.creatorId && !task.isCompleted && (
+                {isMember && user?.uid === task.creatorId && (
                     <Button variant="ghost" size="icon" onClick={() => onDelete(task.id)}>
                         <Trash2 className="h-4 w-4 text-muted-foreground" />
                     </Button>
@@ -145,51 +147,67 @@ export default function TaskList({ groupOrCohortId, collectionPath, memberIds }:
     fetchProfiles();
   }, [tasks, firestore, userProfiles]);
 
-  const handleAddTask = async () => {
+  const handleAddTask = () => {
     if (!user || !isMember || !newTask.trim() || !newPriority) return;
 
-    try {
-      const highestPosition = tasks && tasks.length > 0 ? Math.max(...tasks.map(t => t.position)) : 0;
-      await addDoc(tasksCollectionRef, {
-        description: newTask,
-        priority: newPriority,
-        isCompleted: false,
-        creatorId: user.uid,
-        completedBy: null,
-        createdAt: serverTimestamp(),
-        completedAt: null,
-        position: highestPosition + 1,
+    const highestPosition = tasks && tasks.length > 0 ? Math.max(...tasks.map(t => t.position)) : 0;
+    const taskData = {
+      description: newTask,
+      priority: newPriority,
+      isCompleted: false,
+      creatorId: user.uid,
+      completedBy: null,
+      createdAt: serverTimestamp(),
+      completedAt: null,
+      position: highestPosition + 1,
+    };
+
+    addDoc(tasksCollectionRef, taskData)
+      .then(() => {
+        setNewTask('');
+        setNewPriority('');
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: tasksCollectionRef.path,
+          operation: 'create',
+          requestResourceData: taskData,
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
       });
-      setNewTask('');
-      setNewPriority('');
-    } catch (error: any) {
-        toast({ variant: 'destructive', title: 'Failed to add task', description: error.message });
-    }
   };
 
-  const handleToggleTask = async (task: Task) => {
+  const handleToggleTask = (task: Task) => {
     if (!user || !isMember) return;
     const taskRef = doc(firestore, collectionPath, groupOrCohortId, 'tasks', task.id);
-    try {
-      await updateDoc(taskRef, {
+    const updateData = {
         isCompleted: !task.isCompleted,
         completedBy: task.isCompleted ? null : user.uid,
         completedAt: task.isCompleted ? null : serverTimestamp(),
+    };
+
+    updateDoc(taskRef, updateData)
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: taskRef.path,
+          operation: 'update',
+          requestResourceData: updateData
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
       });
-    } catch (error: any) {
-        toast({ variant: 'destructive', title: 'Failed to update task', description: error.message });
-    }
   };
   
-  const handleDeleteTask = async (taskId: string) => {
+  const handleDeleteTask = (taskId: string) => {
       if (!user || !isMember) return;
-      try {
-          const taskRef = doc(tasksCollectionRef, taskId);
-          await updateDoc(taskRef, { position: -1 }); // Optimistically remove
-          await writeBatch(firestore).delete(taskRef).commit();
-      } catch (error: any) {
-           toast({ variant: 'destructive', title: 'Failed to delete task', description: error.message });
-      }
+      const taskRef = doc(tasksCollectionRef, taskId);
+      deleteDoc(taskRef)
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: taskRef.path,
+                operation: 'delete',
+            } satisfies SecurityRuleContext);
+            errorEmitter.emit('permission-error', permissionError);
+        });
   };
 
   const sensors = useSensors(useSensor(PointerSensor));
@@ -198,25 +216,29 @@ export default function TaskList({ groupOrCohortId, collectionPath, memberIds }:
     const {active, over} = event;
 
     if (over && active.id !== over.id) {
-        setActiveTasks((items) => {
-            const oldIndex = items.findIndex(item => item.id === active.id);
-            const newIndex = items.findIndex(item => item.id === over.id);
-            const newOrder = arrayMove(items, oldIndex, newIndex);
-            
-            // Update positions in Firestore
-            const batch = writeBatch(firestore);
-            newOrder.forEach((task, index) => {
-                const taskRef = doc(tasksCollectionRef, task.id);
-                batch.update(taskRef, { position: index });
-            });
-            batch.commit().catch(err => {
-                toast({ variant: 'destructive', title: 'Failed to reorder tasks', description: err.message });
-                // Revert optimistic update on failure
-                setActiveTasks(items);
-            });
+        const oldItems = [...activeTasks];
+        const oldIndex = oldItems.findIndex(item => item.id === active.id);
+        const newIndex = oldItems.findIndex(item => item.id === over.id);
+        const newOrder = arrayMove(oldItems, oldIndex, newIndex);
+        
+        setActiveTasks(newOrder); // Optimistic update
 
-            return newOrder;
+        const batch = writeBatch(firestore);
+        newOrder.forEach((task, index) => {
+            const taskRef = doc(tasksCollectionRef, task.id);
+            batch.update(taskRef, { position: index });
         });
+
+        batch.commit()
+          .catch(async (serverError) => {
+            setActiveTasks(oldItems); // Revert on failure
+            const permissionError = new FirestorePermissionError({
+              path: tasksCollectionRef.path,
+              operation: 'update',
+              requestResourceData: { note: 'Batch update for task reordering' }
+            } satisfies SecurityRuleContext);
+            errorEmitter.emit('permission-error', permissionError);
+          });
     }
   }
 
@@ -241,6 +263,7 @@ export default function TaskList({ groupOrCohortId, collectionPath, memberIds }:
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="" disabled>Priority</SelectItem>
                 <SelectItem value="low">Low</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="high">High</SelectItem>
@@ -268,5 +291,3 @@ export default function TaskList({ groupOrCohortId, collectionPath, memberIds }:
     </Card>
   );
 }
-
-    

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
@@ -5,6 +6,7 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { Analytics } from 'firebase/analytics';
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -124,6 +126,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   return (
     <FirebaseContext.Provider value={contextValue}>
+      {process.env.NODE_ENV === 'development' && <FirebaseErrorListener />}
       {children}
     </FirebaseContext.Provider>
   );
