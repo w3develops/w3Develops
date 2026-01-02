@@ -28,20 +28,27 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.auth.uid == userId;
       allow delete: if isOwner(userId);
-      allow update: if isOwner(userId) && (
+      allow update: if isOwner(userId) || (
+          // Allow another user to add/remove THEMSELVES from THIS user's followers list
+          request.auth != null && (
+            (isAddingToList(resource.data.followers, request.resource.data.followers) && request.resource.data.followers[request.resource.data.followers.size() - 1] == request.auth.uid) ||
+            (isRemovingFromList(resource.data.followers, request.resource.data.followers) && !request.resource.data.followers.hasAny([request.auth.uid]))
+          )
+        );
+        
+      // Allow user to update their own fields
+      allow write: if isOwner(userId) && (
         (
-          request.resource.data.keys().hasAny([
-            'bio', 'skills', 'socialLinks', 'followInfoPrivate', 'profilePictureUrl', 'isSubscribedToNewsletter', 'lastLoginAt', 'lastLogoutAt', 'lastCheckInAt', 'status'
-          ])
+          request.resource.data.keys().hasAll(['bio', 'skills', 'socialLinks', 'followInfoPrivate', 'profilePictureUrl', 'notificationSettings', 'lastLoginAt', 'lastLogoutAt', 'lastCheckInAt', 'status'])
         ) ||
+        // Allow user to add/remove SOMEONE ELSE from their own following list
+        (isAddingToList(resource.data.following, request.resource.data.following)) ||
+        (isRemovingFromList(resource.data.following, request.resource.data.following)) ||
+        // Group/Project ID updates
         (isAddingToList(resource.data.createdStudyGroupIds, request.resource.data.createdStudyGroupIds)) ||
         (isAddingToList(resource.data.joinedStudyGroupIds, request.resource.data.joinedStudyGroupIds)) ||
         (isAddingToList(resource.data.createdGroupProjectIds, request.resource.data.createdGroupProjectIds)) ||
-        (isAddingToList(resource.data.joinedGroupProjectIds, request.resource.data.joinedGroupProjectIds)) ||
-        (isAddingToList(resource.data.following, request.resource.data.following)) ||
-        (isRemovingFromList(resource.data.following, request.resource.data.following)) ||
-        (isAddingToList(resource.data.followers, request.resource.data.followers)) ||
-        (isRemovingFromList(resource.data.followers, request.resource.data.followers))
+        (isAddingToList(resource.data.joinedGroupProjectIds, request.resource.data.joinedGroupProjectIds))
       );
     }
 
