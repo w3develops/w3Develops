@@ -1,14 +1,16 @@
 
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { Timestamp } from "firebase/firestore";
+import { Timestamp, FieldValue } from "firebase/firestore";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatTimestamp(timestamp: Timestamp | undefined | null, includeTime = false) {
-  if (!timestamp) return 'N/A';
+export function formatTimestamp(timestamp: Timestamp | FieldValue | undefined | null, includeTime = false) {
+  if (!timestamp || !(timestamp instanceof Timestamp)) {
+    return 'N/A';
+  }
 
   const date = timestamp.toDate();
   const options: Intl.DateTimeFormatOptions = {
@@ -25,8 +27,9 @@ export function formatTimestamp(timestamp: Timestamp | undefined | null, include
   return new Intl.DateTimeFormat('en-US', options).format(date);
 }
 
-export function timeAgo(timestamp: Timestamp | undefined | null): string {
-  if (!timestamp) return '';
+export function timeAgo(timestamp: Timestamp | FieldValue | undefined | null): string {
+  if (!timestamp || !(timestamp instanceof Timestamp)) return '';
+  
   const now = new Date();
   const secondsPast = (now.getTime() - timestamp.toDate().getTime()) / 1000;
 
@@ -46,5 +49,3 @@ export function timeAgo(timestamp: Timestamp | undefined | null): string {
   
   return formatTimestamp(timestamp);
 }
-
-    
