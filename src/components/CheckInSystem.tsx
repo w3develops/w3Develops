@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from './ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatTimestamp } from '@/lib/utils';
+import { formatTimestamp, timeAgo } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import Link from 'next/link';
@@ -27,9 +27,14 @@ function UserWeeklyCheckIns({ memberId, memberProfiles, allWeeklyCheckins, isLoa
     const member = memberProfiles.get(memberId);
     
     const userWeeklyCheckins = useMemo(() => {
-        return allWeeklyCheckins?.filter(c => c.userId === memberId) || [];
+        if (!allWeeklyCheckins) return [];
+        return allWeeklyCheckins.filter(c => c.userId === memberId);
     }, [allWeeklyCheckins, memberId]);
 
+    const lastCheckin = useMemo(() => {
+        if (userWeeklyCheckins.length === 0) return null;
+        return userWeeklyCheckins[0]; // Already sorted by most recent
+    }, [userWeeklyCheckins]);
 
     if (isLoading) {
         return <div>Loading check-ins...</div>;
@@ -38,12 +43,19 @@ function UserWeeklyCheckIns({ memberId, memberProfiles, allWeeklyCheckins, isLoa
     return (
         <AccordionItem value={memberId}>
             <AccordionTrigger>
-                <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                        <AvatarImage src={member?.profilePictureUrl} />
-                        <AvatarFallback>{member?.username?.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <span>{member?.username}</span>
+                <div className="flex justify-between items-center w-full">
+                    <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage src={member?.profilePictureUrl} />
+                            <AvatarFallback>{member?.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <span>{member?.username}</span>
+                    </div>
+                    {lastCheckin && (
+                        <p className="text-xs text-muted-foreground mr-4">
+                            Last updated: {timeAgo(lastCheckin.createdAt)}
+                        </p>
+                    )}
                 </div>
             </AccordionTrigger>
             <AccordionContent>
@@ -330,6 +342,8 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
         </Card>
     );
 }
+
+    
 
     
 
