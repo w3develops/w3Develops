@@ -22,7 +22,7 @@ const notificationOptions: { key: keyof NotificationSettings, label: string, des
     { key: 'surveys', label: 'Surveys', description: 'Participate in surveys to help us improve the community.' },
 ];
 
-function NotificationToggle({ optionKey, label, description }: { optionKey: keyof NotificationSettings, label: string, description: string }) {
+function NotificationToggle({ key: optionKey, label, description }: { key: keyof NotificationSettings, label: string, description: string }) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
