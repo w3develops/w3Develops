@@ -120,12 +120,18 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
     // Client-side sorting
     const allDailyCheckins = useMemo(() => {
         if (!allDailyCheckinsData) return null;
-        return [...allDailyCheckinsData].sort((a, b) => (b.createdAt as Timestamp).toMillis() - (a.createdAt as Timestamp).toMillis());
+        return [...allDailyCheckinsData].sort((a, b) => {
+            if (!a.createdAt || !b.createdAt) return 0;
+            return (b.createdAt as Timestamp).toMillis() - (a.createdAt as Timestamp).toMillis()
+        });
     }, [allDailyCheckinsData]);
     
     const allWeeklyCheckins = useMemo(() => {
         if (!allWeeklyCheckinsData) return null;
-        return [...allWeeklyCheckinsData].sort((a, b) => (b.createdAt as Timestamp).toMillis() - (a.createdAt as Timestamp).toMillis());
+        return [...allWeeklyCheckinsData].sort((a, b) => {
+            if (!a.createdAt || !b.createdAt) return 0;
+            return (b.createdAt as Timestamp).toMillis() - (a.createdAt as Timestamp).toMillis()
+        });
     }, [allWeeklyCheckinsData]);
     
     
@@ -185,6 +191,11 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
                     requestResourceData: checkInData,
                 } satisfies SecurityRuleContext);
                 errorEmitter.emit('permission-error', permissionError);
+                 toast({
+                    variant: 'destructive',
+                    title: 'Submission Failed',
+                    description: "Could not save your check-in. Please check your permissions and try again."
+                });
             })
             .finally(() => {
                  if (type === 'daily') setIsDailySubmitting(false);
