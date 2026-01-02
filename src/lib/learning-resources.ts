@@ -66,6 +66,34 @@ export const webLearningResources: LearningResource[] = [
     }
 ];
 
+export const web3LearningResources: LearningResource[] = [
+    {
+        topic: "Ethereum",
+        description: "Resources for learning Ethereum development.",
+        links: [
+            { title: "Ethereum Developer Bootcamp by Alchemy University (FREE)", url: "https://www.alchemy.com/university" },
+        ]
+    },
+    {
+        topic: "Solana",
+        description: "Resources for learning Solana development.",
+        links: [
+            { title: "Solana Development Course (FREE)", url: "https://learn.blueshift.gg/" },
+            { title: "Solana Developers", url: "https://solana.com/developers" },
+            { title: "Solana Docs", url: "https://solana.com/docs" },
+            { title: "Solana Cookbook", url: "https://solana.com/developers/cookbook" },
+            { title: "Solana Learn", url: "https://solana.com/learn" },
+        ]
+    },
+    {
+        topic: "Other Web3 Resources",
+        description: "Additional free courses for Web3 development.",
+        links: [
+            { title: "Cyfrin Updraft Courses (FREE)", url: "https://updraft.cyfrin.io/courses" },
+        ]
+    }
+];
+
 export const aiMachineLearningResources: LearningResource[] = [
     {
         topic: "AI & Machine Learning",
