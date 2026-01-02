@@ -10,9 +10,9 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth, useUser, useFirestore } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
-import { doc, getDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, writeBatch, serverTimestamp, FieldValue } from 'firebase/firestore';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
-import { UserProfile } from '@/lib/types';
+import { UserProfile, UserStatus } from '@/lib/types';
 import { EmailAuthProvider, linkWithCredential, createUserWithEmailAndPassword, User as FirebaseUser, UserCredential } from 'firebase/auth';
 
 function useDebounce(value: string, delay: number) {
@@ -247,6 +247,8 @@ function SignupPageContent() {
             weeklyDigest: false,
             surveys: false,
         },
+        status: 'inactive' as UserStatus,
+        lastCheckInAt: null,
       };
       
       batch.set(userDocRef, userData, { merge: true }); 

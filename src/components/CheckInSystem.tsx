@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { CheckIn, UserProfile } from '@/lib/types';
-import { collection, query, addDoc, serverTimestamp, where, getDocs, documentId, doc, Timestamp } from 'firebase/firestore';
+import { collection, query, addDoc, serverTimestamp, where, getDocs, documentId, doc, Timestamp, updateDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -164,7 +164,7 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
     }, [memberIds, firestore, memberProfiles]);
 
 
-    const handleSubmitCheckIn = (type: 'daily' | 'weekly') => {
+    const handleSubmitCheckIn = async (type: 'daily' | 'weekly') => {
         const content = type === 'daily' ? dailyCheckInContent : weeklyCheckInContent;
         if (!user || !isMember || !content.trim()) return;
         
@@ -177,30 +177,37 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
             content: content,
             createdAt: serverTimestamp(),
         };
+
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userUpdateData = {
+            status: 'active',
+            lastCheckInAt: serverTimestamp(),
+        };
         
-        addDoc(checkInsCollectionRef, checkInData)
-            .then(() => {
-                toast({ title: "Check-in submitted!", description: "Your update has been posted." });
-                if (type === 'daily') setDailyCheckInContent('');
-                else setWeeklyCheckInContent('');
-            })
-            .catch(async (serverError) => {
-                 const permissionError = new FirestorePermissionError({
-                    path: checkInsCollectionRef.path,
-                    operation: 'create',
-                    requestResourceData: checkInData,
-                } satisfies SecurityRuleContext);
-                errorEmitter.emit('permission-error', permissionError);
-                 toast({
-                    variant: 'destructive',
-                    title: 'Submission Failed',
-                    description: "Could not save your check-in. Please check your permissions and try again."
-                });
-            })
-            .finally(() => {
-                 if (type === 'daily') setIsDailySubmitting(false);
-                 else setIsWeeklySubmitting(false);
+        try {
+            await addDoc(checkInsCollectionRef, checkInData);
+            await updateDoc(userDocRef, userUpdateData);
+
+            toast({ title: "Check-in submitted!", description: "Your update has been posted." });
+            if (type === 'daily') setDailyCheckInContent('');
+            else setWeeklyCheckInContent('');
+
+        } catch (serverError) {
+             const permissionError = new FirestorePermissionError({
+                path: checkInsCollectionRef.path,
+                operation: 'create',
+                requestResourceData: checkInData,
+            } satisfies SecurityRuleContext);
+            errorEmitter.emit('permission-error', permissionError);
+             toast({
+                variant: 'destructive',
+                title: 'Submission Failed',
+                description: "Could not save your check-in. Please check your permissions and try again."
             });
+        } finally {
+             if (type === 'daily') setIsDailySubmitting(false);
+             else setIsWeeklySubmitting(false);
+        }
     };
     
     if (!isMember) {

@@ -11,6 +11,8 @@ export interface NotificationSettings {
   surveys?: boolean;
 }
 
+export type UserStatus = 'active' | 'paused' | 'inactive';
+
 export interface UserProfile {
   id: string;
   email?: string;
@@ -35,6 +37,8 @@ export interface UserProfile {
   createdGroupProjectIds?: string[];
   joinedGroupProjectIds?: string[];
   notificationSettings?: NotificationSettings;
+  status?: UserStatus;
+  lastCheckInAt?: Timestamp | FieldValue | null;
 }
 
 export interface GroupProject {

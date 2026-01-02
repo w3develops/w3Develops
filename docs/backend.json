@@ -123,6 +123,16 @@
                 "weeklyDigest": { "type": "boolean" },
                 "surveys": { "type": "boolean" }
             }
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "paused", "inactive"],
+          "description": "The user's current activity status."
+        },
+        "lastCheckInAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp of the user's last check-in."
         }
       },
       "required": [

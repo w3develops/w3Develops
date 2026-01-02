@@ -31,7 +31,7 @@ service cloud.firestore {
       allow update: if isOwner(userId) && (
         (
           request.resource.data.keys().hasAny([
-            'bio', 'skills', 'socialLinks', 'followInfoPrivate', 'profilePictureUrl', 'isSubscribedToNewsletter', 'lastLoginAt', 'lastLogoutAt'
+            'bio', 'skills', 'socialLinks', 'followInfoPrivate', 'profilePictureUrl', 'isSubscribedToNewsletter', 'lastLoginAt', 'lastLogoutAt', 'lastCheckInAt', 'status'
           ])
         ) ||
         (isAddingToList(resource.data.createdStudyGroupIds, request.resource.data.createdStudyGroupIds)) ||
@@ -151,5 +151,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
