@@ -16,6 +16,7 @@ import { topics, commitmentLevels, ONE_WEEK_IN_MS } from '@/lib/constants';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose, DrawerFooter, DrawerDescription } from '@/components/ui/drawer';
 import { ChevronDown } from 'lucide-react';
+import NameSearchInput from '@/components/NameSearchInput';
 
 
 export default function CreateGroupPage() {
@@ -134,7 +135,13 @@ export default function CreateGroupPage() {
           <form onSubmit={handleCreateGroup} className="grid gap-6">
             <div className="grid gap-2">
               <Label htmlFor="name">Group Name</Label>
-              <Input id="name" placeholder="e.g., React Rangers" value={name} onChange={(e) => setName(e.target.value)} required maxLength={75} />
+              <NameSearchInput
+                value={name}
+                onChange={setName}
+                onSelect={setName}
+                collectionPath="studyGroups"
+                placeholder="e.g., React Rangers"
+              />
             </div>
             
             <div className="grid gap-2">

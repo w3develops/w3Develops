@@ -21,6 +21,7 @@ import { Input } from '../ui/input';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose, DrawerFooter, DrawerDescription } from '@/components/ui/drawer';
 import { ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import NameSearchInput from '../NameSearchInput';
 
 
 interface JoinGroupModalProps {
@@ -141,7 +142,13 @@ export function JoinGroupModal({ isOpen, onClose }: JoinGroupModalProps) {
             {topic === 'Other' && (
               <div className="grid gap-2">
                 <Label htmlFor="customTopic">Custom Topic</Label>
-                <Input id="customTopic" placeholder="e.g., Svelte" value={customTopic} onChange={(e) => setCustomTopic(e.target.value)} required />
+                <NameSearchInput
+                  value={customTopic}
+                  onChange={setCustomTopic}
+                  onSelect={setCustomTopic}
+                  collectionPath="studyGroups"
+                  placeholder="Search for a topic or group name"
+                />
               </div>
             )}
             <div className="grid gap-2">

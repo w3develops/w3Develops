@@ -16,6 +16,7 @@ import { topics, commitmentLevels, ONE_WEEK_IN_MS } from '@/lib/constants';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose, DrawerFooter, DrawerDescription } from '@/components/ui/drawer';
 import { ChevronDown } from 'lucide-react';
+import NameSearchInput from '@/components/NameSearchInput';
 
 
 export default function CreateGroupProjectPage() {
@@ -138,7 +139,13 @@ export default function CreateGroupProjectPage() {
           <form onSubmit={handleCreateGroupProject} className="grid gap-6">
             <div className="grid gap-2">
               <Label htmlFor="name">Project Name</Label>
-              <Input id="name" placeholder="My Awesome Project" value={name} onChange={(e) => setName(e.target.value)} required maxLength={75} />
+              <NameSearchInput
+                value={name}
+                onChange={setName}
+                onSelect={setName}
+                collectionPath="groupProjects"
+                placeholder="My Awesome Project"
+              />
             </div>
 
             <div className="grid gap-2">
