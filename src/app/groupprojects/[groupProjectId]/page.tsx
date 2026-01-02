@@ -1,4 +1,3 @@
-
 import GroupProjectDashboardPage from './client';
 
 export async function generateStaticParams() {

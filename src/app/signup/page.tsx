@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
@@ -12,7 +11,7 @@ import { useAuth, useUser, useFirestore } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
 import { doc, getDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
-import { User } from '@/lib/types';
+import { UserProfile } from '@/lib/types';
 import { EmailAuthProvider, linkWithCredential, createUserWithEmailAndPassword, User as FirebaseUser, UserCredential } from 'firebase/auth';
 
 function useDebounce(value: string, delay: number) {
@@ -215,7 +214,8 @@ function SignupPageContent() {
       const batch = writeBatch(firestore);
 
       const userDocRef = doc(firestore, "users", finalUser.uid);
-      const userData: Partial<User> = {
+      const userData: Partial<UserProfile> = {
+        id: finalUser.uid,
         email: finalUser.email!,
         username: username,
         username_lowercase: usernameLower,
@@ -224,7 +224,11 @@ function SignupPageContent() {
         // Initialize empty fields
         profilePictureUrl: '',
         bio: '',
-        socialLinks: {},
+        socialLinks: {
+          github: '',
+          linkedin: '',
+          twitter: '',
+        },
         skills: [],
         followers: [],
         following: [],
