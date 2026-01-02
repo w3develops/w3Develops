@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -217,7 +218,46 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
     };
     
     if (!isMember) {
-        return null;
+        return (
+             <Card>
+                <CardHeader>
+                    <CardTitle>Check-ins</CardTitle>
+                    <CardDescription>See what the team is working on.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Tabs defaultValue="daily" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="daily">Daily Progress</TabsTrigger>
+                            <TabsTrigger value="weekly">Weekly Goals</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="daily" className="space-y-4 pt-4">
+                            <DailyProgressStream 
+                                checkIns={dailyCheckins}
+                                memberProfiles={memberProfiles}
+                                isLoading={isLoadingAllDaily}
+                            />
+                        </TabsContent>
+                        <TabsContent value="weekly" className="space-y-4 pt-4">
+                            {memberIds.length > 0 ? (
+                                <Accordion type="multiple" className="w-full">
+                                   {memberIds.map(id => (
+                                       <UserWeeklyCheckIns 
+                                          key={id} 
+                                          memberId={id} 
+                                          memberProfiles={memberProfiles} 
+                                          allWeeklyCheckins={weeklyCheckins}
+                                          isLoading={isLoadingAllWeekly}
+                                      />
+                                   ))}
+                                </Accordion>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">No members in this group yet.</p>
+                            )}
+                        </TabsContent>
+                    </Tabs>
+                </CardContent>
+            </Card>
+        )
     }
 
     return (
@@ -295,3 +335,5 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
         </Card>
     );
 }
+
+    

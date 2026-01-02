@@ -76,7 +76,7 @@ service cloud.firestore {
       }
       
       match /checkIns/{checkInId} {
-        allow read: if isGroupMember(groupId);
+        allow read: if true;
         allow create: if isGroupMember(groupId) 
                       && request.resource.data.userId == request.auth.uid
                       && request.resource.data.content is string
@@ -113,7 +113,7 @@ service cloud.firestore {
       }
 
       match /checkIns/{checkInId} {
-        allow read: if isGroupProjectMember(groupProjectId);
+        allow read: if true;
         allow create: if isGroupProjectMember(groupProjectId)
                       && request.resource.data.userId == request.auth.uid
                       && request.resource.data.content is string
@@ -151,3 +151,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
