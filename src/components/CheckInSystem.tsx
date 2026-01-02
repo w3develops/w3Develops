@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { CheckIn, UserProfile } from '@/lib/types';
-import { collection, query, orderBy, addDoc, serverTimestamp, where, getDocs, documentId, doc } from 'firebase/firestore';
+import { collection, query, orderBy, addDoc, serverTimestamp, where, getDocs, documentId, doc, Timestamp } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -118,40 +118,35 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
         [firestore, collectionPath, groupOrCohortId]
     );
     
-    // Fetch ALL checkins for the group, then filter client-side. This avoids invalid queries.
+    // Fetch checkins by type, but without ordering. We will order on the client.
+    // This avoids needing a composite index.
     const allDailyCheckinsQuery = useMemo(() => {
         return query(
             checkInsCollectionRef,
-            where('type', '==', 'daily'),
-            orderBy('createdAt', 'desc')
+            where('type', '==', 'daily')
         );
     }, [checkInsCollectionRef]);
 
     const allWeeklyCheckinsQuery = useMemo(() => {
         return query(
             checkInsCollectionRef,
-            where('type', '==', 'weekly'),
-            orderBy('createdAt', 'desc')
+            where('type', '==', 'weekly')
         );
     }, [checkInsCollectionRef]);
 
     const { data: allDailyCheckins, isLoading: isLoadingAllDaily } = useCollection<CheckIn>(allDailyCheckinsQuery);
     const { data: allWeeklyCheckins, isLoading: isLoadingAllWeekly } = useCollection<CheckIn>(allWeeklyCheckinsQuery);
 
-    // Client-side filtering
+    // Client-side filtering and sorting
     const dailyCheckins = useMemo(() => {
         if (!allDailyCheckins) return null;
-        if (memberIds.length === 0) return [];
-        const memberIdSet = new Set(memberIds);
-        return allDailyCheckins.filter(c => memberIdSet.has(c.userId));
-    }, [allDailyCheckins, memberIds]);
+        return allDailyCheckins.sort((a, b) => (b.createdAt as Timestamp).toMillis() - (a.createdAt as Timestamp).toMillis());
+    }, [allDailyCheckins]);
     
     const weeklyCheckins = useMemo(() => {
         if (!allWeeklyCheckins) return null;
-        if (memberIds.length === 0) return [];
-        const memberIdSet = new Set(memberIds);
-        return allWeeklyCheckins.filter(c => memberIdSet.has(c.userId));
-    }, [allWeeklyCheckins, memberIds]);
+        return allWeeklyCheckins.sort((a, b) => (b.createdAt as Timestamp).toMillis() - (a.createdAt as Timestamp).toMillis());
+    }, [allWeeklyCheckins]);
     
     
     useEffect(() => {
@@ -335,5 +330,7 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
         </Card>
     );
 }
+
+    
 
     
