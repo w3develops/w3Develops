@@ -1,6 +1,3 @@
-edit this
-
-
 <!-- Please follow this checklist and put an x in each of the boxes, like this: [x]. It will ensure that our team takes your pull request seriously. -->
 
 - [ ] I have read [w3Develops contribution guidelines](https://github.com/w3develops/w3Develops/blob/main/.github/CONTRIBUTING.md).
