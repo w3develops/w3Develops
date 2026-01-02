@@ -117,27 +117,42 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
         collection(firestore, collectionPath, groupOrCohortId, 'checkIns'),
         [firestore, collectionPath, groupOrCohortId]
     );
-
-    const dailyCheckinsQuery = useMemo(() => {
+    
+    // Fetch ALL checkins for the group, then filter client-side. This avoids invalid queries.
+    const allDailyCheckinsQuery = useMemo(() => {
         return query(
             checkInsCollectionRef,
             where('type', '==', 'daily'),
-            orderBy('createdAt', 'desc'),
-            where('userId', 'in', memberIds.length > 0 ? memberIds : ['dummyId'])
+            orderBy('createdAt', 'desc')
         );
-    }, [checkInsCollectionRef, memberIds]);
+    }, [checkInsCollectionRef]);
 
-    const weeklyCheckinsQuery = useMemo(() => {
+    const allWeeklyCheckinsQuery = useMemo(() => {
         return query(
             checkInsCollectionRef,
             where('type', '==', 'weekly'),
-            orderBy('createdAt', 'desc'),
-             where('userId', 'in', memberIds.length > 0 ? memberIds : ['dummyId'])
+            orderBy('createdAt', 'desc')
         );
-    }, [checkInsCollectionRef, memberIds]);
+    }, [checkInsCollectionRef]);
 
-    const { data: dailyCheckins, isLoading: isLoadingDaily } = useCollection<CheckIn>(dailyCheckinsQuery);
-    const { data: weeklyCheckins, isLoading: isLoadingWeekly } = useCollection<CheckIn>(weeklyCheckinsQuery);
+    const { data: allDailyCheckins, isLoading: isLoadingAllDaily } = useCollection<CheckIn>(allDailyCheckinsQuery);
+    const { data: allWeeklyCheckins, isLoading: isLoadingAllWeekly } = useCollection<CheckIn>(allWeeklyCheckinsQuery);
+
+    // Client-side filtering
+    const dailyCheckins = useMemo(() => {
+        if (!allDailyCheckins) return null;
+        if (memberIds.length === 0) return [];
+        const memberIdSet = new Set(memberIds);
+        return allDailyCheckins.filter(c => memberIdSet.has(c.userId));
+    }, [allDailyCheckins, memberIds]);
+    
+    const weeklyCheckins = useMemo(() => {
+        if (!allWeeklyCheckins) return null;
+        if (memberIds.length === 0) return [];
+        const memberIdSet = new Set(memberIds);
+        return allWeeklyCheckins.filter(c => memberIdSet.has(c.userId));
+    }, [allWeeklyCheckins, memberIds]);
+    
     
     useEffect(() => {
         const fetchMemberProfiles = async () => {
@@ -238,7 +253,7 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
                             <DailyProgressStream 
                                 checkIns={dailyCheckins}
                                 memberProfiles={memberProfiles}
-                                isLoading={isLoadingDaily}
+                                isLoading={isLoadingAllDaily}
                             />
                         </div>
                     </TabsContent>
@@ -267,7 +282,7 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
                                           memberId={id} 
                                           memberProfiles={memberProfiles} 
                                           allWeeklyCheckins={weeklyCheckins}
-                                          isLoading={isLoadingWeekly}
+                                          isLoading={isLoadingAllWeekly}
                                       />
                                    ))}
                                 </Accordion>
