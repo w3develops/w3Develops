@@ -13,10 +13,10 @@ export default function NotificationBell() {
 
     const handleBellClick = () => {
         if (!user) {
-            router.push('/login?redirect=/notifications');
+            router.push('/login?redirect=/account/notifications');
             return;
         }
-        router.push('/notifications');
+        router.push('/account/notifications');
     };
 
     return (

@@ -7,7 +7,6 @@ import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { LoadingSkeleton } from "@/components/layout/loading-skeleton";
-import NewsletterSubscription from "@/components/NewsletterSubscription";
 
 export default function SettingsPage() {
     const { user, isUserLoading } = useUser();
@@ -53,16 +52,15 @@ export default function SettingsPage() {
                             <Link href="/security">Manage Security</Link>
                         </Button>
                    </div>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Notifications</CardTitle>
-                    <CardDescription>Manage how you receive notifications from w3Develops.</CardDescription>
-                </CardHeader>
-                 <CardContent>
-                    <NewsletterSubscription />
+                   <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                            <h4 className="font-medium">Notifications</h4>
+                            <p className="text-sm text-muted-foreground">Manage how you receive notifications.</p>
+                        </div>
+                        <Button asChild>
+                            <Link href="/notifications">Manage Notifications</Link>
+                        </Button>
+                   </div>
                 </CardContent>
             </Card>
         </div>
