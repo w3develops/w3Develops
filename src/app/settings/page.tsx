@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { LoadingSkeleton } from "@/components/layout/loading-skeleton";
+import NewsletterSubscription from "@/components/NewsletterSubscription";
 
 export default function SettingsPage() {
     const { user, isUserLoading } = useUser();
@@ -28,7 +28,7 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className="max-w-2xl mx-auto p-4 md:p-10">
+        <div className="max-w-2xl mx-auto p-4 md:p-10 space-y-8">
             <Card>
                 <CardHeader>
                     <CardTitle>Settings</CardTitle>
@@ -53,6 +53,16 @@ export default function SettingsPage() {
                             <Link href="/security">Manage Security</Link>
                         </Button>
                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Notifications</CardTitle>
+                    <CardDescription>Manage how you receive notifications from w3Develops.</CardDescription>
+                </CardHeader>
+                 <CardContent>
+                    <NewsletterSubscription />
                 </CardContent>
             </Card>
         </div>
