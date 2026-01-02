@@ -14,9 +14,9 @@ export interface UserProfile {
     twitter?: string;
   };
   skills?: string[];
-  createdAt?: Timestamp;
-  lastLoginAt?: Timestamp;
-  lastLogoutAt?: Timestamp;
+  createdAt?: Timestamp | FieldValue;
+  lastLoginAt?: Timestamp | FieldValue;
+  lastLogoutAt?: Timestamp | FieldValue;
   followers?: string[];
   following?: string[];
   followInfoPrivate?: boolean;
