@@ -231,8 +231,8 @@ function SignupPageContent() {
         followInfoPrivate: false,
         createdStudyGroupIds: [],
         joinedStudyGroupIds: [],
-        createdCohortIds: [],
-        joinedCohortIds: [],
+        createdGroupProjectIds: [],
+        joinedGroupProjectIds: [],
         isSubscribedToNewsletter: false,
       };
       
@@ -374,5 +374,3 @@ export default function SignupPage() {
     </Suspense>
   )
 }
-
-    
