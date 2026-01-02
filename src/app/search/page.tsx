@@ -5,7 +5,7 @@ import { Suspense, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, where, orderBy, limit, Query, DocumentData } from 'firebase/firestore';
-import { UserProfile, StudyGroup, Cohort } from '@/lib/types';
+import { UserProfile, StudyGroup, GroupProject } from '@/lib/types';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -95,7 +95,7 @@ function SearchResults() {
   const groupsByNameQuery = useMemo(() => {
     if (!lowerQ) return null;
     return query(
-        collection(firestore, 'studygroups'), 
+        collection(firestore, 'studyGroups'), 
         orderBy('name_lowercase'),
         where('name_lowercase', '>=', lowerQ),
         where('name_lowercase', '<=', lowerQ + '\uf8ff'),
@@ -110,49 +110,49 @@ function SearchResults() {
     if (!matchingTopic) return null;
 
     return query(
-        collection(firestore, 'studygroups'), 
+        collection(firestore, 'studyGroups'), 
         where('topic', '==', matchingTopic),
         limit(10)
     ) as Query<StudyGroup>;
   }, [q, firestore]);
 
-  // --- Cohorts Queries ---
-  const cohortsByNameQuery = useMemo(() => {
+  // --- GroupProjects Queries ---
+  const groupProjectsByNameQuery = useMemo(() => {
     if (!lowerQ) return null;
     return query(
-        collection(firestore, 'cohorts'), 
+        collection(firestore, 'groupProjects'), 
         orderBy('name_lowercase'),
         where('name_lowercase', '>=', lowerQ),
         where('name_lowercase', '<=', lowerQ + '\uf8ff'),
         limit(10)
-    ) as Query<Cohort>;
+    ) as Query<GroupProject>;
   }, [lowerQ, firestore]);
 
-  const cohortsByTopicQuery = useMemo(() => {
+  const groupProjectsByTopicQuery = useMemo(() => {
     if (!q) return null;
     // Find a matching topic from our constants list, ignoring case.
     const matchingTopic = topics.find(topic => topic.toLowerCase() === q.toLowerCase());
     if (!matchingTopic) return null;
     
     return query(
-        collection(firestore, 'cohorts'),
+        collection(firestore, 'groupProjects'),
         where('topic', '==', matchingTopic),
         limit(10)
-    ) as Query<Cohort>;
+    ) as Query<GroupProject>;
   }, [q, firestore]);
 
 
   const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
   const { data: groupsByName, isLoading: groupsByNameLoading } = useCollection<StudyGroup>(groupsByNameQuery);
   const { data: groupsByTopic, isLoading: groupsByTopicLoading } = useCollection<StudyGroup>(groupsByTopicQuery);
-  const { data: cohortsByName, isLoading: cohortsByNameLoading } = useCollection<Cohort>(cohortsByNameQuery);
-  const { data: cohortsByTopic, isLoading: cohortsByTopicLoading } = useCollection<Cohort>(cohortsByTopicQuery);
+  const { data: groupProjectsByName, isLoading: groupProjectsByNameLoading } = useCollection<GroupProject>(groupProjectsByNameQuery);
+  const { data: groupProjectsByTopic, isLoading: groupProjectsByTopicLoading } = useCollection<GroupProject>(groupProjectsByTopicQuery);
 
   const mergedGroups = useMemo(() => mergeResults(groupsByName, groupsByTopic), [groupsByName, groupsByTopic]);
-  const mergedCohorts = useMemo(() => mergeResults(cohortsByName, cohortsByTopic), [cohortsByName, cohortsByTopic]);
+  const mergedGroupProjects = useMemo(() => mergeResults(groupProjectsByName, groupProjectsByTopic), [groupProjectsByName, groupProjectsByTopic]);
 
-  const isLoading = usersLoading || groupsByNameLoading || groupsByTopicLoading || cohortsByNameLoading || cohortsByTopicLoading;
-  const noResults = !isLoading && !users?.length && !mergedGroups.length && !mergedCohorts.length;
+  const isLoading = usersLoading || groupsByNameLoading || groupsByTopicLoading || groupProjectsByNameLoading || groupProjectsByTopicLoading;
+  const noResults = !isLoading && !users?.length && !mergedGroups.length && !mergedGroupProjects.length;
 
   if (!q) {
     return <div className="text-center text-muted-foreground">Please enter a search term to begin.</div>;
@@ -229,28 +229,28 @@ function SearchResults() {
         </section>
       )}
 
-       {mergedCohorts.length > 0 && (
+       {mergedGroupProjects.length > 0 && (
          <section>
           <h2 className="text-2xl font-semibold mb-4">Group Projects</h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {mergedCohorts.map(cohort => {
-              const isNew = cohort.createdAt && (Date.now() - (cohort.createdAt as any).toMillis()) < ONE_WEEK_IN_MS;
+            {mergedGroupProjects.map(groupProject => {
+              const isNew = groupProject.createdAt && (Date.now() - (groupProject.createdAt as any).toMillis()) < ONE_WEEK_IN_MS;
               return (
-               <Link href={`/groupprojects/${cohort.id}`} key={cohort.id}>
+               <Link href={`/groupprojects/${groupProject.id}`} key={groupProject.id}>
                 <Card className="hover:bg-accent transition-colors h-full flex flex-col">
                   <CardHeader>
                     <div className="flex justify-between items-start">
-                      <CardTitle>{cohort.name}</CardTitle>
+                      <CardTitle>{groupProject.name}</CardTitle>
                       {isNew ? <Badge>New</Badge> : <Badge variant="secondary">In Progress</Badge>}
                     </div>
-                    <Badge variant="secondary" className="w-fit">{cohort.topic}</Badge>
+                    <Badge variant="secondary" className="w-fit">{groupProject.topic}</Badge>
                   </CardHeader>
                   <CardContent className="space-y-4 flex-grow flex flex-col justify-between">
-                      <p className="text-sm text-muted-foreground h-10 overflow-hidden">{cohort.description}</p>
+                      <p className="text-sm text-muted-foreground h-10 overflow-hidden">{groupProject.description}</p>
                        <div className="flex flex-col text-sm text-muted-foreground gap-2">
-                          <div className="flex items-center"><Users className="w-4 h-4 mr-2" />{cohort.memberIds.length} / 25 Members</div>
-                          <Badge variant="outline" className="w-fit">{cohort.commitment}</Badge>
-                          <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(cohort.createdAt as any)}</div>
+                          <div className="flex items-center"><Users className="w-4 h-4 mr-2" />{groupProject.memberIds.length} / 25 Members</div>
+                          <Badge variant="outline" className="w-fit">{groupProject.commitment}</Badge>
+                          <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(groupProject.createdAt as any)}</div>
                       </div>
                   </CardContent>
                 </Card>

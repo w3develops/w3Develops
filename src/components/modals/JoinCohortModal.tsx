@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { topics, commitmentLevels, ONE_WEEK_IN_MS } from '@/lib/constants';
 import { collection, query, where, Query, Timestamp } from 'firebase/firestore';
-import { Cohort } from '@/lib/types';
+import { GroupProject } from '@/lib/types';
 import JoinCohortButton from '../JoinCohortButton';
 import Link from 'next/link';
 import { Input } from '../ui/input';
@@ -38,35 +38,35 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
   const [commitment, setCommitment] = useState('part-time');
   const [step, setStep] = useState(1);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [availableCohorts, setAvailableCohorts] = useState<Cohort[]>([]);
+  const [availableGroupProjects, setAvailableGroupProjects] = useState<GroupProject[]>([]);
 
   const finalTopic = topic === 'Other' ? customTopic : topic;
 
-  const matchingCohortsQuery = useMemo(() => {
+  const matchingGroupProjectsQuery = useMemo(() => {
     if (step !== 2 || !finalTopic || !commitment) return null;
     
     const oneWeekAgo = new Date(Date.now() - ONE_WEEK_IN_MS);
     const commitmentValue = commitmentLevels[commitment as keyof typeof commitmentLevels];
 
     return query(
-      collection(firestore, 'cohorts'),
+      collection(firestore, 'groupProjects'),
       where('topic', '==', finalTopic),
       where('commitment', '==', commitmentValue),
       where('createdAt', '>', Timestamp.fromDate(oneWeekAgo))
-    ) as Query<Cohort>;
+    ) as Query<GroupProject>;
   }, [step, finalTopic, commitment, firestore]);
 
-  const { data: matchingCohorts, isLoading } = useCollection<Cohort>(matchingCohortsQuery);
+  const { data: matchingGroupProjects, isLoading } = useCollection<GroupProject>(matchingGroupProjectsQuery);
 
   useEffect(() => {
-    if (user && matchingCohorts) {
-      const filtered = matchingCohorts.filter(c => c.memberIds.length < 25 && !c.memberIds.includes(user.uid));
-      setAvailableCohorts(filtered);
+    if (user && matchingGroupProjects) {
+      const filtered = matchingGroupProjects.filter(c => c.memberIds.length < 25 && !c.memberIds.includes(user.uid));
+      setAvailableGroupProjects(filtered);
     }
-  }, [matchingCohorts, user]);
+  }, [matchingGroupProjects, user]);
 
 
-  const handleFindCohorts = () => {
+  const handleFindGroupProjects = () => {
     if (!finalTopic || !commitment) return;
     setStep(2);
   };
@@ -76,13 +76,13 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
     setTopic('');
     setCustomTopic('');
     setCommitment('part-time');
-    setAvailableCohorts([]);
+    setAvailableGroupProjects([]);
     onClose();
   }
 
-  const handleJoinSuccess = (cohortId: string) => {
+  const handleJoinSuccess = (groupProjectId: string) => {
     handleClose();
-    router.push(`/groupprojects/${cohortId}`);
+    router.push(`/groupprojects/${groupProjectId}`);
   };
   
   const findButtonDisabled = !finalTopic || !commitment || (topic === 'Other' && !customTopic);
@@ -158,7 +158,7 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
                 </div>
               </RadioGroup>
             </div>
-            <Button onClick={handleFindCohorts} disabled={findButtonDisabled}>
+            <Button onClick={handleFindGroupProjects} disabled={findButtonDisabled}>
               Find Projects
             </Button>
           </div>
@@ -167,21 +167,21 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
         {step === 2 && (
           <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto">
             {isLoading && <p>Searching for projects...</p>}
-            {!isLoading && availableCohorts.length > 0 && (
+            {!isLoading && availableGroupProjects.length > 0 && (
               <div className="space-y-2">
                 <h4 className="font-semibold">Matching Projects</h4>
-                {availableCohorts.map(cohort => (
-                  <div key={cohort.id} className="flex items-center justify-between p-2 border rounded-md">
+                {availableGroupProjects.map(groupProject => (
+                  <div key={groupProject.id} className="flex items-center justify-between p-2 border rounded-md">
                     <div>
-                      <p className="font-semibold">{cohort.name}</p>
-                      <p className="text-sm text-muted-foreground">{cohort.memberIds.length} / 25 members</p>
+                      <p className="font-semibold">{groupProject.name}</p>
+                      <p className="text-sm text-muted-foreground">{groupProject.memberIds.length} / 25 members</p>
                     </div>
-                    <JoinCohortButton cohort={cohort} onJoinSuccess={handleJoinSuccess} />
+                    <JoinCohortButton groupProject={groupProject} onJoinSuccess={handleJoinSuccess} />
                   </div>
                 ))}
               </div>
             )}
-             {!isLoading && availableCohorts.length === 0 && (
+             {!isLoading && availableGroupProjects.length === 0 && (
                 <div className="text-center py-4 space-y-2">
                     <p className="text-muted-foreground">No matching open projects were found.</p>
                     <Button asChild onClick={handleClose}>

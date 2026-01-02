@@ -7,7 +7,7 @@ import { doc, DocumentReference, collection, query, where, Query } from 'firebas
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { UserProfile, StudyGroup, Cohort } from '@/lib/types';
+import { UserProfile, StudyGroup, GroupProject } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -75,12 +75,12 @@ export default function AccountPage() {
 
   const { data: studyGroups, isLoading: isGroupsLoading } = useCollection<StudyGroup>(userGroupsQuery);
   
-  const userCohortsQuery = useMemo(() => {
+  const userGroupProjectsQuery = useMemo(() => {
     if (!user) return null;
-    return query(collection(firestore, 'cohorts'), where('memberIds', 'array-contains', user.uid)) as Query<Cohort>;
+    return query(collection(firestore, 'groupProjects'), where('memberIds', 'array-contains', user.uid)) as Query<GroupProject>;
   }, [user, firestore]);
 
-  const { data: cohorts, isLoading: isCohortsLoading } = useCollection<Cohort>(userCohortsQuery);
+  const { data: groupProjects, isLoading: isGroupProjectsLoading } = useCollection<GroupProject>(userGroupProjectsQuery);
 
   if (isUserLoading || isProfileLoading || !userProfile) {
     return (
@@ -147,10 +147,10 @@ export default function AccountPage() {
               <CardDescription>Projects you have created or joined to build applications.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {isCohortsLoading ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> : 
-                (cohorts && cohorts.length > 0) ? (
+              {isGroupProjectsLoading ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> : 
+                (groupProjects && groupProjects.length > 0) ? (
                   <ul className="divide-y">
-                    {cohorts.map(c => (
+                    {groupProjects.map(c => (
                        <li key={c.id} className="py-2">
                         <Link href={`/groupprojects/${c.id}`} className="font-medium hover:underline">{c.name}</Link>
                       </li>

@@ -40,7 +40,7 @@ export default function CreateGroupProjectPage() {
     }
   }, [user, isUserLoading, router]);
 
-  const handleCreateCohort = async (e: React.FormEvent) => {
+  const handleCreateGroupProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !firestore) {
         toast({ variant: "destructive", title: "Not Authenticated", description: "You must be logged in to create a group project." });
@@ -59,23 +59,23 @@ export default function CreateGroupProjectPage() {
     setIsSubmitting(true);
     
     try {
-      // Check for existing, non-full, recent cohorts
+      // Check for existing, non-full, recent group projects
       const oneWeekAgoTimestamp = Date.now() - ONE_WEEK_IN_MS;
       const q = query(
-        collection(firestore, 'cohorts'),
+        collection(firestore, 'groupProjects'),
         where('topic', '==', finalTopic),
         where('commitment', '==', finalCommitment)
       );
 
       const existingSnapshot = await getDocs(q);
       
-      const suitableCohorts = existingSnapshot.docs.filter(doc => {
+      const suitableGroupProjects = existingSnapshot.docs.filter(doc => {
         const data = doc.data();
         const createdAt = (data.createdAt as Timestamp).toMillis();
         return data.memberIds.length < 25 && createdAt > oneWeekAgoTimestamp;
       });
 
-      if (suitableCohorts.length > 0) {
+      if (suitableGroupProjects.length > 0) {
           toast({
               variant: "destructive",
               title: "Similar Project Exists",
@@ -85,11 +85,11 @@ export default function CreateGroupProjectPage() {
           return;
       }
 
-      // If no suitable cohort found, create a new one
+      // If no suitable group project found, create a new one
       const batch = writeBatch(firestore);
-      const newCohortRef = doc(collection(firestore, 'cohorts'));
+      const newGroupProjectRef = doc(collection(firestore, 'groupProjects'));
 
-      batch.set(newCohortRef, {
+      batch.set(newGroupProjectRef, {
         name: name,
         name_lowercase: name.toLowerCase(),
         topic: finalTopic,
@@ -103,13 +103,13 @@ export default function CreateGroupProjectPage() {
       
       const userProfileRef = doc(firestore, 'users', user.uid);
       batch.update(userProfileRef, {
-        createdCohortIds: arrayUnion(newCohortRef.id)
+        createdGroupProjectIds: arrayUnion(newGroupProjectRef.id)
       });
       
       await batch.commit();
 
       toast({ title: "Success!", description: "Your new group project has been created." });
-      router.push(`/groupprojects/${newCohortRef.id}`);
+      router.push(`/groupprojects/${newGroupProjectRef.id}`);
     } catch (error: any) {
         toast({ variant: "destructive", title: "Could Not Create Project", description: error.message || "An unexpected error occurred." });
     } finally {
@@ -135,7 +135,7 @@ export default function CreateGroupProjectPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleCreateCohort} className="grid gap-6">
+          <form onSubmit={handleCreateGroupProject} className="grid gap-6">
             <div className="grid gap-2">
               <Label htmlFor="name">Project Name</Label>
               <Input id="name" placeholder="My Awesome Project" value={name} onChange={(e) => setName(e.target.value)} required maxLength={75} />

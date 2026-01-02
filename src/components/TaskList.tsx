@@ -23,7 +23,7 @@ import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/e
 
 interface TaskListProps {
   groupOrCohortId: string;
-  collectionPath: 'studyGroups' | 'cohorts';
+  collectionPath: 'studyGroups' | 'groupProjects';
   memberIds: string[];
 }
 

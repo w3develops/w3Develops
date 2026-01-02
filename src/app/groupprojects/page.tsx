@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -6,7 +7,7 @@ import { collection, Query, orderBy, where, limit, query } from 'firebase/firest
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Cohort } from '@/lib/types';
+import { GroupProject } from '@/lib/types';
 import { Github, Users, Search, CalendarDays, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -45,7 +46,7 @@ function CohortCardSkeleton() {
   );
 }
 
-function CohortsPageSkeleton() {
+function GroupProjectsPageSkeleton() {
   return (
     <div className="space-y-8">
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -65,36 +66,36 @@ export default function GroupProjectsPage() {
 
   const oneWeekAgo = useMemo(() => new Date(Date.now() - ONE_WEEK_IN_MS), []);
 
-  const newCohortsQuery = useMemo(() => {
+  const newGroupProjectsQuery = useMemo(() => {
     return query(
-      collection(firestore, 'cohorts'),
+      collection(firestore, 'groupProjects'),
       orderBy('createdAt', 'desc'),
       where('createdAt', '>', oneWeekAgo),
       limit(25)
     ) as Query;
   }, [firestore, oneWeekAgo]);
 
-  const inProgressCohortsQuery = useMemo(() => {
+  const inProgressGroupProjectsQuery = useMemo(() => {
     return query(
-      collection(firestore, 'cohorts'),
+      collection(firestore, 'groupProjects'),
       orderBy('createdAt', 'desc'),
       where('createdAt', '<=', oneWeekAgo),
       limit(50)
     ) as Query;
   }, [firestore, oneWeekAgo]);
 
-  const { data: newCohorts, isLoading: isLoadingNew } = useCollection<Cohort>(newCohortsQuery);
-  const { data: inProgressCohorts, isLoading: isLoadingInProgress } = useCollection<Cohort>(inProgressCohortsQuery);
+  const { data: newGroupProjects, isLoading: isLoadingNew } = useCollection<GroupProject>(newGroupProjectsQuery);
+  const { data: inProgressGroupProjects, isLoading: isLoadingInProgress } = useCollection<GroupProject>(inProgressGroupProjectsQuery);
 
-  const filteredCohorts = useMemo(() => {
+  const filteredGroupProjects = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    if (!term) return { newCohorts, inProgressCohorts };
+    if (!term) return { newGroupProjects, inProgressGroupProjects };
 
     return {
-      newCohorts: newCohorts?.filter(c => c.name_lowercase.includes(term) || c.topic.toLowerCase().includes(term)),
-      inProgressCohorts: inProgressCohorts?.filter(c => c.name_lowercase.includes(term) || c.topic.toLowerCase().includes(term)),
+      newGroupProjects: newGroupProjects?.filter(c => c.name_lowercase.includes(term) || c.topic.toLowerCase().includes(term)),
+      inProgressGroupProjects: inProgressGroupProjects?.filter(c => c.name_lowercase.includes(term) || c.topic.toLowerCase().includes(term)),
     };
-  }, [searchTerm, newCohorts, inProgressCohorts]);
+  }, [searchTerm, newGroupProjects, inProgressGroupProjects]);
 
   const isLoading = isLoadingNew || isLoadingInProgress;
 
@@ -130,52 +131,52 @@ export default function GroupProjectsPage() {
           />
         </div>
 
-        {isLoading && <CohortsPageSkeleton />}
+        {isLoading && <GroupProjectsPageSkeleton />}
         
-        {!isLoading && !filteredCohorts.newCohorts?.length && !filteredCohorts.inProgressCohorts?.length && searchTerm && (
+        {!isLoading && !filteredGroupProjects.newGroupProjects?.length && !filteredGroupProjects.inProgressGroupProjects?.length && searchTerm && (
           <div className="text-center py-12">
               <h3 className="text-xl font-semibold">No Group Projects Found</h3>
               <p className="text-muted-foreground mt-2">Try a different search term.</p>
           </div>
         )}
 
-        {/* New Cohorts Section */}
+        {/* New GroupProjects Section */}
         <section className="space-y-4">
           <h2 className="pb-2 text-2xl font-semibold w-fit border-b-4 border-foreground">New</h2>
-          {!isLoading && filteredCohorts.newCohorts && filteredCohorts.newCohorts.length > 0 ? (
+          {!isLoading && filteredGroupProjects.newGroupProjects && filteredGroupProjects.newGroupProjects.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredCohorts.newCohorts.map(cohort => {
-                const isNew = cohort.createdAt && (Date.now() - cohort.createdAt.toMillis()) < ONE_WEEK_IN_MS;
+              {filteredGroupProjects.newGroupProjects.map(groupProject => {
+                const isNew = groupProject.createdAt && (Date.now() - groupProject.createdAt.toMillis()) < ONE_WEEK_IN_MS;
                 return(
-                <Card key={cohort.id} className="flex flex-col">
+                <Card key={groupProject.id} className="flex flex-col">
                   <CardHeader>
                     <div className='flex justify-between items-start'>
-                       <Link href={`/groupprojects/${cohort.id}`} className="hover:underline">
-                        <CardTitle>{cohort.name}</CardTitle>
+                       <Link href={`/groupprojects/${groupProject.id}`} className="hover:underline">
+                        <CardTitle>{groupProject.name}</CardTitle>
                       </Link>
                       <Badge>New</Badge>
                     </div>
-                     <Badge variant="secondary" className="w-fit text-center">{cohort.topic}</Badge>
+                     <Badge variant="secondary" className="w-fit text-center">{groupProject.topic}</Badge>
                   </CardHeader>
                   <CardContent className="space-y-4 flex-grow flex flex-col justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden">{cohort.description}</p>
+                        <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden">{groupProject.description}</p>
                          <div className="flex flex-col text-sm text-muted-foreground gap-2">
-                          <div className="flex items-center"><Users className="w-4 h-4 mr-2" /> {cohort.memberIds.length} / 25 Members</div>
-                          <Badge variant="outline" className="w-fit">{cohort.commitment}</Badge>
-                          <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(cohort.createdAt)}</div>
+                          <div className="flex items-center"><Users className="w-4 h-4 mr-2" /> {groupProject.memberIds.length} / 25 Members</div>
+                          <Badge variant="outline" className="w-fit">{groupProject.commitment}</Badge>
+                          <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(groupProject.createdAt)}</div>
                         </div>
                       </div>
                     <div className="flex gap-2 items-center">
-                      {cohort.githubUrl && (
+                      {groupProject.githubUrl && (
                           <Button variant="outline" asChild size="sm">
-                              <a href={cohort.githubUrl} target="_blank" rel="noopener noreferrer">
+                              <a href={groupProject.githubUrl} target="_blank" rel="noopener noreferrer">
                                   <Github className="w-4 h-4 mr-2" />
                                   View on GitHub
                               </a>
                           </Button>
                       )}
-                      {isNew && <JoinCohortButton cohort={cohort} />}
+                      {isNew && <JoinCohortButton groupProject={groupProject} />}
                     </div>
                   </CardContent>
                 </Card>
@@ -186,41 +187,41 @@ export default function GroupProjectsPage() {
           )}
         </section>
 
-        {/* In Progress Cohorts Section */}
+        {/* In Progress GroupProjects Section */}
         <section className="space-y-4">
           <h2 className="pb-2 text-2xl font-semibold w-fit border-b-4 border-foreground">In Progress</h2>
-          {!isLoading && filteredCohorts.inProgressCohorts && filteredCohorts.inProgressCohorts.length > 0 ? (
+          {!isLoading && filteredGroupProjects.inProgressGroupProjects && filteredGroupProjects.inProgressGroupProjects.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredCohorts.inProgressCohorts.map(cohort => (
-                <Card key={cohort.id} className="flex flex-col">
+              {filteredGroupProjects.inProgressGroupProjects.map(groupProject => (
+                <Card key={groupProject.id} className="flex flex-col">
                   <CardHeader>
                     <div className="flex justify-between items-start">
-                      <Link href={`/groupprojects/${cohort.id}`} className="hover:underline">
-                        <CardTitle>{cohort.name}</CardTitle>
+                      <Link href={`/groupprojects/${groupProject.id}`} className="hover:underline">
+                        <CardTitle>{groupProject.name}</CardTitle>
                       </Link>
                       <Badge variant="secondary">In Progress</Badge>
                     </div>
-                    <Badge variant="secondary" className="w-fit text-center">{cohort.topic}</Badge>
+                    <Badge variant="secondary" className="w-fit text-center">{groupProject.topic}</Badge>
                   </CardHeader>
                   <CardContent className="space-y-4 flex-grow flex flex-col justify-between">
                       <div>
-                          <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden">{cohort.description}</p>
+                          <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden">{groupProject.description}</p>
                           <div className="flex flex-col text-sm text-muted-foreground gap-2">
-                                  <div className="flex items-center"><Users className="w-4 h-4 mr-2" /> {cohort.memberIds.length} / 25 Members</div>
-                                  <Badge variant="outline" className="w-fit">{cohort.commitment}</Badge>
-                                  <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(cohort.createdAt)}</div>
+                                  <div className="flex items-center"><Users className="w-4 h-4 mr-2" /> {groupProject.memberIds.length} / 25 Members</div>
+                                  <Badge variant="outline" className="w-fit">{groupProject.commitment}</Badge>
+                                  <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(groupProject.createdAt)}</div>
                           </div>
                       </div>
                     <div className="flex gap-2 items-center">
-                      {cohort.githubUrl && (
+                      {groupProject.githubUrl && (
                           <Button variant="outline" asChild size="sm">
-                              <a href={cohort.githubUrl} target="_blank" rel="noopener noreferrer">
+                              <a href={groupProject.githubUrl} target="_blank" rel="noopener noreferrer">
                                   <Github className="w-4 h-4 mr-2" />
                                   View on GitHub
                               </a>
                           </Button>
                       )}
-                      <JoinCohortButton cohort={cohort} />
+                      <JoinCohortButton groupProject={groupProject} />
                       </div>
                   </CardContent>
                 </Card>

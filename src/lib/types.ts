@@ -22,12 +22,12 @@ export interface UserProfile {
   followInfoPrivate?: boolean;
   createdStudyGroupIds?: string[];
   joinedStudyGroupIds?: string[];
-  createdCohortIds?: string[];
-  joinedCohortIds?: string[];
+  createdGroupProjectIds?: string[];
+  joinedGroupProjectIds?: string[];
   isSubscribedToNewsletter?: boolean;
 }
 
-export interface Cohort {
+export interface GroupProject {
   id: string;
   name: string;
   name_lowercase: string;
@@ -79,8 +79,8 @@ export interface User {
   followInfoPrivate: boolean;
   createdStudyGroupIds: string[];
   joinedStudyGroupIds: string[];
-  createdCohortIds: string[];
-  joinedCohortIds: string[];
+  createdGroupProjectIds: string[];
+  joinedGroupProjectIds: string[];
   isSubscribedToNewsletter: boolean;
 }
 
@@ -99,5 +99,3 @@ export interface CheckIn {
     content: string;
     createdAt: Timestamp;
 }
-
-    

@@ -5,7 +5,7 @@ import { useDoc } from '@/firebase/firestore/use-doc';
 import { useEffect, useState, useMemo } from 'react';
 import { doc, DocumentReference, collection, query, where, getDocs, Query, documentId } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import { Cohort, UserProfile } from '@/lib/types';
+import { GroupProject, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -77,30 +77,30 @@ function MemberList({ memberIds }: { memberIds: string[] }) {
 }
 
 
-export default function GroupProjectDashboardPage({ params }: { params: { cohortId: string } }) {
-  const { cohortId } = params;
+export default function GroupProjectDashboardPage({ params }: { params: { groupProjectId: string } }) {
+  const { groupProjectId } = params;
   const firestore = useFirestore();
   
-  const cohortDocRef = useMemo(() => {
-    if (!cohortId) return null;
-    return doc(firestore, 'cohorts', cohortId) as DocumentReference<Cohort>;
-  }, [cohortId, firestore]);
+  const groupProjectDocRef = useMemo(() => {
+    if (!groupProjectId) return null;
+    return doc(firestore, 'groupProjects', groupProjectId) as DocumentReference<GroupProject>;
+  }, [groupProjectId, firestore]);
 
-  const { data: cohort, isLoading: isCohortLoading, error: cohortError } = useDoc<Cohort>(cohortDocRef);
+  const { data: groupProject, isLoading: isGroupProjectLoading, error: groupProjectError } = useDoc<GroupProject>(groupProjectDocRef);
 
-  if (isCohortLoading) {
+  if (isGroupProjectLoading) {
     return <div className="text-center py-10 p-4 md:p-10">Loading project dashboard...</div>;
   }
   
-  if (cohortError) {
+  if (groupProjectError) {
       return <div className="text-center py-10 text-destructive p-4 md:p-10">Error loading project data.</div>
   }
 
-  if (!cohort) {
+  if (!groupProject) {
     return <div className="text-center py-10 p-4 md:p-10">Group project not found.</div>;
   }
 
-  const isNew = cohort.createdAt && (Date.now() - (cohort.createdAt as any).toMillis()) < ONE_WEEK_IN_MS;
+  const isNew = groupProject.createdAt && (Date.now() - (groupProject.createdAt as any).toMillis()) < ONE_WEEK_IN_MS;
 
   return (
     <div className="space-y-8 p-4 md:p-10">
@@ -113,59 +113,57 @@ export default function GroupProjectDashboardPage({ params }: { params: { cohort
         <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-start gap-4">
             <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-4">
-                    <CardTitle className="font-headline text-3xl">{cohort.name}</CardTitle>
+                    <CardTitle className="font-headline text-3xl">{groupProject.name}</CardTitle>
                     {isNew ? (
                         <Badge>New</Badge>
                     ) : (
                         <Badge variant="secondary">In Progress</Badge>
                     )}
                 </div>
-                <CardDescription>{cohort.description}</CardDescription>
+                <CardDescription>{groupProject.description}</CardDescription>
             </div>
         </CardHeader>
         <CardContent className="space-y-6">
            <div className="flex flex-wrap gap-4 items-center">
-             <Badge variant="secondary" className="text-base">{cohort.topic}</Badge>
-             <Badge variant="outline" className="text-base">{cohort.commitment}</Badge>
-              {cohort.githubUrl && (
-                <a href={cohort.githubUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+             <Badge variant="secondary" className="text-base">{groupProject.topic}</Badge>
+             <Badge variant="outline" className="text-base">{groupProject.commitment}</Badge>
+              {groupProject.githubUrl && (
+                <a href={groupProject.githubUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
                     <Github className="w-5 h-5" /> GitHub Repository
                 </a>
              )}
            </div>
            <div className="flex items-center text-sm text-muted-foreground">
                 <CalendarDays className="w-4 h-4 mr-2" />
-                Created on {formatTimestamp(cohort.createdAt as any)}
+                Created on {formatTimestamp(groupProject.createdAt as any)}
            </div>
         </CardContent>
       </Card>
       
       <CheckInSystem
-        groupOrCohortId={cohortId}
-        collectionPath="cohorts"
-        memberIds={cohort.memberIds}
+        groupOrCohortId={groupProjectId}
+        collectionPath="groupProjects"
+        memberIds={groupProject.memberIds}
       />
       
       <TaskList 
-        groupOrCohortId={cohortId}
-        collectionPath="cohorts"
-        memberIds={cohort.memberIds}
+        groupOrCohortId={groupProjectId}
+        collectionPath="groupProjects"
+        memberIds={groupProject.memberIds}
       />
 
       <Card>
         <CardHeader>
             <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
-                Members ({cohort.memberIds.length})
+                Members ({groupProject.memberIds.length})
             </CardTitle>
         </CardHeader>
         <CardContent>
-            <MemberList memberIds={cohort.memberIds} />
+            <MemberList memberIds={groupProject.memberIds} />
         </CardContent>
       </Card>
 
     </div>
   );
 }
-
-    

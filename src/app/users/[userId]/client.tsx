@@ -4,7 +4,7 @@
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import { useState, useEffect, useMemo } from 'react';
 import { doc, getDoc, DocumentReference, collection, query, where, Query, documentId, getDocs } from 'firebase/firestore';
-import { UserProfile, StudyGroup, Cohort } from '@/lib/types';
+import { UserProfile, StudyGroup, GroupProject } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -123,16 +123,16 @@ function UserFollowList({ title, userIds }: { title: string, userIds: string[] }
 function UserActivity({ userId }: { userId: string }) {
   const firestore = useFirestore();
 
-  const userCohortsQuery = useMemo(() => {
+  const userGroupProjectsQuery = useMemo(() => {
     if (!userId) return null;
-    return query(collection(firestore, 'cohorts'), where('memberIds', 'array-contains', userId)) as Query;
+    return query(collection(firestore, 'groupProjects'), where('memberIds', 'array-contains', userId)) as Query;
   }, [userId, firestore]);
 
-  const { data: cohorts, isLoading: isCohortsLoading } = useCollection<Cohort>(userCohortsQuery);
+  const { data: groupProjects, isLoading: isGroupProjectsLoading } = useCollection<GroupProject>(userGroupProjectsQuery);
 
   const userGroupsQuery = useMemo(() => {
     if (!userId) return null;
-    return query(collection(firestore, 'studygroups'), where('memberIds', 'array-contains', userId)) as Query;
+    return query(collection(firestore, 'studyGroups'), where('memberIds', 'array-contains', userId)) as Query;
   }, [userId, firestore]);
 
   const { data: studyGroups, isLoading: isGroupsLoading } = useCollection<StudyGroup>(userGroupsQuery);
@@ -144,10 +144,10 @@ function UserActivity({ userId }: { userId: string }) {
           <CardTitle className="flex items-center gap-2"><Users className="mr-2" />Group Projects</CardTitle>
         </CardHeader>
         <CardContent>
-          {isCohortsLoading ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> :
-            cohorts && cohorts.length > 0 ? (
+          {isGroupProjectsLoading ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> :
+            groupProjects && groupProjects.length > 0 ? (
               <ul className="space-y-2">
-                {cohorts.map(c => (
+                {groupProjects.map(c => (
                   <li key={c.id}>
                     <Link href={`/groupprojects/${c.id}`} className="font-medium p-2 rounded-md hover:bg-accent flex justify-between items-center">
                       <span>{c.name}</span>

@@ -8,11 +8,11 @@ import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { PlusCircle } from 'lucide-react';
-import { Cohort } from '@/lib/types';
+import { GroupProject } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { ONE_WEEK_IN_MS } from '@/lib/constants';
 
-export default function JoinCohortButton({ cohort, onJoinSuccess }: { cohort: Cohort, onJoinSuccess?: (id: string) => void }) {
+export default function JoinCohortButton({ groupProject, onJoinSuccess }: { groupProject: GroupProject, onJoinSuccess?: (id: string) => void }) {
     const { user } = useUser();
     const { toast } = useToast();
     const firestore = useFirestore();
@@ -21,15 +21,15 @@ export default function JoinCohortButton({ cohort, onJoinSuccess }: { cohort: Co
     
     if (!user) return null;
 
-    const isMember = cohort.memberIds.includes(user.uid);
-    const isFull = cohort.memberIds.length >= 25;
-    const isNew = cohort.createdAt && (Date.now() - cohort.createdAt.toMillis()) < ONE_WEEK_IN_MS;
+    const isMember = groupProject.memberIds.includes(user.uid);
+    const isFull = groupProject.memberIds.length >= 25;
+    const isNew = groupProject.createdAt && (Date.now() - groupProject.createdAt.toMillis()) < ONE_WEEK_IN_MS;
     const canJoin = isNew && !isFull && !isMember;
 
     if (isMember) {
         return (
             <Button variant="outline" asChild size="sm">
-                <Link href={`/groupprojects/${cohort.id}`}>View Project</Link>
+                <Link href={`/groupprojects/${groupProject.id}`}>View Project</Link>
             </Button>
         );
     }
@@ -57,18 +57,18 @@ export default function JoinCohortButton({ cohort, onJoinSuccess }: { cohort: Co
         setIsJoining(true);
         
         try {
-            const cohortRef = doc(firestore, 'cohorts', cohort.id);
+            const groupProjectRef = doc(firestore, 'groupProjects', groupProject.id);
             const userProfileRef = doc(firestore, 'users', user.uid);
             const batch = writeBatch(firestore);
 
-            batch.update(cohortRef, { memberIds: arrayUnion(user.uid) });
-            batch.update(userProfileRef, { joinedCohortIds: arrayUnion(cohort.id) });
+            batch.update(groupProjectRef, { memberIds: arrayUnion(user.uid) });
+            batch.update(userProfileRef, { joinedGroupProjectIds: arrayUnion(groupProject.id) });
 
 
-            if (cohort.memberIds.length + 1 === 25) {
-                const message = `Your group project "${cohort.name}" is now full!`;
-                const link = `/groupprojects/${cohort.id}`;
-                const allMemberIds = [...cohort.memberIds, user.uid];
+            if (groupProject.memberIds.length + 1 === 25) {
+                const message = `Your group project "${groupProject.name}" is now full!`;
+                const link = `/groupprojects/${groupProject.id}`;
+                const allMemberIds = [...groupProject.memberIds, user.uid];
                 
                 allMemberIds.forEach(memberId => {
                     const notificationRef = doc(collection(firestore, 'users', memberId, 'notifications'));
@@ -85,12 +85,12 @@ export default function JoinCohortButton({ cohort, onJoinSuccess }: { cohort: Co
             
             await batch.commit();
 
-            toast({ title: 'Success!', description: `You've joined the project: ${cohort.name}`});
+            toast({ title: 'Success!', description: `You've joined the project: ${groupProject.name}`});
             
             if (onJoinSuccess) {
-                onJoinSuccess(cohort.id);
+                onJoinSuccess(groupProject.id);
             } else {
-                router.push(`/groupprojects/${cohort.id}`);
+                router.push(`/groupprojects/${groupProject.id}`);
             }
 
         } catch (error: any) {

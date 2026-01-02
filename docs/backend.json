@@ -101,14 +101,14 @@
             "description": "A list of StudyGroup IDs this user has joined (but not created).",
             "items": { "type": "string" }
         },
-        "createdCohortIds": {
+        "createdGroupProjectIds": {
             "type": "array",
-            "description": "A list of Cohort IDs created by this user.",
+            "description": "A list of GroupProject IDs created by this user.",
             "items": { "type": "string" }
         },
-        "joinedCohortIds": {
+        "joinedGroupProjectIds": {
             "type": "array",
-            "description": "A list of Cohort IDs this user has joined (but not created).",
+            "description": "A list of GroupProject IDs this user has joined (but not created).",
             "items": { "type": "string" }
         },
         "isSubscribedToNewsletter": {
@@ -180,11 +180,11 @@
         "createdAt"
       ]
     },
-    "Cohort": {
+    "GroupProject": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Cohort",
+      "title": "GroupProject",
       "type": "object",
-      "description": "Represents a project cohort created by a user.",
+      "description": "Represents a project created by a user.",
       "properties": {
         "id": {
           "type": "string"
@@ -194,18 +194,18 @@
         },
         "name_lowercase": {
           "type": "string",
-          "description": "Lowercase version of the cohort name for case-insensitive searching."
+          "description": "Lowercase version of the project name for case-insensitive searching."
         },
         "creatorId": {
           "type": "string",
-          "description": "The ID of the user who created the cohort."
+          "description": "The ID of the user who created the project."
         },
         "description": {
           "type": "string"
         },
         "memberIds": {
           "type": "array",
-          "description": "References to UserProfiles who are members of the cohort.",
+          "description": "References to UserProfiles who are members of the project.",
           "items": {
             "type": "string"
           }
@@ -216,16 +216,16 @@
         },
         "topic": {
           "type": "string",
-          "description": "The primary topic associated with this cohort."
+          "description": "The primary topic associated with this project."
         },
         "commitment": {
           "type": "string",
-          "description": "The expected time commitment for the cohort."
+          "description": "The expected time commitment for the project."
         },
         "createdAt": {
           "type": "string",
           "format": "date-time",
-          "description": "The timestamp when the cohort was created."
+          "description": "The timestamp when the project was created."
         }
       },
       "required": [
@@ -242,7 +242,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Task",
       "type": "object",
-      "description": "Represents a task within a study group or project cohort.",
+      "description": "Represents a task within a study group or project.",
       "properties": {
         "id": { "type": "string" },
         "description": { "type": "string" },
@@ -260,7 +260,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "CheckIn",
       "type": "object",
-      "description": "Represents a daily or weekly check-in for a study group or cohort.",
+      "description": "Represents a daily or weekly check-in for a study group or project.",
       "properties": {
         "id": { "type": "string" },
         "userId": { "type": "string", "description": "The ID of the user submitting the check-in." },
@@ -361,11 +361,11 @@
       },
       "description": "Stores study group data."
     },
-    "/cohorts/{cohortId}": {
+    "/groupProjects/{groupProjectId}": {
       "schema": {
-        "$ref": "#/entities/Cohort"
+        "$ref": "#/entities/GroupProject"
       },
-      "description": "Stores project cohort data."
+      "description": "Stores project data."
     },
     "/studyGroups/{groupId}/tasks/{taskId}": {
         "schema": {
@@ -373,19 +373,19 @@
         },
         "description": "Stores tasks for a specific study group."
     },
-    "/cohorts/{cohortId}/tasks/{taskId}": {
+    "/groupProjects/{groupProjectId}/tasks/{taskId}": {
         "schema": {
             "$ref": "#/entities/Task"
         },
-        "description": "Stores tasks for a specific project cohort."
+        "description": "Stores tasks for a specific project."
     },
     "/studyGroups/{groupId}/checkIns/{checkInId}": {
       "schema": { "$ref": "#/entities/CheckIn" },
       "description": "Stores check-ins for a specific study group."
     },
-    "/cohorts/{cohortId}/checkIns/{checkInId}": {
+    "/groupProjects/{groupProjectId}/checkIns/{checkInId}": {
       "schema": { "$ref": "#/entities/CheckIn" },
-      "description": "Stores check-ins for a specific project cohort."
+      "description": "Stores check-ins for a specific project."
     },
     "/users/{userId}/notifications/{notificationId}": {
         "schema": {
@@ -407,5 +407,3 @@
     }
   }
 }
-
-    
