@@ -15,10 +15,7 @@
   </a>
   <a href="https://www.patreon.com/w3develops">
 	<img alt="Contribute with w3Develops on Patreon" src="https://img.shields.io/badge/Patreon-contribute-yellow.svg">
-  </a>
-   <a href="https://github.com/sindresorhus/awesome">
-    <img alt="Awesome" src="https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg">
-  </a>
+  </a>  
   <a href="#backers">
     <img alt="Backers on Open Collective" src="https://opencollective.com/w3develops-94/backers/badge.svg">
   </a>
@@ -26,15 +23,6 @@
     <img alt="Sponsors on Open Collective" src="https://opencollective.com/w3develops-94/sponsors/badge.svg">
   </a>
 </p>
-
-<!-- seperate shields, i need to update the one and the one below -->
-
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/BlackrockDigital/startbootstrap-agency/master/LICENSE)
-[![npm version](https://img.shields.io/npm/v/startbootstrap-agency.svg)](https://www.npmjs.com/package/startbootstrap-agency)
-[![Build Status](https://travis-ci.org/BlackrockDigital/startbootstrap-agency.svg?branch=master)](https://travis-ci.org/BlackrockDigital/startbootstrap-agency)
-[![dependencies Status](https://david-dm.org/BlackrockDigital/startbootstrap-agency/status.svg)](https://david-dm.org/BlackrockDigital/startbootstrap-agency)
-[![devDependencies Status](https://david-dm.org/BlackrockDigital/startbootstrap-agency/dev-status.svg)](https://david-dm.org/BlackrockDigital/startbootstrap-agency?type=dev)
-
 
 # Welcome to W3Develops' open source codebase
 ## What is W3Develops?
@@ -54,7 +42,7 @@ It's free so resources are sometimes stretched.
 
 ## Bugs and Issues
 
-Have a bug or an issue with this template? [Open a new issue](https://github.com/w3develops/w3develops/issues) here on GitHub. For security reporting please [read the SECURITY section](https://github.com/w3develops/w3Develops/blob/main/SECURITY.md)
+Have a bug or an issue with this template? [Open a new issue](https://github.com/w3develops/w3develops/issues) here on GitHub. For security reporting please [read the SECURITY section](https://github.com/w3develops/w3Develops/blob/main/.github/SECURITY.md)
 
 ## About
 
@@ -109,7 +97,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Copyright and License
 
-Logo Copyright 2017-2026 w3Develops, Inc
+Logo Copyright 2017-2026 w3Develops, Inc.
 Code released under the BSD-3 license.
 
-Pull requests welcome! Please keep in mind simplicity & teaching over correctness.
+Pull requests welcome!

@@ -1,11 +1,10 @@
-[//]: (copy freecodecamps most current contributing guidlines, also make a page for the w3develops pages mentioned below.)
 # Contribution Guidelines
 
 Hello 👋!
 
 w3Develops.org is possible, thanks to thousands of kind volunteers like you. We are grateful for your contributions and we are excited to welcome you aboard.
 
-We strictly enforce our ["Code of Conduct"](https://www.w3develops.org/code-of-conduct). Take a moment to read it. It's only 196 words long.
+We strictly enforce our ["Code of Conduct"](https://github.com/w3develops/w3Develops/blob/main/.github/CODE_OF_CONDUCT.md). Take a moment to read it. It's only 196 words long.
 
 Happy contributing 🎉!
 
@@ -13,7 +12,7 @@ Happy contributing 🎉!
 
 You can choose to contribute to any area that interests you:
 
-1. [Contribute to this open source codebase](#contribute-to-this-open-source-codebase). Help to edit [guide articles](https://w3develops.org/guide), [coding projects](https://w3develops.org/projects), or fix bugs on the learning platform.
+1. [Contribute to this open source codebase](#contribute-to-this-open-source-codebase). Help to edit [guide articles](https://w3develops.org/guide), [coding projects](https://w3develops.org/group-projects), or fix bugs on the learning platform.
 
 2. Help campers on our [public forum](https://www.w3develops.org/forum/). Answer their coding questions or give them feedback on their coding projects.
 
@@ -21,7 +20,7 @@ You can choose to contribute to any area that interests you:
 
 ## Contribute to this open source codebase
 
-Our open source codebase consisting of many of [coding projects](https://w3develops.org/projects) and [guide articles](https://w3develops.org/guide).
+Our open source codebase consisting of many of [coding projects](https://w3develops.org/group-projects) and [guide articles](https://w3develops.org/guide).
 
 You can help us to:
 
@@ -43,7 +42,7 @@ Our guides will help you get a quick understanding of what a study group or proj
 
 We welcome your help writing these guides. You don't have to be an expert in a topic to write about it but you should know how a study group or project collaboration group operates. This entire Guide is open source, so even if you make a mistake, another contributor will eventually correct it.
 
-To help find a guide to write about go to our [projects page](https://w3develops.org/projects) or [study groups page](https://w3develops.org/groups), find a topic you are knowedgable in write the article, then open a pull request to replace the current page with your updated version. A [pull request](https://help.github.com/articles/about-pull-requests/) is how you'll suggest changes. It lets others know about, review, and eventually adopt your changes.
+To help find a guide to write about go to our [projects page](https://w3develops.org/group-projects) or [study groups page](https://w3develops.org/study-group), find a topic you are knowedgable in write the article, then open a pull request to replace the current page with your updated version. A [pull request](https://help.github.com/articles/about-pull-requests/) is how you'll suggest changes. It lets others know about, review, and eventually adopt your changes.
 
 ### Create, Update and Fix Bugs in our coding projects
 

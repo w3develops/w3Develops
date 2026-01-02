@@ -8,17 +8,17 @@
 # -------------------------------------------------
 
 # -------------------------------------------------
-# All files except markdown are owned by dev team
+# All files except markdown are owned by w3develops core
 # -------------------------------------------------
 
-* @w3develops/dev-team
+* @w3develops/w3develops-core
 *.md
 
 # -------------------------------------------------
-# All files in the root are owned by dev team
+# All files in the root are owned by w3develops x
 # -------------------------------------------------
 
-/* @w3develops/dev-team
+/* @w3develops/w3develops-x
 
 # -------------------------------------------------
 # All markdown files in the root are owned
@@ -26,4 +26,4 @@
 # He oversees the README, LICENSE, etc.
 # -------------------------------------------------
 
-/*.md @JonathanJackson
+/*.md @jondevops

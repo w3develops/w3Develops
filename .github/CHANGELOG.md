@@ -1,4 +1,5 @@
-edit this
+edit this template
+new info TBD
 
 Read here for more info on what a changelog is https://keepachangelog.com/en/1.0.0/
 

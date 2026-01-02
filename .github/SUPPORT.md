@@ -1,3 +1,5 @@
+TBD - GOOD FIRST ISSUE
+
 SUPPORT files work just like CONTRIBUTING files. They can live in your repository root, .github/, or docs/ folder, and will be displayed throughout GitHub such as above the new issue form.
 
 Instead of describing how to contribute to the project like CONTRIBUTING files do, SUPPORT files can be used to direct users to dedicated support resources, such as community forums, FAQ documents, or corporate support channels.
