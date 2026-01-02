@@ -163,5 +163,3 @@ export default function GroupDashboardPage({ params }: { params: { groupId: stri
     </div>
   );
 }
-
-    
