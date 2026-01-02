@@ -143,27 +143,6 @@ function UserActivity({ userId }: { userId: string }) {
     <div className="grid gap-6 md:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Users className="mr-2" />Group Projects</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isGroupProjectsLoading ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> :
-            groupProjects && groupProjects.length > 0 ? (
-              <ul className="space-y-2">
-                {groupProjects.map(c => (
-                  <li key={c.id}>
-                    <Link href={`/groupprojects/${c.id}`} className="font-medium p-2 rounded-md hover:bg-accent flex justify-between items-center">
-                      <span>{c.name}</span>
-                      <Badge variant="secondary">{c.topic}</Badge>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            ) : <p className="text-sm text-muted-foreground">Not a member of any projects yet.</p>}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
           <CardTitle className="flex items-center gap-2"><Users className="mr-2" />Study Groups</CardTitle>
         </CardHeader>
         <CardContent>
@@ -180,6 +159,27 @@ function UserActivity({ userId }: { userId: string }) {
                 ))}
               </ul>
             ) : <p className="text-sm text-muted-foreground">Not a member of any groups yet.</p>}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Users className="mr-2" />Group Projects</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isGroupProjectsLoading ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> :
+            groupProjects && groupProjects.length > 0 ? (
+              <ul className="space-y-2">
+                {groupProjects.map(c => (
+                  <li key={c.id}>
+                    <Link href={`/groupprojects/${c.id}`} className="font-medium p-2 rounded-md hover:bg-accent flex justify-between items-center">
+                      <span>{c.name}</span>
+                      <Badge variant="secondary">{c.topic}</Badge>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="text-sm text-muted-foreground">Not a member of any projects yet.</p>}
         </CardContent>
       </Card>
     </div>
