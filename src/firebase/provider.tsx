@@ -98,15 +98,16 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             if (!isNewUser) {
                 const userDocRef = doc(firestore, 'users', firebaseUser.uid);
                 const updateData = { lastLoginAt: serverTimestamp() };
+                // No await, chain .catch() for non-blocking UI
                 updateDoc(userDocRef, updateData)
-                .catch(async (serverError) => {
-                    const permissionError = new FirestorePermissionError({
-                      path: userDocRef.path,
-                      operation: 'update',
-                      requestResourceData: updateData,
-                    } satisfies SecurityRuleContext);
-                    errorEmitter.emit('permission-error', permissionError);
-                });
+                  .catch(async (serverError) => {
+                      const permissionError = new FirestorePermissionError({
+                        path: userDocRef.path,
+                        operation: 'update',
+                        requestResourceData: updateData,
+                      } satisfies SecurityRuleContext);
+                      errorEmitter.emit('permission-error', permissionError);
+                  });
             }
         }
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
