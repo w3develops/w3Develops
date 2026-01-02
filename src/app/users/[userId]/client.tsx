@@ -8,7 +8,7 @@ import { UserProfile, StudyGroup, GroupProject } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Github, Linkedin, Twitter, BrainCircuit, Users, Lock, UserCheck, UserPlus } from 'lucide-react';
+import { Github, Linkedin, Twitter, BrainCircuit, Users, Lock, UserCheck, UserPlus, CalendarDays } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -19,6 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import FollowButton from '@/components/FollowButton';
+import { formatTimestamp } from '@/lib/utils';
 
 // Helper function to ensure a URL is absolute
 const ensureAbsoluteUrl = (url: string) => {
@@ -37,6 +38,7 @@ function ProfilePageSkeleton() {
           <div className="rounded-full bg-muted h-32 w-32 flex-shrink-0"></div>
           <div className="flex-1 space-y-3 text-center md:text-left w-full">
             <div className="h-8 bg-muted rounded w-48 mx-auto md:mx-0"></div>
+            <div className="h-4 bg-muted rounded w-32 mx-auto md:mx-0"></div>
             <div className="h-4 bg-muted rounded w-full max-w-lg mx-auto md:mx-0"></div>
             <div className="h-4 bg-muted rounded w-full max-w-md mx-auto md:mx-0"></div>
             <div className="flex justify-center md:justify-start items-center gap-4 pt-2">
@@ -238,7 +240,11 @@ export default function UserProfilePage({ params }: { params: { userId: string }
           </Avatar>
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-3xl font-headline">{userProfile.username}</h1>
-            <p className="text-muted-foreground mt-1 max-w-2xl">{userProfile.bio}</p>
+            <div className="flex items-center justify-center md:justify-start gap-2 text-sm text-muted-foreground mt-2">
+              <CalendarDays className="h-4 w-4" />
+              <span>Joined on {formatTimestamp(userProfile.createdAt)}</span>
+            </div>
+            <p className="text-muted-foreground mt-2 max-w-2xl">{userProfile.bio}</p>
             <div className="flex justify-center md:justify-start items-center gap-4 mt-4">
               {userProfile.socialLinks?.github && (
                 <a href={ensureAbsoluteUrl(userProfile.socialLinks.github)} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
