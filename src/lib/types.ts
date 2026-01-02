@@ -1,6 +1,16 @@
 
 import { FieldValue, Timestamp } from 'firebase/firestore';
 
+export interface NotificationSettings {
+  dailyCodingNewsletter?: boolean;
+  dailyJsNewsletter?: boolean;
+  weeklyBookClub?: boolean;
+  tipsAndTricks?: boolean;
+  interviewQuestions?: boolean;
+  weeklyDigest?: boolean;
+  surveys?: boolean;
+}
+
 export interface UserProfile {
   id: string;
   email?: string;
@@ -24,7 +34,7 @@ export interface UserProfile {
   joinedStudyGroupIds?: string[];
   createdGroupProjectIds?: string[];
   joinedGroupProjectIds?: string[];
-  isSubscribedToNewsletter?: boolean;
+  notificationSettings?: NotificationSettings;
 }
 
 export interface GroupProject {
@@ -81,7 +91,7 @@ export interface User {
   joinedStudyGroupIds: string[];
   createdGroupProjectIds: string[];
   joinedGroupProjectIds: string[];
-  isSubscribedToNewsletter: boolean;
+  notificationSettings?: NotificationSettings;
 }
 
 export interface Notification {

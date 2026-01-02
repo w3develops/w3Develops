@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
@@ -237,7 +238,15 @@ function SignupPageContent() {
         joinedStudyGroupIds: [],
         createdGroupProjectIds: [],
         joinedGroupProjectIds: [],
-        isSubscribedToNewsletter: false,
+        notificationSettings: {
+            dailyCodingNewsletter: false,
+            dailyJsNewsletter: false,
+            weeklyBookClub: false,
+            tipsAndTricks: false,
+            interviewQuestions: false,
+            weeklyDigest: false,
+            surveys: false,
+        },
       };
       
       batch.set(userDocRef, userData, { merge: true }); 

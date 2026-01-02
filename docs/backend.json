@@ -111,8 +111,18 @@
             "description": "A list of GroupProject IDs this user has joined (but not created).",
             "items": { "type": "string" }
         },
-        "isSubscribedToNewsletter": {
-            "type": "boolean"
+        "notificationSettings": {
+            "type": "object",
+            "description": "User's notification preferences.",
+            "properties": {
+                "dailyCodingNewsletter": { "type": "boolean" },
+                "dailyJsNewsletter": { "type": "boolean" },
+                "weeklyBookClub": { "type": "boolean" },
+                "tipsAndTricks": { "type": "boolean" },
+                "interviewQuestions": { "type": "boolean" },
+                "weeklyDigest": { "type": "boolean" },
+                "surveys": { "type": "boolean" }
+            }
         }
       },
       "required": [
