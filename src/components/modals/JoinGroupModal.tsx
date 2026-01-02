@@ -155,8 +155,16 @@ export function JoinGroupModal({ isOpen, onClose }: JoinGroupModalProps) {
               <Label>Time Commitment</Label>
               <RadioGroup defaultValue="part-time" onValueChange={setCommitment} value={commitment}>
                 <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="casual" id="casual-modal-group" />
+                  <Label htmlFor="casual-modal-group">{commitmentLevels['casual']}</Label>
+                </div>
+                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="part-time" id="part-time-modal-group" />
                   <Label htmlFor="part-time-modal-group">{commitmentLevels['part-time']}</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="formal" id="formal-modal-group" />
+                  <Label htmlFor="formal-modal-group">{commitmentLevels['formal']}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="full-time" id="full-time-modal-group" />

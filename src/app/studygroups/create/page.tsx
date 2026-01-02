@@ -193,8 +193,16 @@ export default function CreateGroupPage() {
                 <Label>Time Commitment</Label>
                 <RadioGroup defaultValue="part-time" onValueChange={setCommitment} value={commitment}>
                     <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="casual" id="casual" />
+                        <Label htmlFor="casual">{commitmentLevels['casual']}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
                         <RadioGroupItem value="part-time" id="part-time" />
                         <Label htmlFor="part-time">{commitmentLevels['part-time']}</Label>
+                    </div>
+                     <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="formal" id="formal" />
+                        <Label htmlFor="formal">{commitmentLevels['formal']}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="full-time" id="full-time" />

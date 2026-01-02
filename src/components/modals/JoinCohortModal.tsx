@@ -155,9 +155,17 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
             <div className="grid gap-2">
               <Label>Time Commitment</Label>
               <RadioGroup defaultValue="part-time" onValueChange={setCommitment} value={commitment}>
+                 <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="casual" id="casual-modal" />
+                  <Label htmlFor="casual-modal">{commitmentLevels['casual']}</Label>
+                </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="part-time" id="part-time-modal" />
                   <Label htmlFor="part-time-modal">{commitmentLevels['part-time']}</Label>
+                </div>
+                 <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="formal" id="formal-modal" />
+                  <Label htmlFor="formal-modal">{commitmentLevels['formal']}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="full-time" id="full-time-modal" />

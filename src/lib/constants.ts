@@ -1,3 +1,4 @@
+
 export const ONE_WEEK_IN_MS = 7 * 24 * 60 * 60 * 1000;
 
 export const topics = [
@@ -7,6 +8,8 @@ export const topics = [
 ];
 
 export const commitmentLevels = {
+  'casual': 'Casual (3 hours/day, 6 days/week)',
   'part-time': 'Part-time (6 hours/day, 6 days/week)',
+  'formal': 'Formal (9 hours/day, 6 days/week)',
   'full-time': 'Full-time (12 hours/day, 6 days/week)',
 };
