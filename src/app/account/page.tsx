@@ -68,20 +68,19 @@ export default function AccountPage() {
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
+  const userGroupsQuery = useMemo(() => {
+    if (!user) return null;
+    return query(collection(firestore, 'studyGroups'), where('memberIds', 'array-contains', user.uid)) as Query<StudyGroup>;
+  }, [user, firestore]);
+
+  const { data: studyGroups, isLoading: isGroupsLoading } = useCollection<StudyGroup>(userGroupsQuery);
+  
   const userCohortsQuery = useMemo(() => {
     if (!user) return null;
     return query(collection(firestore, 'cohorts'), where('memberIds', 'array-contains', user.uid)) as Query<Cohort>;
   }, [user, firestore]);
 
   const { data: cohorts, isLoading: isCohortsLoading } = useCollection<Cohort>(userCohortsQuery);
-
-  const userGroupsQuery = useMemo(() => {
-    if (!user) return null;
-    return query(collection(firestore, 'studygroups'), where('memberIds', 'array-contains', user.uid)) as Query<StudyGroup>;
-  }, [user, firestore]);
-
-  const { data: studyGroups, isLoading: isGroupsLoading } = useCollection<StudyGroup>(userGroupsQuery);
-
 
   if (isUserLoading || isProfileLoading || !userProfile) {
     return (
@@ -112,7 +111,7 @@ export default function AccountPage() {
         </div>
         
         <div className="grid gap-6 md:grid-cols-2">
-          <Card>
+           <Card>
             <CardHeader>
               <CardTitle>Your Study Groups</CardTitle>
               <CardDescription>Groups you are a member of to learn and collaborate.</CardDescription>
@@ -141,7 +140,7 @@ export default function AccountPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Your Group Projects</CardTitle>
