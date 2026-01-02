@@ -18,6 +18,7 @@ import TaskList from '@/components/TaskList';
 import CheckInSystem from '@/components/CheckInSystem';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 const statusColors: Record<UserStatus, string> = {
   active: 'bg-green-500',
