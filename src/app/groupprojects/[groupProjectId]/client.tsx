@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useDoc } from '@/firebase/firestore/use-doc';
@@ -139,13 +140,13 @@ export default function GroupProjectDashboardPage({ params }: { params: { groupP
         </CardContent>
       </Card>
       
-      <CheckInSystem
+      <TaskList 
         groupOrCohortId={groupProjectId}
         collectionPath="groupProjects"
         memberIds={groupProject.memberIds}
       />
-      
-      <TaskList 
+
+      <CheckInSystem
         groupOrCohortId={groupProjectId}
         collectionPath="groupProjects"
         memberIds={groupProject.memberIds}

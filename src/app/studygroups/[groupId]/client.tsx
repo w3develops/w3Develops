@@ -136,13 +136,13 @@ export default function GroupDashboardPage({ params }: { params: { groupId: stri
         </CardContent>
       </Card>
 
-      <CheckInSystem
+      <TaskList 
         groupOrCohortId={groupId}
         collectionPath="studyGroups"
         memberIds={group.memberIds}
       />
-      
-      <TaskList 
+
+      <CheckInSystem
         groupOrCohortId={groupId}
         collectionPath="studyGroups"
         memberIds={group.memberIds}
