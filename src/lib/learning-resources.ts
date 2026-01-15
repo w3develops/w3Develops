@@ -10,13 +10,22 @@ interface LearningResource {
     links: LearningLink[];
 }
 
+export const programmingTheoryResources: LearningResource[] = [
+    {
+        topic: "Programming Fundamentals",
+        description: "Core concepts that are essential for starting your programming journey, regardless of the language or path you choose.",
+        links: [
+            { title: "W3Schools - Intro to Programming", url: "https://www.w3schools.com/programming/index.php" },
+        ]
+    }
+];
+
 export const webLearningResources: LearningResource[] = [
     {
         topic: "Getting Started",
         description: "A prerequisite guide to understanding the basics of web development before diving into specific technologies.",
         links: [
             { title: "Getting started with the web", url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Getting_started" },
-            { title: "W3Schools - Intro to Programming", url: "https://www.w3schools.com/programming/index.php" },
         ]
     },
     {

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/accordion";
 import { Link2 } from "lucide-react";
 import Link from "next/link";
-import { webLearningResources, mobileLearningResources, backendLearningResources, databaseResources, cybersecurityResources, aiMachineLearningResources, web3LearningResources } from "@/lib/learning-resources";
+import { programmingTheoryResources, webLearningResources, mobileLearningResources, backendLearningResources, databaseResources, cybersecurityResources, aiMachineLearningResources, web3LearningResources } from "@/lib/learning-resources";
 
 interface LearningResource {
     topic: string;
@@ -52,6 +52,12 @@ const LearningSection = ({ title, description, resources }: { title: string, des
 export default function LearnPage() {
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-10 space-y-8">
+             <LearningSection 
+                title="Programming Theory"
+                description="Start here to learn the fundamental concepts of programming that apply to any language."
+                resources={programmingTheoryResources}
+            />
+
             <LearningSection 
                 title="Learn Web Development"
                 description="Curated resources to help you learn and master essential web development skills, from frontend to backend."
