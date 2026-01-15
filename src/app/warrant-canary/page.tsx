@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Shield } from 'lucide-react';
+import { Bird } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function WarrantCanaryPage() {
@@ -13,7 +13,7 @@ export default function WarrantCanaryPage() {
             <Card className="bg-card">
                 <CardHeader className="text-center">
                     <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4">
-                        <Shield className="h-16 w-16 text-primary" />
+                        <Bird className="h-16 w-16 text-primary" />
                     </div>
                     <CardTitle className="font-headline text-4xl">Warrant Canary</CardTitle>
                     <CardDescription className="text-lg">
