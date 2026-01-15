@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Heart, Pencil, Languages, Search, Braces } from 'lucide-react';
+import { ArrowRight, Heart, Pencil, Languages, Search, Braces, Shield } from 'lucide-react';
 import Link from 'next/link';
 
 const contributionOptions = [
@@ -82,6 +82,24 @@ export default function ContributeIntroPage() {
                        </div>
                    ))}
                 </div>
+
+                <div className="mt-16 bg-[#1b1b32] border border-gray-700 rounded-lg p-8">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div className="text-center md:text-left">
+                            <h3 className="text-2xl font-bold text-white mb-2 flex items-center gap-2 justify-center md:justify-start">
+                                <Shield className="h-7 w-7 text-yellow-400" />
+                                Security Vulnerabilities
+                            </h3>
+                            <p className="text-gray-300 max-w-lg">
+                                If you've found a security issue, please follow our responsible disclosure policy to report it.
+                            </p>
+                        </div>
+                        <Button asChild size="lg" className="bg-[#f1be32] text-black hover:bg-yellow-400 font-bold gap-2 flex-shrink-0">
+                           <Link href="/contribute/security">View Disclosure Policy <ArrowRight className="h-5 w-5" /></Link>
+                        </Button>
+                    </div>
+                </div>
+
             </div>
         </div>
     )
