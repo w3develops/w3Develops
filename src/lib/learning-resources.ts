@@ -16,6 +16,7 @@ export const webLearningResources: LearningResource[] = [
         description: "A prerequisite guide to understanding the basics of web development before diving into specific technologies.",
         links: [
             { title: "Getting started with the web", url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Getting_started" },
+            { title: "W3Schools - Intro to Programming", url: "https://www.w3schools.com/programming/index.php" },
         ]
     },
     {
@@ -32,6 +33,13 @@ export const webLearningResources: LearningResource[] = [
         links: [
             { title: "Interactive Courses", url: "https://learn.github.com/skills" },
             { title: "GitHub Get Started Docs", url: "https://docs.github.com/en/get-started" },
+        ]
+    },
+    {
+        topic: "Bash",
+        description: "Bash is a command-line interface shell program used extensively in Linux and macOS. It's a crucial tool for developers for automating tasks and managing systems.",
+        links: [
+             { title: "W3Schools - Bash Tutorial", url: "https://www.w3schools.com/bash/index.php" },
         ]
     },
     {
@@ -65,6 +73,34 @@ export const webLearningResources: LearningResource[] = [
         ]
     },
     {
+        topic: "TypeScript",
+        description: "TypeScript is a strongly typed programming language that builds on JavaScript, giving you better tooling at any scale.",
+        links: [
+            { title: "W3Schools - TypeScript Tutorial", url: "https://www.w3schools.com/typescript/index.php" },
+        ]
+    },
+    {
+        topic: "Python",
+        description: "Python is a high-level, general-purpose programming language. Its design philosophy emphasizes code readability with the use of significant indentation.",
+        links: [
+            { title: "W3Schools - Python Tutorial", url: "https://www.w3schools.com/python/default.asp" },
+        ]
+    },
+    {
+        topic: "Django",
+        description: "Django is a high-level Python web framework that encourages rapid development and clean, pragmatic design.",
+        links: [
+            { title: "W3Schools - Django Tutorial", url: "https://www.w3schools.com/django/index.php" },
+        ]
+    },
+    {
+        topic: "React",
+        description: "React is a JavaScript library for building user interfaces. It lets you compose complex UIs from small and isolated pieces of code called 'components'.",
+        links: [
+            { title: "W3Schools - React Tutorial", url: "https://www.w3schools.com/react/default.asp" },
+        ]
+    },
+    {
         topic: "Next.js",
         description: "Next.js is a React framework for building full-stack web applications. You use React Components to build user interfaces, and Next.js for additional features and optimizations.",
         links: [
@@ -72,6 +108,13 @@ export const webLearningResources: LearningResource[] = [
             { title: "Next.js Full Course (Bro Code)", url: "https://www.youtube.com/watch?v=wLp9003T3E8" },
             { title: "Learn Next.js (web.dev)", url: "https://web.dev/learn/nextjs" },
             { title: "Next.js Tutorial (W3Schools)", url: "https://www.w3schools.com/nextjs/" }
+        ]
+    },
+     {
+        topic: "Node.js",
+        description: "Node.js is a back-end JavaScript runtime environment that runs on the V8 engine and executes JavaScript code outside a web browser.",
+        links: [
+            { title: "W3Schools - Node.js Tutorial", url: "https://www.w3schools.com/nodejs/default.asp" },
         ]
     },
     {
@@ -90,7 +133,35 @@ export const webLearningResources: LearningResource[] = [
             { title: "Flutter for Beginners (freeCodeCamp)", url: "https://www.youtube.com/watch?v=VPvVD8t02U8" },
             { title: "Flutter Full Course (Bro Code)", url: "https://www.youtube.com/watch?v=C-fKAoNqypA" }
         ]
-    }
+    },
+     {
+        topic: "Java",
+        description: "Java is a high-level, class-based, object-oriented programming language that is designed to have as few implementation dependencies as possible.",
+        links: [
+            { title: "W3Schools - Java Tutorial", url: "https://www.w3schools.com/java/default.asp" },
+        ]
+    },
+    {
+        topic: "Go",
+        description: "Go is a statically typed, compiled programming language designed at Google. It is syntactically similar to C, but with memory safety, garbage collection, and structural typing.",
+        links: [
+            { title: "W3Schools - Go Tutorial", url: "https://www.w3schools.com/go/index.php" },
+        ]
+    },
+    {
+        topic: "Rust",
+        description: "Rust is a multi-paradigm, general-purpose programming language that emphasizes performance, type safety, and concurrency.",
+        links: [
+             { title: "W3Schools - Rust Tutorial", url: "https://www.w3schools.com/rust/index.php" },
+        ]
+    },
+     {
+        topic: "AWS",
+        description: "Amazon Web Services (AWS) is the world’s most comprehensive and broadly adopted cloud platform, offering over 200 fully featured services from data centers globally.",
+        links: [
+            { title: "W3Schools - AWS Tutorial", url: "https://www.w3schools.com/aws/index.php" },
+        ]
+    },
 ];
 
 export const databaseResources: LearningResource[] = [
@@ -120,7 +191,7 @@ export const databaseResources: LearningResource[] = [
         links: [
             { title: "PostgreSQL Tutorial for Beginners (freeCodeCamp)", url: "https://www.youtube.com/watch?v=sp_n_2RO1oA" },
             { title: "Learn PostgreSQL (web.dev)", url: "https://web.dev/learn/postgresql" },
-            { title: "PostgreSQL Tutorial (W3Schools)", url: "https://www.w3schools.com/postgresql/" }
+            { title: "W3Schools - PostgreSQL Tutorial", url: "https://www.w3schools.com/postgresql/index.php" }
         ]
     }
 ];
@@ -171,6 +242,21 @@ export const aiMachineLearningResources: LearningResource[] = [
             { title: "Azure Machine Learning", url: "https://azure.microsoft.com/en-us/products/machine-learning" },
             { title: "Reddit - List of free educational ML resources", url: "https://www.reddit.com/r/learnmachinelearning/comments/1e1amzf/list_of_free_educational_ml_resources_i_used_to/" },
             { title: "AWS Skill Builder", url: "https://skillbuilder.aws/" },
+            { title: "W3Schools - Artificial Intelligence", url: "https://www.w3schools.com/ai/default.asp" },
+        ]
+    },
+    {
+        topic: "Data Science",
+        description: "Data science combines math and statistics, specialized programming, advanced analytics, artificial intelligence (AI), and machine learning with specific subject matter expertise to uncover actionable insights hidden in an organization’s data.",
+        links: [
+             { title: "W3Schools - Data Science", url: "https://www.w3schools.com/datascience/default.asp" },
+        ]
+    },
+    {
+        topic: "Generative AI",
+        description: "Generative AI is a type of artificial intelligence (AI) that can create new and original content, such as text, images, music, and code.",
+        links: [
+            { title: "W3Schools - Generative AI", url: "https://www.w3schools.com/gen_ai/index.php" },
         ]
     }
 ];
@@ -179,6 +265,8 @@ export const cybersecurityResources: LearningResource[] = [
     {
         topic: "Cybersecurity",
         description: "Cybersecurity involves protecting systems, networks, and programs from digital attacks. These attacks are usually aimed at accessing, changing, or destroying sensitive information; extorting money from users; or interrupting normal business processes.",
-        links: []
+        links: [
+            { title: "W3Schools - Cybersecurity", url: "https://www.w3schools.com/cybersecurity/index.php" }
+        ]
     }
 ];
