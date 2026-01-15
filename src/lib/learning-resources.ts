@@ -63,6 +63,65 @@ export const webLearningResources: LearningResource[] = [
             { title: "web.dev - Learn JavaScript", url: "https://web.dev/learn/javascript" },
             { title: "W3Schools - JavaScript Tutorial", url: "https://www.w3schools.com/js/default.asp" }
         ]
+    },
+    {
+        topic: "Next.js",
+        description: "Next.js is a React framework for building full-stack web applications. You use React Components to build user interfaces, and Next.js for additional features and optimizations.",
+        links: [
+            { title: "Next.js 14 Tutorial (freeCodeCamp)", url: "https://www.youtube.com/watch?v=1T312Q2S-2o" },
+            { title: "Next.js Full Course (Bro Code)", url: "https://www.youtube.com/watch?v=wLp9003T3E8" },
+            { title: "Learn Next.js (web.dev)", url: "https://web.dev/learn/nextjs" },
+            { title: "Next.js Tutorial (W3Schools)", url: "https://www.w3schools.com/nextjs/" }
+        ]
+    },
+    {
+        topic: "React Native",
+        description: "React Native is a framework for building native apps using React. It enables you to write your code once and run it on both iOS and Android platforms.",
+        links: [
+            { title: "React Native Tutorial for Beginners (freeCodeCamp)", url: "https://www.youtube.com/watch?v=obH0Po_RdWk" },
+            { title: "React Native Full Course (Bro Code)", url: "https://www.youtube.com/watch?v=0kL6nhutjQ8" },
+            { title: "Get started with React Native (web.dev)", url: "https://web.dev/get-started-with-react-native" }
+        ]
+    },
+    {
+        topic: "Flutter",
+        description: "Flutter is a UI toolkit from Google for building beautiful, natively compiled applications for mobile, web, and desktop from a single codebase.",
+        links: [
+            { title: "Flutter for Beginners (freeCodeCamp)", url: "https://www.youtube.com/watch?v=VPvVD8t02U8" },
+            { title: "Flutter Full Course (Bro Code)", url: "https://www.youtube.com/watch?v=C-fKAoNqypA" }
+        ]
+    }
+];
+
+export const databaseResources: LearningResource[] = [
+    {
+        topic: "MongoDB",
+        description: "MongoDB is a document-oriented NoSQL database used for high-volume data storage.",
+        links: [
+            { title: "MongoDB Tutorial for Beginners (freeCodeCamp)", url: "https://www.youtube.com/watch?v=ofme2o29ngw" },
+            { title: "MongoDB Full Course (Bro Code)", url: "https://www.youtube.com/watch?v=c2M-rlkkT5o" },
+            { title: "Learn MongoDB (web.dev)", url: "https://web.dev/learn/mongodb" },
+            { title: "MongoDB Tutorial (W3Schools)", url: "https://www.w3schools.com/mongodb/" }
+        ]
+    },
+    {
+        topic: "SQL",
+        description: "SQL (Structured Query Language) is a standard language for storing, manipulating and retrieving data in relational databases.",
+        links: [
+            { title: "SQL Tutorial for Beginners (freeCodeCamp)", url: "https://www.youtube.com/watch?v=HXV3zeQKqGY" },
+            { title: "SQL Full Course (Bro Code)", url: "https://www.youtube.com/watch?v=H_c9ITguYOA" },
+            { title: "Intro to SQL (Khan Academy)", url: "https://www.khanacademy.org/computing/computer-programming/sql" },
+            { title: "SQL Tutorial (W3Schools)", url: "https://www.w3schools.com/sql/" }
+        ]
+    },
+    {
+        topic: "PostgreSQL",
+        description: "PostgreSQL is a powerful, open source object-relational database system with over 30 years of active development.",
+        links: [
+            { title: "PostgreSQL Tutorial for Beginners (freeCodeCamp)", url: "https://www.youtube.com/watch?v=sp_n_2RO1oA" },
+            { title: "Learn PostgreSQL (web.dev)", url: "https://web.dev/learn/postgresql" },
+            { title: "PostgreSQL Tutorial (W3Schools)", url: "https://www.w3schools.com/postgresql/" }
+        ]
     }
 ];
 
