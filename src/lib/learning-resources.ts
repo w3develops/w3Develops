@@ -80,20 +80,6 @@ export const webLearningResources: LearningResource[] = [
         ]
     },
     {
-        topic: "Python",
-        description: "Python is a high-level, general-purpose programming language. Its design philosophy emphasizes code readability with the use of significant indentation.",
-        links: [
-            { title: "W3Schools - Python Tutorial", url: "https://www.w3schools.com/python/default.asp" },
-        ]
-    },
-    {
-        topic: "Django",
-        description: "Django is a high-level Python web framework that encourages rapid development and clean, pragmatic design.",
-        links: [
-            { title: "W3Schools - Django Tutorial", url: "https://www.w3schools.com/django/index.php" },
-        ]
-    },
-    {
         topic: "React",
         description: "React is a JavaScript library for building user interfaces. It lets you compose complex UIs from small and isolated pieces of code called 'components'.",
         links: [
@@ -111,12 +97,15 @@ export const webLearningResources: LearningResource[] = [
         ]
     },
      {
-        topic: "Node.js",
-        description: "Node.js is a back-end JavaScript runtime environment that runs on the V8 engine and executes JavaScript code outside a web browser.",
+        topic: "AWS",
+        description: "Amazon Web Services (AWS) is the world’s most comprehensive and broadly adopted cloud platform, offering over 200 fully featured services from data centers globally.",
         links: [
-            { title: "W3Schools - Node.js Tutorial", url: "https://www.w3schools.com/nodejs/default.asp" },
+            { title: "W3Schools - AWS Tutorial", url: "https://www.w3schools.com/aws/index.php" },
         ]
     },
+];
+
+export const mobileLearningResources: LearningResource[] = [
     {
         topic: "React Native",
         description: "React Native is a framework for building native apps using React. It enables you to write your code once and run it on both iOS and Android platforms.",
@@ -134,7 +123,31 @@ export const webLearningResources: LearningResource[] = [
             { title: "Flutter Full Course (Bro Code)", url: "https://www.youtube.com/watch?v=C-fKAoNqypA" }
         ]
     },
-     {
+];
+
+export const backendLearningResources: LearningResource[] = [
+    {
+        topic: "Python",
+        description: "Python is a high-level, general-purpose programming language. Its design philosophy emphasizes code readability with the use of significant indentation.",
+        links: [
+            { title: "W3Schools - Python Tutorial", url: "https://www.w3schools.com/python/default.asp" },
+        ]
+    },
+    {
+        topic: "Django",
+        description: "Django is a high-level Python web framework that encourages rapid development and clean, pragmatic design.",
+        links: [
+            { title: "W3Schools - Django Tutorial", url: "https://www.w3schools.com/django/index.php" },
+        ]
+    },
+    {
+        topic: "Node.js",
+        description: "Node.js is a back-end JavaScript runtime environment that runs on the V8 engine and executes JavaScript code outside a web browser.",
+        links: [
+            { title: "W3Schools - Node.js Tutorial", url: "https://www.w3schools.com/nodejs/default.asp" },
+        ]
+    },
+    {
         topic: "Java",
         description: "Java is a high-level, class-based, object-oriented programming language that is designed to have as few implementation dependencies as possible.",
         links: [
@@ -155,42 +168,28 @@ export const webLearningResources: LearningResource[] = [
              { title: "W3Schools - Rust Tutorial", url: "https://www.w3schools.com/rust/index.php" },
         ]
     },
-     {
-        topic: "AWS",
-        description: "Amazon Web Services (AWS) is the world’s most comprehensive and broadly adopted cloud platform, offering over 200 fully featured services from data centers globally.",
-        links: [
-            { title: "W3Schools - AWS Tutorial", url: "https://www.w3schools.com/aws/index.php" },
-        ]
-    },
 ];
+
 
 export const databaseResources: LearningResource[] = [
     {
         topic: "MongoDB",
         description: "MongoDB is a document-oriented NoSQL database used for high-volume data storage.",
         links: [
-            { title: "MongoDB Tutorial for Beginners (freeCodeCamp)", url: "https://www.youtube.com/watch?v=ofme2o29ngw" },
-            { title: "MongoDB Full Course (Bro Code)", url: "https://www.youtube.com/watch?v=c2M-rlkkT5o" },
-            { title: "Learn MongoDB (web.dev)", url: "https://web.dev/learn/mongodb" },
-            { title: "MongoDB Tutorial (W3Schools)", url: "https://www.w3schools.com/mongodb/" }
+            { title: "W3Schools - MongoDB Tutorial", url: "https://www.w3schools.com/mongodb/index.php" }
         ]
     },
     {
         topic: "SQL",
         description: "SQL (Structured Query Language) is a standard language for storing, manipulating and retrieving data in relational databases.",
         links: [
-            { title: "SQL Tutorial for Beginners (freeCodeCamp)", url: "https://www.youtube.com/watch?v=HXV3zeQKqGY" },
-            { title: "SQL Full Course (Bro Code)", url: "https://www.youtube.com/watch?v=H_c9ITguYOA" },
-            { title: "Intro to SQL (Khan Academy)", url: "https://www.khanacademy.org/computing/computer-programming/sql" },
-            { title: "SQL Tutorial (W3Schools)", url: "https://www.w3schools.com/sql/" }
+            { title: "SQL Tutorial (W3Schools)", url: "https://www.w3schools.com/sql/default.asp" }
         ]
     },
     {
         topic: "PostgreSQL",
         description: "PostgreSQL is a powerful, open source object-relational database system with over 30 years of active development.",
         links: [
-            { title: "PostgreSQL Tutorial for Beginners (freeCodeCamp)", url: "https://www.youtube.com/watch?v=sp_n_2RO1oA" },
-            { title: "Learn PostgreSQL (web.dev)", url: "https://web.dev/learn/postgresql" },
             { title: "W3Schools - PostgreSQL Tutorial", url: "https://www.w3schools.com/postgresql/index.php" }
         ]
     }
