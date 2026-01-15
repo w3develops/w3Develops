@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/account',
     '/account/notifications',
     '/book-clubs',
+    '/bug-bounties',
     '/chat',
     '/groupprojects',
     '/groupprojects/create',
