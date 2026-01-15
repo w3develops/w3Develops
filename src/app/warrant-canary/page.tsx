@@ -5,8 +5,8 @@ import { Bird } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function WarrantCanaryPage() {
-    const lastUpdated = "November 28, 2025";
-    const nextUpdate = "December 28, 2025";
+    const lastUpdated = "January 1, 2026";
+    const nextUpdate = "March 1, 2026";
 
     return (
         <div className="max-w-3xl mx-auto p-4 md:p-10">
