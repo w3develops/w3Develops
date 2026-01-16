@@ -3,11 +3,11 @@
 
 import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
 import { useMemo, useEffect, useState } from 'react';
-import { doc, DocumentReference, collection, query, where, Query } from 'firebase/firestore';
+import { doc, DocumentReference, collection, query, where, Query, documentId } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { UserProfile, StudyGroup, GroupProject } from '@/lib/types';
+import { UserProfile, StudyGroup, GroupProject, SoloProject } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -81,6 +81,14 @@ export default function AccountPage() {
   }, [user, firestore]);
 
   const { data: groupProjects, isLoading: isGroupProjectsLoading } = useCollection<GroupProject>(userGroupProjectsQuery);
+
+  const userSoloProjectsQuery = useMemo(() => {
+    if (!userProfile?.soloProjectIds || userProfile.soloProjectIds.length === 0) return null;
+    return query(collection(firestore, 'soloProjects'), where(documentId(), 'in', userProfile.soloProjectIds.slice(0, 10))) as Query<SoloProject>;
+  }, [userProfile?.soloProjectIds, firestore]);
+
+  const { data: soloProjects, isLoading: isSoloProjectsLoading } = useCollection<SoloProject>(userSoloProjectsQuery);
+
 
   if (isUserLoading || isProfileLoading || !userProfile) {
     return (
@@ -171,6 +179,34 @@ export default function AccountPage() {
             </CardContent>
           </Card>
         </div>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Your Solo Projects</CardTitle>
+                <CardDescription>Individual projects you have showcased.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {isSoloProjectsLoading ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> : 
+                    (soloProjects && soloProjects.length > 0) ? (
+                    <ul className="divide-y">
+                        {soloProjects.map(p => (
+                        <li key={p.id} className="py-2 space-y-1">
+                            <Link href={p.projectUrl} target="_blank" rel="noopener noreferrer" className="font-medium hover:underline">{p.name}</Link>
+                            <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
+                        </li>
+                        ))}
+                    </ul>
+                    ) : (
+                    <p className="text-sm text-muted-foreground">You haven't added any solo projects yet.</p>
+                    )
+                }
+                <div className="flex gap-2 pt-4">
+                    <Button asChild size="sm" variant="secondary">
+                        <Link href="/solo-projects">Explore Solo Projects</Link>
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
       </div>
     </div>
   );

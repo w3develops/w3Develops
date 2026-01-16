@@ -4,11 +4,11 @@
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import { useState, useEffect, useMemo } from 'react';
 import { doc, getDoc, DocumentReference, collection, query, where, Query, documentId, getDocs } from 'firebase/firestore';
-import { UserProfile, StudyGroup, GroupProject } from '@/lib/types';
+import { UserProfile, StudyGroup, GroupProject, SoloProject } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Github, Linkedin, Twitter, BrainCircuit, Users, Lock, UserCheck, UserPlus, CalendarDays } from 'lucide-react';
+import { Github, Linkedin, Twitter, BrainCircuit, Users, Lock, UserCheck, UserPlus, CalendarDays, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -186,6 +186,59 @@ function UserActivity({ userId }: { userId: string }) {
   );
 }
 
+function UserSoloProjects({ soloProjectIds }: { soloProjectIds: string[] | undefined }) {
+  const firestore = useFirestore();
+
+  const soloProjectsQuery = useMemo(() => {
+    if (!soloProjectIds || soloProjectIds.length === 0) return null;
+    return query(
+      collection(firestore, 'soloProjects'),
+      where(documentId(), 'in', soloProjectIds.slice(0, 30))
+    ) as Query<SoloProject>;
+  }, [firestore, soloProjectIds]);
+
+  const { data: soloProjects, isLoading } = useCollection<SoloProject>(soloProjectsQuery);
+
+  if (!soloProjectIds || soloProjectIds.length === 0) {
+    // Don't render the card if the user has never submitted a project.
+    return null;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Solo Projects</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="h-10 w-full bg-muted rounded animate-pulse"></div>
+        ) : soloProjects && soloProjects.length > 0 ? (
+          <ul className="space-y-2">
+            {soloProjects.map(project => (
+              <li key={project.id}>
+                <a
+                  href={ensureAbsoluteUrl(project.projectUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium p-3 rounded-md hover:bg-accent flex justify-between items-center border"
+                >
+                  <div className="flex-1 mr-4">
+                    <p className="font-semibold">{project.name}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+                  </div>
+                  <ExternalLink className="h-5 w-5 text-muted-foreground" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">No solo projects showcased yet.</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 
 export default function UserProfilePage({ params }: { params: { userId: string } }) {
   const { userId } = params;
@@ -297,8 +350,9 @@ export default function UserProfilePage({ params }: { params: { userId: string }
         </CardContent>
       </Card>
       
-      {/* Only render UserActivity if we have a valid userId */}
       {userId && <UserActivity userId={userId} />}
+      
+      <UserSoloProjects soloProjectIds={userProfile.soloProjectIds} />
 
     </div>
   );
