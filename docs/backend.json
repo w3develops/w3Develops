@@ -261,9 +261,16 @@
           "type": "string",
           "description": "The book genre or topic of the club."
         },
-        "commitment": {
+        "commitmentHours": {
           "type": "string",
-          "description": "The expected time commitment for the club."
+          "description": "The expected time commitment in hours per day."
+        },
+        "commitmentDays": {
+          "type": "array",
+          "description": "The days of the week for club meetings.",
+          "items": {
+            "type": "string"
+          }
         },
         "createdAt": {
           "type": "string",
@@ -277,7 +284,8 @@
         "name_lowercase",
         "creatorId",
         "topic",
-        "commitment",
+        "commitmentHours",
+        "commitmentDays",
         "createdAt"
       ]
     },

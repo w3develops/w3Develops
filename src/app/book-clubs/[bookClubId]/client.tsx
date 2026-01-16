@@ -188,7 +188,7 @@ export default function BookClubDashboardPage({ params }: { params: { bookClubId
         <CardContent className="space-y-6">
            <div className="flex flex-wrap gap-4 items-center">
              <Badge variant="secondary" className="text-base">{club.topic}</Badge>
-             <Badge variant="outline" className="text-base">{club.commitment}</Badge>
+             <Badge variant="outline" className="text-base">{club.commitmentHours}hr/day on {club.commitmentDays.join(', ')}</Badge>
            </div>
            <div className="flex items-center text-sm text-muted-foreground">
                 <CalendarDays className="w-4 h-4 mr-2" />

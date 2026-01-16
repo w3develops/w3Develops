@@ -12,12 +12,14 @@ import { useUser, useFirestore } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { collection, serverTimestamp, query, where, getDocs, doc, writeBatch, arrayUnion, Timestamp } from 'firebase/firestore';
-import { topics, commitmentLevels, ONE_WEEK_IN_MS } from '@/lib/constants';
+import { topics, ONE_WEEK_IN_MS } from '@/lib/constants';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose, DrawerFooter, DrawerDescription } from '@/components/ui/drawer';
 import { ChevronDown } from 'lucide-react';
 import NameSearchInput from '@/components/NameSearchInput';
+import { Checkbox } from '@/components/ui/checkbox';
 
+const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function CreateBookClubPage() {
   const { user, isUserLoading } = useUser();
@@ -30,7 +32,9 @@ export default function CreateBookClubPage() {
   const [topic, setTopic] = useState('');
   const [customTopic, setCustomTopic] = useState('');
   const [description, setDescription] = useState('');
-  const [commitment, setCommitment] = useState('part-time');
+  const [commitmentHourOption, setCommitmentHourOption] = useState('2');
+  const [customCommitmentHours, setCustomCommitmentHours] = useState('');
+  const [commitmentDays, setCommitmentDays] = useState<string[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
@@ -47,41 +51,16 @@ export default function CreateBookClubPage() {
         return;
     }
     const finalTopic = topic === 'Other' ? customTopic : topic;
-    const finalCommitment = commitmentLevels[commitment as keyof typeof commitmentLevels];
-    
-    if (!name || !finalTopic || !commitment) {
-      toast({ variant: "destructive", title: "Missing Fields", description: "Please fill out all required fields." });
+    const finalCommitmentHours = commitmentHourOption === 'custom' ? customCommitmentHours : commitmentHourOption;
+
+    if (!name || !finalTopic || !finalCommitmentHours || commitmentDays.length === 0) {
+      toast({ variant: "destructive", title: "Missing Fields", description: "Please fill out all required fields, including commitment hours and days." });
       return;
     }
     
     setIsSubmitting(true);
     
     try {
-        const oneWeekAgoTimestamp = Date.now() - ONE_WEEK_IN_MS;
-        const q = query(
-            collection(firestore, 'bookClubs'),
-            where('topic', '==', finalTopic),
-            where('commitment', '==', finalCommitment)
-        );
-        const existingSnapshot = await getDocs(q);
-        
-        const suitableClubs = existingSnapshot.docs.filter(doc => {
-            const data = doc.data();
-            const createdAt = (data.createdAt as Timestamp).toMillis();
-            return data.memberIds.length < 25 && createdAt > oneWeekAgoTimestamp;
-        });
-
-
-        if (suitableClubs.length > 0) {
-            toast({
-                variant: "destructive",
-                title: "Similar Club Exists",
-                description: "A similar club that is not full was found. Please join that one instead from the explore page!",
-            });
-            router.push('/book-clubs');
-            return;
-        }
-
         const batch = writeBatch(firestore);
         const newClubRef = doc(collection(firestore, 'bookClubs'));
 
@@ -89,7 +68,8 @@ export default function CreateBookClubPage() {
             name: name,
             name_lowercase: name.toLowerCase(),
             topic: finalTopic,
-            commitment: finalCommitment,
+            commitmentHours: finalCommitmentHours,
+            commitmentDays: commitmentDays,
             description: description || `A new book club for ${finalTopic}`,
             creatorId: user.uid,
             memberIds: [user.uid],
@@ -109,6 +89,14 @@ export default function CreateBookClubPage() {
         toast({ variant: "destructive", title: "Could Not Create Club", description: error.message || "An unexpected error occurred." });
     } finally {
         setIsSubmitting(false);
+    }
+  };
+  
+  const handleDayChange = (day: string, checked: boolean) => {
+    if (checked) {
+      setCommitmentDays(prev => [...prev, day]);
+    } else {
+      setCommitmentDays(prev => prev.filter(d => d !== day));
     }
   };
 
@@ -188,25 +176,28 @@ export default function CreateBookClubPage() {
             )}
 
             <div className="grid gap-2">
-                <Label>Time Commitment</Label>
-                <RadioGroup defaultValue="part-time" onValueChange={setCommitment} value={commitment}>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="casual" id="casual" />
-                        <Label htmlFor="casual">{commitmentLevels['casual']}</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="part-time" id="part-time" />
-                        <Label htmlFor="part-time">{commitmentLevels['part-time']}</Label>
-                    </div>
-                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="formal" id="formal" />
-                        <Label htmlFor="formal">{commitmentLevels['formal']}</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="full-time" id="full-time" />
-                        <Label htmlFor="full-time">{commitmentLevels['full-time']}</Label>
-                    </div>
+                <Label>Time Commitment (Hours per day)</Label>
+                <RadioGroup value={commitmentHourOption} onValueChange={setCommitmentHourOption}>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="1" id="h1" /><Label htmlFor="h1">1 hour</Label></div>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="2" id="h2" /><Label htmlFor="h2">2 hours</Label></div>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="3" id="h3" /><Label htmlFor="h3">3 hours</Label></div>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="custom" id="h-custom" /><Label htmlFor="h-custom">Custom</Label></div>
                 </RadioGroup>
+                {commitmentHourOption === 'custom' && (
+                    <Input className="mt-2" type="number" placeholder="Enter hours per day" value={customCommitmentHours} onChange={(e) => setCustomCommitmentHours(e.target.value)} required min="1" />
+                )}
+            </div>
+            
+            <div className="grid gap-2">
+                <Label>Meeting Days</Label>
+                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    {daysOfWeek.map(day => (
+                        <div key={day} className="flex items-center gap-2">
+                            <Checkbox id={`day-${day}`} onCheckedChange={(checked) => handleDayChange(day, !!checked)} />
+                            <Label htmlFor={`day-${day}`}>{day}</Label>
+                        </div>
+                    ))}
+                </div>
             </div>
 
              <div className="grid gap-2">

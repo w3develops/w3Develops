@@ -78,7 +78,8 @@ export interface BookClub {
   description: string;
   memberIds: string[];
   topic: string;
-  commitment: string;
+  commitmentHours: string;
+  commitmentDays: string[];
   createdAt: Timestamp;
 }
 
