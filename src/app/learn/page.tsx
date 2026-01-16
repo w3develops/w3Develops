@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +9,7 @@ import {
 } from "@/components/ui/accordion";
 import { Link2 } from "lucide-react";
 import Link from "next/link";
-import { programmingTheoryResources, webLearningResources, mobileLearningResources, backendLearningResources, databaseResources, cybersecurityResources, aiMachineLearningResources, web3LearningResources } from "@/lib/learning-resources";
+import { programmingTheoryResources, webLearningResources, mobileLearningResources, backendLearningResources, databaseResources, cybersecurityResources, aiMachineLearningResources, web3LearningResources, systemsLearningResources } from "@/lib/learning-resources";
 
 interface LearningResource {
     topic: string;
@@ -71,9 +70,15 @@ export default function LearnPage() {
             />
 
             <LearningSection 
-                title="Learn Backend & Systems"
+                title="Learn Backend"
                 description="Explore languages and frameworks for server-side logic and systems programming."
                 resources={backendLearningResources}
+            />
+
+            <LearningSection 
+                title="Learn Systems"
+                description="Explore languages for systems programming."
+                resources={systemsLearningResources}
             />
 
             <LearningSection 

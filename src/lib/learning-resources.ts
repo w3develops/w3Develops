@@ -159,6 +159,9 @@ export const backendLearningResources: LearningResource[] = [
             { title: "W3Schools - Node.js Tutorial", url: "https://www.w3schools.com/nodejs/default.asp" },
         ]
     },
+];
+
+export const systemsLearningResources: LearningResource[] = [
     {
         topic: "Java",
         description: "Java is a high-level, class-based, object-oriented programming language that is designed to have as few implementation dependencies as possible.",
