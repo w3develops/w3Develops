@@ -36,6 +36,7 @@ export interface UserProfile {
   joinedStudyGroupIds?: string[];
   createdGroupProjectIds?: string[];
   joinedGroupProjectIds?: string[];
+  soloProjectIds?: string[];
   notificationSettings?: NotificationSettings;
   status?: UserStatus;
   lastCheckInAt?: Timestamp | FieldValue | null;
@@ -112,4 +113,14 @@ export interface CheckIn {
     type: 'daily' | 'weekly';
     content: string;
     createdAt: Timestamp;
+}
+
+export interface SoloProject {
+  id: string;
+  userId: string;
+  username: string;
+  name: string;
+  projectUrl: string;
+  description: string;
+  createdAt: Timestamp;
 }

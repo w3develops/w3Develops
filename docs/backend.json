@@ -111,6 +111,11 @@
             "description": "A list of GroupProject IDs this user has joined (but not created).",
             "items": { "type": "string" }
         },
+        "soloProjectIds": {
+            "type": "array",
+            "description": "A list of SoloProject IDs created by this user.",
+            "items": { "type": "string" }
+        },
         "notificationSettings": {
             "type": "object",
             "description": "User's notification preferences.",
@@ -361,6 +366,22 @@
             "createdAt": { "type": "string", "format": "date-time" }
         },
         "required": ["id", "userId", "username", "email", "subject", "description", "status", "createdAt"]
+    },
+    "SoloProject": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SoloProject",
+      "type": "object",
+      "description": "Represents a user's individual project.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the SoloProject." },
+        "userId": { "type": "string", "description": "The ID of the user who created the project." },
+        "username": { "type": "string", "description": "The username of the user who created the project." },
+        "name": { "type": "string", "description": "The name of the project." },
+        "projectUrl": { "type": "string", "format": "uri", "description": "URL to the live project or repository." },
+        "description": { "type": "string", "description": "A description of the project." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the project was submitted." }
+      },
+      "required": ["id", "userId", "username", "name", "projectUrl", "createdAt"]
     }
   },
   "auth": {
@@ -424,6 +445,10 @@
             "$ref": "#/entities/SupportRequest"
         },
         "description": "Stores user-submitted technical support requests."
+    },
+    "/soloProjects/{soloProjectId}": {
+      "schema": { "$ref": "#/entities/SoloProject" },
+      "description": "Stores user-submitted solo projects."
     }
   }
 }

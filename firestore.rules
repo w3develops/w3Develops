@@ -48,7 +48,9 @@ service cloud.firestore {
         (isAddingToList(resource.data.createdStudyGroupIds, request.resource.data.createdStudyGroupIds)) ||
         (isAddingToList(resource.data.joinedStudyGroupIds, request.resource.data.joinedStudyGroupIds)) ||
         (isAddingToList(resource.data.createdGroupProjectIds, request.resource.data.createdGroupProjectIds)) ||
-        (isAddingToList(resource.data.joinedGroupProjectIds, request.resource.data.joinedGroupProjectIds))
+        (isAddingToList(resource.data.joinedGroupProjectIds, request.resource.data.joinedGroupProjectIds)) ||
+        (isAddingToList(resource.data.soloProjectIds, request.resource.data.soloProjectIds)) ||
+        (isRemovingFromList(resource.data.soloProjectIds, request.resource.data.soloProjectIds))
       );
     }
 
@@ -131,6 +133,16 @@ service cloud.firestore {
                       && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
         allow delete: if false;
       }
+    }
+    
+    match /soloProjects/{soloProjectId} {
+      allow read: if true;
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+                    && request.resource.data.projectUrl is string && request.resource.data.projectUrl.size() > 0
+                    && request.resource.data.description is string && request.resource.data.description.size() <= 2000;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     match /users/{userId}/notifications/{notificationId} {
