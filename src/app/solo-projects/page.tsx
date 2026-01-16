@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -12,10 +11,18 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { SoloProject, UserProfile } from '@/lib/types';
 import Link from 'next/link';
-import { ExternalLink, User } from 'lucide-react';
+import { ExternalLink, User, PlusCircle } from 'lucide-react';
 import { formatTimestamp } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
-function SubmitProjectForm({ user, userProfile }: { user: any; userProfile: UserProfile }) {
+function SubmitProjectForm({ user, userProfile, onSuccess }: { user: any; userProfile: UserProfile, onSuccess: () => void }) {
   const [name, setName] = useState('');
   const [projectUrl, setProjectUrl] = useState('');
   const [description, setDescription] = useState('');
@@ -56,6 +63,8 @@ function SubmitProjectForm({ user, userProfile }: { user: any; userProfile: User
       setName('');
       setProjectUrl('');
       setDescription('');
+      onSuccess();
+
     } catch (error: any) {
       console.error("Error submitting project: ", error);
       toast({ variant: 'destructive', title: 'Submission Failed', description: error.message });
@@ -65,31 +74,23 @@ function SubmitProjectForm({ user, userProfile }: { user: any; userProfile: User
   };
 
   return (
-    <Card className="mb-8">
-      <CardHeader>
-        <CardTitle>Showcase Your Work</CardTitle>
-        <CardDescription>Submit your solo project to the community gallery.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="projectName">Project Name</Label>
-            <Input id="projectName" value={name} onChange={(e) => setName(e.target.value)} placeholder="My Awesome App" disabled={isSubmitting} required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="projectUrl">Project URL</Label>
-            <Input id="projectUrl" type="url" value={projectUrl} onChange={(e) => setProjectUrl(e.target.value)} placeholder="https://github.com/user/repo" disabled={isSubmitting} required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="projectDescription">Description</Label>
-            <Textarea id="projectDescription" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="A short description of what your project does." disabled={isSubmitting} required />
-          </div>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Submitting...' : 'Submit Project'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="projectName">Project Name</Label>
+        <Input id="projectName" value={name} onChange={(e) => setName(e.target.value)} placeholder="My Awesome App" disabled={isSubmitting} required />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="projectUrl">Project URL</Label>
+        <Input id="projectUrl" type="url" value={projectUrl} onChange={(e) => setProjectUrl(e.target.value)} placeholder="https://github.com/user/repo" disabled={isSubmitting} required />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="projectDescription">Description</Label>
+        <Textarea id="projectDescription" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="A short description of what your project does." disabled={isSubmitting} required />
+      </div>
+      <Button type="submit" disabled={isSubmitting} className="w-full">
+        {isSubmitting ? 'Submitting...' : 'Submit Project'}
+      </Button>
+    </form>
   );
 }
 
@@ -165,6 +166,8 @@ function ProjectList() {
 export default function SoloProjectsPage() {
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+
     const userDocRef = useMemo(() => {
         if (!user) return null;
         return doc(firestore, 'users', user.uid);
@@ -175,16 +178,40 @@ export default function SoloProjectsPage() {
     
     return (
         <div className="max-w-7xl mx-auto p-4 md:p-10 space-y-8">
-            <div className="text-center">
-                <h1 className="text-3xl font-headline">Solo Projects</h1>
-                <p className="text-muted-foreground">
-                    Explore and showcase individual projects from our community members.
-                </p>
+             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="text-center sm:text-left">
+                    <h1 className="text-3xl font-headline">Solo Projects</h1>
+                    <p className="text-muted-foreground">
+                        Explore and showcase individual projects from our community members.
+                    </p>
+                </div>
+                {isLoading && user && (
+                    <div className="h-10 w-48 bg-muted rounded-md animate-pulse"></div>
+                )}
+                {!isLoading && user && userProfile && (
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                             <Button>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Submit Your Project
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Showcase Your Work</DialogTitle>
+                                <DialogDescription>Submit your solo project to the community gallery.</DialogDescription>
+                            </DialogHeader>
+                            <div className="py-4">
+                                <SubmitProjectForm 
+                                    user={user} 
+                                    userProfile={userProfile} 
+                                    onSuccess={() => setIsDialogOpen(false)} 
+                                />
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                )}
             </div>
-            
-            {isLoading && !user && <div className="h-40 bg-muted rounded-lg animate-pulse mb-8"></div>}
-
-            {user && userProfile && <SubmitProjectForm user={user} userProfile={userProfile} />}
 
             <ProjectList />
         </div>
