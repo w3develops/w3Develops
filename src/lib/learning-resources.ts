@@ -16,6 +16,9 @@ export const programmingTheoryResources: LearningResource[] = [
         description: "Core concepts that are essential for starting your programming journey, regardless of the language or path you choose.",
         links: [
             { title: "W3Schools - Intro to Programming", url: "https://www.w3schools.com/programming/index.php" },
+            { title: "LeetCode", url: "https://leetcode.com/" },
+            { title: "Advent of Code", url: "https://adventofcode.com/" },
+            { title: "Teach Yourself CS", url: "https://teachyourselfcs.com/" },
         ]
     }
 ];
@@ -278,8 +281,6 @@ export const cybersecurityResources: LearningResource[] = [
             { title: "Bugcrowd", url: "https://www.bugcrowd.com/" },
             { title: "HackerOne", url: "https://www.hackerone.com/" },
             { title: "HackerRank", url: "https://www.hackerrank.com/" },
-            { title: "Advent of Code", url: "https://adventofcode.com/" },
-            { title: "LeetCode", url: "https://leetcode.com/" },
             { title: "CyberDefenders", url: "https://cyberdefenders.org/" },
             { title: "TryHackMe", url: "https://tryhackme.com/" },
             { title: "Hack The Box", url: "https://www.hackthebox.com/" },
