@@ -116,6 +116,11 @@
             "description": "A list of SoloProject IDs created by this user.",
             "items": { "type": "string" }
         },
+        "starredSoloProjectIds": {
+            "type": "array",
+            "description": "A list of SoloProject IDs this user has starred.",
+            "items": { "type": "string" }
+        },
         "notificationSettings": {
             "type": "object",
             "description": "User's notification preferences.",

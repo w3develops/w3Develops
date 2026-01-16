@@ -11,11 +11,12 @@ import { UserProfile, StudyGroup, GroupProject, SoloProject } from '@/lib/types'
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Github, Linkedin, Twitter, PlusCircle } from 'lucide-react';
+import { Github, Linkedin, Twitter, PlusCircle, Star } from 'lucide-react';
 import { JoinCohortModal } from '@/components/modals/JoinCohortModal';
 import { JoinGroupModal } from '@/components/modals/JoinGroupModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import SubmitSoloProjectForm from '@/components/forms/SubmitSoloProjectForm';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 function AccountPageSkeleton() {
   return (
@@ -91,6 +92,13 @@ export default function AccountPage() {
   }, [userProfile?.soloProjectIds, firestore]);
 
   const { data: soloProjects, isLoading: isSoloProjectsLoading } = useCollection<SoloProject>(userSoloProjectsQuery);
+  
+  const starredSoloProjectsQuery = useMemo(() => {
+      if (!userProfile?.starredSoloProjectIds || userProfile.starredSoloProjectIds.length === 0) return null;
+      return query(collection(firestore, 'soloProjects'), where(documentId(), 'in', userProfile.starredSoloProjectIds.slice(0, 10))) as Query<SoloProject>;
+  }, [userProfile?.starredSoloProjectIds, firestore]);
+    
+  const { data: starredProjects, isLoading: isStarredProjectsLoading } = useCollection<SoloProject>(starredSoloProjectsQuery);
 
 
   if (isUserLoading || isProfileLoading || !userProfile) {
@@ -202,33 +210,60 @@ export default function AccountPage() {
 
         <Card>
             <CardHeader>
-                <CardTitle>Your Solo Projects</CardTitle>
-                <CardDescription>Individual projects you have showcased.</CardDescription>
+                <CardTitle>Your Projects</CardTitle>
+                <CardDescription>Individual projects you have showcased or starred.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                {isSoloProjectsLoading ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> : 
-                    (soloProjects && soloProjects.length > 0) ? (
-                    <ul className="divide-y">
-                        {soloProjects.map(p => (
-                        <li key={p.id} className="py-2 space-y-1">
-                            <Link href={p.projectUrl} target="_blank" rel="noopener noreferrer" className="font-medium hover:underline">{p.name}</Link>
-                            <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
-                        </li>
-                        ))}
-                    </ul>
-                    ) : (
-                    <p className="text-sm text-muted-foreground">You haven't added any solo projects yet.</p>
-                    )
-                }
-                <div className="flex gap-2 pt-4">
-                    <Button asChild size="sm" variant="secondary">
-                        <Link href="/solo-projects">Explore Solo Projects</Link>
-                    </Button>
-                    <Button size="sm" onClick={() => setIsSoloProjectModalOpen(true)}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Solo Project
-                    </Button>
-                </div>
+                 <Tabs defaultValue="my-projects" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="my-projects">Your Solo Projects</TabsTrigger>
+                        <TabsTrigger value="starred-projects">
+                            <Star className="mr-2 h-4 w-4" />
+                            Starred Projects
+                        </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="my-projects" className="pt-4">
+                        {isSoloProjectsLoading ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> : 
+                            (soloProjects && soloProjects.length > 0) ? (
+                            <ul className="divide-y">
+                                {soloProjects.map(p => (
+                                <li key={p.id} className="py-2 space-y-1">
+                                    <Link href={p.projectUrl} target="_blank" rel="noopener noreferrer" className="font-medium hover:underline">{p.name}</Link>
+                                    <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
+                                </li>
+                                ))}
+                            </ul>
+                            ) : (
+                            <p className="text-sm text-muted-foreground text-center py-4">You haven't added any solo projects yet.</p>
+                            )
+                        }
+                        <div className="flex gap-2 pt-4">
+                             <Button asChild size="sm" variant="secondary">
+                                <Link href="/solo-projects">Explore Solo Projects</Link>
+                            </Button>
+                            <Button size="sm" onClick={() => setIsSoloProjectModalOpen(true)}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Add Solo Project
+                            </Button>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="starred-projects" className="pt-4">
+                         {isStarredProjectsLoading ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> : 
+                            (starredProjects && starredProjects.length > 0) ? (
+                            <ul className="divide-y">
+                                {starredProjects.map(p => (
+                                <li key={p.id} className="py-2 space-y-1">
+                                    <Link href={p.projectUrl} target="_blank" rel="noopener noreferrer" className="font-medium hover:underline">{p.name}</Link>
+                                    <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
+                                </li>
+                                ))}
+                            </ul>
+                            ) : (
+                            <p className="text-sm text-muted-foreground text-center py-4">You haven't starred any projects yet. <Link href="/solo-projects" className="underline font-medium">Go explore!</Link></p>
+                            )
+                        }
+                    </TabsContent>
+                </Tabs>
             </CardContent>
         </Card>
       </div>

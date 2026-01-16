@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -18,8 +19,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import SubmitSoloProjectForm from '@/components/forms/SubmitSoloProjectForm';
+import StarProjectButton from '@/components/StarProjectButton';
 
-function ProjectList() {
+function ProjectList({ userProfile }: { userProfile: UserProfile | null }) {
     const firestore = useFirestore();
     const projectsQuery = useMemo(() => query(collection(firestore, 'soloProjects'), orderBy('createdAt', 'desc')), [firestore]);
     const { data: projects, isLoading } = useCollection<SoloProject>(projectsQuery);
@@ -70,15 +72,20 @@ function ProjectList() {
                     </CardHeader>
                     <CardContent className="flex-grow flex flex-col justify-between">
                         <p className="text-muted-foreground text-sm mb-4">{project.description}</p>
-                        <div>
-                             <p className="text-xs text-muted-foreground mb-4">
+                        <div className="space-y-4">
+                             <p className="text-xs text-muted-foreground">
                                 Submitted: {formatTimestamp(project.createdAt)}
                             </p>
-                            <Button asChild variant="outline" size="sm">
-                                <a href={project.projectUrl} target="_blank" rel="noopener noreferrer">
-                                    View Project <ExternalLink className="h-4 w-4 ml-2" />
-                                </a>
-                            </Button>
+                            <div className="flex items-center justify-between">
+                                <Button asChild variant="outline" size="sm">
+                                    <a href={project.projectUrl} target="_blank" rel="noopener noreferrer">
+                                        View Project <ExternalLink className="h-4 w-4 ml-2" />
+                                    </a>
+                                </Button>
+                                {userProfile && userProfile.id !== project.userId && (
+                                     <StarProjectButton projectId={project.id} userProfile={userProfile} />
+                                )}
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -138,7 +145,7 @@ export default function SoloProjectsPage() {
                 )}
             </div>
 
-            <ProjectList />
+            <ProjectList userProfile={userProfile} />
         </div>
     );
 }

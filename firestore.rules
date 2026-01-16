@@ -50,7 +50,9 @@ service cloud.firestore {
         (isAddingToList(resource.data.createdGroupProjectIds, request.resource.data.createdGroupProjectIds)) ||
         (isAddingToList(resource.data.joinedGroupProjectIds, request.resource.data.joinedGroupProjectIds)) ||
         (isAddingToList(resource.data.soloProjectIds, request.resource.data.soloProjectIds)) ||
-        (isRemovingFromList(resource.data.soloProjectIds, request.resource.data.soloProjectIds))
+        (isRemovingFromList(resource.data.soloProjectIds, request.resource.data.soloProjectIds)) ||
+        (isAddingToList(resource.data.starredSoloProjectIds, request.resource.data.starredSoloProjectIds)) ||
+        (isRemovingFromList(resource.data.starredSoloProjectIds, request.resource.data.starredSoloProjectIds))
       );
     }
 

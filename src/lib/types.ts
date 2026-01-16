@@ -37,6 +37,7 @@ export interface UserProfile {
   createdGroupProjectIds?: string[];
   joinedGroupProjectIds?: string[];
   soloProjectIds?: string[];
+  starredSoloProjectIds?: string[];
   notificationSettings?: NotificationSettings;
   status?: UserStatus;
   lastCheckInAt?: Timestamp | FieldValue | null;
