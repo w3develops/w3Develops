@@ -274,7 +274,16 @@ export const cybersecurityResources: LearningResource[] = [
         topic: "Cybersecurity",
         description: "Cybersecurity involves protecting systems, networks, and programs from digital attacks. These attacks are usually aimed at accessing, changing, or destroying sensitive information; extorting money from users; or interrupting normal business processes.",
         links: [
-            { title: "W3Schools - Cybersecurity", url: "https://www.w3schools.com/cybersecurity/index.php" }
+            { title: "W3Schools - Cybersecurity", url: "https://www.w3schools.com/cybersecurity/index.php" },
+            { title: "Bugcrowd", url: "https://www.bugcrowd.com/" },
+            { title: "HackerOne", url: "https://www.hackerone.com/" },
+            { title: "HackerRank", url: "https://www.hackerrank.com/" },
+            { title: "Advent of Code", url: "https://adventofcode.com/" },
+            { title: "LeetCode", url: "https://leetcode.com/" },
+            { title: "CyberDefenders", url: "https://cyberdefenders.org/" },
+            { title: "TryHackMe", url: "https://tryhackme.com/" },
+            { title: "Hack The Box", url: "https://www.hackthebox.com/" },
+            { title: "Hack This Site", url: "https://www.hackthissite.org/" }
         ]
     }
 ];
