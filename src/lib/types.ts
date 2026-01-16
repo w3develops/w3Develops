@@ -36,6 +36,8 @@ export interface UserProfile {
   joinedStudyGroupIds?: string[];
   createdGroupProjectIds?: string[];
   joinedGroupProjectIds?: string[];
+  createdBookClubIds?: string[];
+  joinedBookClubIds?: string[];
   soloProjectIds?: string[];
   starredSoloProjectIds?: string[];
   notificationSettings?: NotificationSettings;
@@ -57,6 +59,18 @@ export interface GroupProject {
 }
 
 export interface StudyGroup {
+  id: string;
+  name: string;
+  name_lowercase: string;
+  creatorId: string;
+  description: string;
+  memberIds: string[];
+  topic: string;
+  commitment: string;
+  createdAt: Timestamp;
+}
+
+export interface BookClub {
   id: string;
   name: string;
   name_lowercase: string;
@@ -125,3 +139,5 @@ export interface SoloProject {
   description: string;
   createdAt: Timestamp;
 }
+
+    

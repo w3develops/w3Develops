@@ -143,6 +143,20 @@
           "type": "string",
           "format": "date-time",
           "description": "The timestamp of the user's last check-in."
+        },
+        "createdBookClubIds": {
+          "type": "array",
+          "description": "A list of BookClub IDs created by this user.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "joinedBookClubIds": {
+          "type": "array",
+          "description": "A list of BookClub IDs this user has joined (but not created).",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -198,6 +212,63 @@
           "type": "string",
           "format": "date-time",
           "description": "The timestamp when the group was created."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "name_lowercase",
+        "creatorId",
+        "topic",
+        "commitment",
+        "createdAt"
+      ]
+    },
+    "BookClub": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BookClub",
+      "type": "object",
+      "description": "Represents a book club within the w3Develops application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the BookClub entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the book club."
+        },
+        "name_lowercase": {
+          "type": "string",
+          "description": "Lowercase version of the club name for case-insensitive searching."
+        },
+        "creatorId": {
+          "type": "string",
+          "description": "The ID of the user who created the club."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the book club's focus or purpose."
+        },
+        "memberIds": {
+          "type": "array",
+          "description": "References to UserProfiles.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "topic": {
+          "type": "string",
+          "description": "The book genre or topic of the club."
+        },
+        "commitment": {
+          "type": "string",
+          "description": "The expected time commitment for the club."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the club was created."
         }
       },
       "required": [
@@ -407,6 +478,12 @@
       },
       "description": "Stores study group data."
     },
+    "/bookClubs/{bookClubId}": {
+      "schema": {
+        "$ref": "#/entities/BookClub"
+      },
+      "description": "Stores book club data."
+    },
     "/groupProjects/{groupProjectId}": {
       "schema": {
         "$ref": "#/entities/GroupProject"
@@ -419,6 +496,12 @@
         },
         "description": "Stores tasks for a specific study group."
     },
+    "/bookClubs/{bookClubId}/tasks/{taskId}": {
+      "schema": {
+        "$ref": "#/entities/Task"
+      },
+      "description": "Stores tasks for a specific book club."
+    },
     "/groupProjects/{groupProjectId}/tasks/{taskId}": {
         "schema": {
             "$ref": "#/entities/Task"
@@ -428,6 +511,12 @@
     "/studyGroups/{groupId}/checkIns/{checkInId}": {
       "schema": { "$ref": "#/entities/CheckIn" },
       "description": "Stores check-ins for a specific study group."
+    },
+    "/bookClubs/{bookClubId}/checkIns/{checkInId}": {
+      "schema": {
+        "$ref": "#/entities/CheckIn"
+      },
+      "description": "Stores check-ins for a specific book club."
     },
     "/groupProjects/{groupProjectId}/checkIns/{checkInId}": {
       "schema": { "$ref": "#/entities/CheckIn" },
@@ -457,3 +546,5 @@
     }
   }
 }
+
+    

@@ -1,3 +1,4 @@
+
 import { MetadataRoute } from 'next';
 
 const URL = 'https://w3develops.org';
@@ -8,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/account',
     '/account/notifications',
     '/book-clubs',
+    '/book-clubs/create',
     '/bug-bounties',
     '/chat',
     '/groupprojects',
@@ -54,3 +56,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(),
   }));
 }
+
+    

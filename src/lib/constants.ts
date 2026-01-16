@@ -4,7 +4,9 @@ export const ONE_WEEK_IN_MS = 7 * 24 * 60 * 60 * 1000;
 export const topics = [
   "HTML/CSS", "JavaScript", "Python", "React", "Django", "Node.js", "Rust", 
   "Digital Marketing", "Web3", "Cryptocurrency", "Cybersecurity", "NFTs", "SQL", 
-  "Artificial Intelligence", "Web Design", "Programming Fundamentals", "Other"
+  "Artificial Intelligence", "Web Design", "Programming Fundamentals",
+  "Fiction", "Non-Fiction", "Sci-Fi", "Fantasy", "Mystery", "Biography", "History", "Self-Help",
+  "Other"
 ];
 
 export const commitmentLevels = {
@@ -13,3 +15,5 @@ export const commitmentLevels = {
   'formal': 'Formal (9 hours/day, 6 days/week)',
   'full-time': 'Full-time (12 hours/day, 6 days/week)',
 };
+
+    

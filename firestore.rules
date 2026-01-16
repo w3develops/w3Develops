@@ -12,6 +12,10 @@ service cloud.firestore {
       return request.auth != null && get(/databases/$(database)/documents/studyGroups/$(groupId)).data.memberIds.hasAny([request.auth.uid]);
     }
     
+    function isBookClubMember(bookClubId) {
+      return request.auth != null && get(/databases/$(database)/documents/bookClubs/$(bookClubId)).data.memberIds.hasAny([request.auth.uid]);
+    }
+
     function isGroupProjectMember(groupProjectId) {
        return request.auth != null && get(/databases/$(database)/documents/groupProjects/$(groupProjectId)).data.memberIds.hasAny([request.auth.uid]);
     }
@@ -47,6 +51,8 @@ service cloud.firestore {
         // Group/Project ID updates
         (isAddingToList(resource.data.createdStudyGroupIds, request.resource.data.createdStudyGroupIds)) ||
         (isAddingToList(resource.data.joinedStudyGroupIds, request.resource.data.joinedStudyGroupIds)) ||
+        (isAddingToList(resource.data.createdBookClubIds, request.resource.data.createdBookClubIds)) ||
+        (isAddingToList(resource.data.joinedBookClubIds, request.resource.data.joinedBookClubIds)) ||
         (isAddingToList(resource.data.createdGroupProjectIds, request.resource.data.createdGroupProjectIds)) ||
         (isAddingToList(resource.data.joinedGroupProjectIds, request.resource.data.joinedGroupProjectIds)) ||
         (isAddingToList(resource.data.soloProjectIds, request.resource.data.soloProjectIds)) ||
@@ -89,6 +95,43 @@ service cloud.firestore {
       match /checkIns/{checkInId} {
         allow read: if true;
         allow create: if isGroupMember(groupId) 
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
+                      && request.resource.data.type in ['daily', 'weekly'];
+        allow update: if isOwner(request.resource.data.userId)
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
+        allow delete: if false;
+      }
+    }
+    
+    match /bookClubs/{bookClubId} {
+      allow read: if true;
+      allow create: if request.auth != null
+                    && request.resource.data.creatorId == request.auth.uid
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 75
+                    && request.resource.data.memberIds == [request.auth.uid]
+                    && request.resource.data.createdAt == request.time;
+      allow update: if request.auth != null
+                    && resource.data.memberIds.size() < 25
+                    && request.time - resource.data.createdAt < duration.value(7, 'd')
+                    && isAddingToList(resource.data.memberIds, request.resource.data.memberIds)
+                    && request.resource.data.memberIds[request.resource.data.memberIds.size() - 1] == request.auth.uid;
+    
+      match /tasks/{taskId} {
+        allow read: if true;
+        allow create: if isBookClubMember(bookClubId) 
+                      && request.resource.data.creatorId == request.auth.uid
+                      && request.resource.data.isCompleted == false;
+        allow update: if isBookClubMember(bookClubId);
+        allow delete: if isBookClubMember(bookClubId) && resource.data.creatorId == request.auth.uid;
+      }
+      
+      match /checkIns/{checkInId} {
+        allow read: if true;
+        allow create: if isBookClubMember(bookClubId) 
                       && request.resource.data.userId == request.auth.uid
                       && request.resource.data.content is string
                       && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
@@ -172,3 +215,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

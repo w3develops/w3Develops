@@ -7,7 +7,7 @@ import { doc, DocumentReference, collection, query, where, Query, documentId } f
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { UserProfile, StudyGroup, GroupProject, SoloProject } from '@/lib/types';
+import { UserProfile, StudyGroup, GroupProject, SoloProject, BookClub } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,6 +17,7 @@ import { JoinGroupModal } from '@/components/modals/JoinGroupModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import SubmitSoloProjectForm from '@/components/forms/SubmitSoloProjectForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { JoinBookClubModal } from '@/components/modals/JoinBookClubModal';
 
 function AccountPageSkeleton() {
   return (
@@ -33,7 +34,7 @@ function AccountPageSkeleton() {
           </div>
         </div>
       </div>
-       <div className="grid gap-6 md:grid-cols-2">
+       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-lg border bg-card p-6 space-y-3">
           <div className="h-6 w-48 bg-muted rounded"></div>
           <div className="h-4 w-64 bg-muted rounded"></div>
@@ -41,6 +42,12 @@ function AccountPageSkeleton() {
           <div className="h-10 w-full bg-muted rounded"></div>
         </div>
          <div className="rounded-lg border bg-card p-6 space-y-3">
+          <div className="h-6 w-48 bg-muted rounded"></div>
+          <div className="h-4 w-64 bg-muted rounded"></div>
+          <div className="h-10 mt-4 w-full bg-muted rounded"></div>
+          <div className="h-10 w-full bg-muted rounded"></div>
+        </div>
+        <div className="rounded-lg border bg-card p-6 space-y-3">
           <div className="h-6 w-48 bg-muted rounded"></div>
           <div className="h-4 w-64 bg-muted rounded"></div>
           <div className="h-10 mt-4 w-full bg-muted rounded"></div>
@@ -57,6 +64,7 @@ export default function AccountPage() {
   const router = useRouter();
   const [isCohortModalOpen, setIsCohortModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [isBookClubModalOpen, setIsBookClubModalOpen] = useState(false);
   const [isSoloProjectModalOpen, setIsSoloProjectModalOpen] = useState(false);
 
   useEffect(() => {
@@ -79,6 +87,13 @@ export default function AccountPage() {
 
   const { data: studyGroups, isLoading: isGroupsLoading } = useCollection<StudyGroup>(userGroupsQuery);
   
+  const userBookClubsQuery = useMemo(() => {
+    if (!user) return null;
+    return query(collection(firestore, 'bookClubs'), where('memberIds', 'array-contains', user.uid)) as Query<BookClub>;
+  }, [user, firestore]);
+
+  const { data: bookClubs, isLoading: isBookClubsLoading } = useCollection<BookClub>(userBookClubsQuery);
+
   const userGroupProjectsQuery = useMemo(() => {
     if (!user) return null;
     return query(collection(firestore, 'groupProjects'), where('memberIds', 'array-contains', user.uid)) as Query<GroupProject>;
@@ -110,7 +125,6 @@ export default function AccountPage() {
   }
 
   if (!user) {
-    // This part should ideally not be reached due to the useEffect above, but it's a good safeguard.
     return <div className="p-4 md:p-10">Redirecting to login...</div>;
   }
   
@@ -118,6 +132,7 @@ export default function AccountPage() {
     <div className="p-4 md:p-10">
       <JoinCohortModal isOpen={isCohortModalOpen} onClose={() => setIsCohortModalOpen(false)} />
       <JoinGroupModal isOpen={isGroupModalOpen} onClose={() => setIsGroupModalOpen(false)} />
+      <JoinBookClubModal isOpen={isBookClubModalOpen} onClose={() => setIsBookClubModalOpen(false)} />
 
       <Dialog open={isSoloProjectModalOpen} onOpenChange={setIsSoloProjectModalOpen}>
         <DialogContent>
@@ -146,7 +161,7 @@ export default function AccountPage() {
           </div>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
            <Card>
             <CardHeader>
               <CardTitle>Your Study Groups</CardTitle>
@@ -206,6 +221,37 @@ export default function AccountPage() {
               </div>
             </CardContent>
           </Card>
+
+           <Card>
+            <CardHeader>
+              <CardTitle>Your Book Clubs</CardTitle>
+              <CardDescription>Book clubs you have created or joined.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isBookClubsLoading ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> : 
+                (bookClubs && bookClubs.length > 0) ? (
+                  <ul className="divide-y">
+                    {bookClubs.map(c => (
+                       <li key={c.id} className="py-2">
+                        <Link href={`/book-clubs/${c.id}`} className="font-medium hover:underline">{c.name}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">You haven't joined any book clubs yet.</p>
+                )
+              }
+               <div className="flex gap-2 pt-4">
+                  <Button asChild size="sm" variant="secondary">
+                    <Link href="/book-clubs">Explore Clubs</Link>
+                  </Button>
+                   <Button size="sm" onClick={() => setIsBookClubModalOpen(true)}>
+                    Join a Club
+                  </Button>
+              </div>
+            </CardContent>
+          </Card>
+
         </div>
 
         <Card>
@@ -270,3 +316,5 @@ export default function AccountPage() {
     </div>
   );
 }
+
+    
