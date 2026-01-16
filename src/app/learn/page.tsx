@@ -83,7 +83,7 @@ export default function LearnPage() {
             />
 
             <LearningSection 
-                title="Learn Web3"
+                title="Learn Blockchain & Web3"
                 description="Curated resources to help you learn and master essential Web3 skills for the decentralized web."
                 resources={web3LearningResources}
             />
