@@ -11,9 +11,11 @@ import { UserProfile, StudyGroup, GroupProject, SoloProject } from '@/lib/types'
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Github, Linkedin, Twitter } from 'lucide-react';
+import { Github, Linkedin, Twitter, PlusCircle } from 'lucide-react';
 import { JoinCohortModal } from '@/components/modals/JoinCohortModal';
 import { JoinGroupModal } from '@/components/modals/JoinGroupModal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import SubmitSoloProjectForm from '@/components/forms/SubmitSoloProjectForm';
 
 function AccountPageSkeleton() {
   return (
@@ -54,6 +56,7 @@ export default function AccountPage() {
   const router = useRouter();
   const [isCohortModalOpen, setIsCohortModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [isSoloProjectModalOpen, setIsSoloProjectModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -107,6 +110,23 @@ export default function AccountPage() {
     <div className="p-4 md:p-10">
       <JoinCohortModal isOpen={isCohortModalOpen} onClose={() => setIsCohortModalOpen(false)} />
       <JoinGroupModal isOpen={isGroupModalOpen} onClose={() => setIsGroupModalOpen(false)} />
+
+      <Dialog open={isSoloProjectModalOpen} onOpenChange={setIsSoloProjectModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Showcase Your Work</DialogTitle>
+            <DialogDescription>Submit your solo project to the community gallery.</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <SubmitSoloProjectForm 
+              user={user} 
+              userProfile={userProfile} 
+              onSuccess={() => setIsSoloProjectModalOpen(false)} 
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+      
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
           <Avatar className="h-24 w-24 flex-shrink-0">
@@ -203,6 +223,10 @@ export default function AccountPage() {
                 <div className="flex gap-2 pt-4">
                     <Button asChild size="sm" variant="secondary">
                         <Link href="/solo-projects">Explore Solo Projects</Link>
+                    </Button>
+                    <Button size="sm" onClick={() => setIsSoloProjectModalOpen(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Solo Project
                     </Button>
                 </div>
             </CardContent>
