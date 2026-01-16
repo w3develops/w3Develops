@@ -159,7 +159,7 @@ export default function BookClubsPage() {
                       <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden">{club.description}</p>
                       <div className="flex flex-col text-sm text-muted-foreground gap-2">
                           <div className="flex items-center"><Users className="w-4 h-4 mr-2" /> {club.memberIds.length} / 25 Members</div>
-                          <Badge variant="outline" className="w-fit">{club.commitmentHours}hr/day</Badge>
+                          {club.commitmentHours && <Badge variant="outline" className="w-fit">{club.commitmentHours}hr/day</Badge>}
                           <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(club.createdAt)}</div>
                       </div>
                     </div>
@@ -194,7 +194,7 @@ export default function BookClubsPage() {
                     <p className="text-sm text-muted-foreground h-10 overflow-hidden flex-grow">{club.description}</p>
                     <div className="flex flex-col text-sm text-muted-foreground gap-2">
                       <div className="flex items-center"><Users className="w-4 h-4 mr-2" /> {club.memberIds.length} / 25 Members</div>
-                       <Badge variant="outline" className="w-fit">{club.commitmentHours}hr/day</Badge>
+                      {club.commitmentHours && <Badge variant="outline" className="w-fit">{club.commitmentHours}hr/day</Badge>}
                       <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(club.createdAt)}</div>
                     </div>
                     <JoinBookClubButton club={club} />
@@ -210,5 +210,3 @@ export default function BookClubsPage() {
     </div>
   );
 }
-
-    
