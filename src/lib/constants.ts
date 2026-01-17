@@ -8,12 +8,4 @@ export const topics = [
   "Fiction", "Non-Fiction", "Sci-Fi", "Fantasy", "Mystery", "Biography", "History", "Self-Help",
   "Other"
 ];
-
-export const commitmentLevels = {
-  'casual': 'Casual (3 hours/day, 6 days/week)',
-  'part-time': 'Part-time (6 hours/day, 6 days/week)',
-  'formal': 'Formal (9 hours/day, 6 days/week)',
-  'full-time': 'Full-time (12 hours/day, 6 days/week)',
-};
-
     

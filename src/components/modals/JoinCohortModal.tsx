@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { topics, commitmentLevels, ONE_WEEK_IN_MS } from '@/lib/constants';
+import { topics, ONE_WEEK_IN_MS } from '@/lib/constants';
 import { collection, query, where, Query, Timestamp } from 'firebase/firestore';
 import { GroupProject } from '@/lib/types';
 import JoinCohortButton from '../JoinCohortButton';
@@ -36,26 +36,27 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
 
   const [topic, setTopic] = useState('');
   const [customTopic, setCustomTopic] = useState('');
-  const [commitment, setCommitment] = useState('part-time');
+  const [commitmentOption, setCommitmentOption] = useState('4');
+  const [customCommitment, setCustomCommitment] = useState('');
   const [step, setStep] = useState(1);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [availableGroupProjects, setAvailableGroupProjects] = useState<GroupProject[]>([]);
 
   const finalTopic = topic === 'Other' ? customTopic : topic;
+  const finalCommitment = commitmentOption === 'custom' ? `${customCommitment}hr/day` : `${commitmentOption}hr/day`;
 
   const matchingGroupProjectsQuery = useMemo(() => {
-    if (step !== 2 || !finalTopic || !commitment) return null;
+    if (step !== 2 || !finalTopic || !finalCommitment) return null;
     
     const oneWeekAgo = new Date(Date.now() - ONE_WEEK_IN_MS);
-    const commitmentValue = commitmentLevels[commitment as keyof typeof commitmentLevels];
 
     return query(
       collection(firestore, 'groupProjects'),
       where('topic', '==', finalTopic),
-      where('commitment', '==', commitmentValue),
+      where('commitment', '==', finalCommitment),
       where('createdAt', '>', Timestamp.fromDate(oneWeekAgo))
     ) as Query<GroupProject>;
-  }, [step, finalTopic, commitment, firestore]);
+  }, [step, finalTopic, finalCommitment, firestore]);
 
   const { data: matchingGroupProjects, isLoading } = useCollection<GroupProject>(matchingGroupProjectsQuery);
 
@@ -68,7 +69,7 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
 
 
   const handleFindGroupProjects = () => {
-    if (!finalTopic || !commitment) return;
+    if (!finalTopic || !finalCommitment) return;
     setStep(2);
   };
   
@@ -76,7 +77,8 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
     setStep(1);
     setTopic('');
     setCustomTopic('');
-    setCommitment('part-time');
+    setCommitmentOption('4');
+    setCustomCommitment('');
     setAvailableGroupProjects([]);
     onClose();
   }
@@ -86,7 +88,7 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
     router.push(`/groupprojects/${groupProjectId}`);
   };
   
-  const findButtonDisabled = !finalTopic || !commitment || (topic === 'Other' && !customTopic);
+  const findButtonDisabled = !finalTopic || !finalCommitment || (topic === 'Other' && !customTopic) || (commitmentOption === 'custom' && !customCommitment);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -153,25 +155,16 @@ export function JoinCohortModal({ isOpen, onClose }: JoinCohortModalProps) {
               </div>
             )}
             <div className="grid gap-2">
-              <Label>Time Commitment</Label>
-              <RadioGroup defaultValue="part-time" onValueChange={setCommitment} value={commitment}>
-                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="casual" id="casual-modal" />
-                  <Label htmlFor="casual-modal">{commitmentLevels['casual']}</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="part-time" id="part-time-modal" />
-                  <Label htmlFor="part-time-modal">{commitmentLevels['part-time']}</Label>
-                </div>
-                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="formal" id="formal-modal" />
-                  <Label htmlFor="formal-modal">{commitmentLevels['formal']}</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="full-time" id="full-time-modal" />
-                  <Label htmlFor="full-time-modal">{commitmentLevels['full-time']}</Label>
-                </div>
-              </RadioGroup>
+              <Label>Time Commitment (Hours per day)</Label>
+                <RadioGroup value={commitmentOption} onValueChange={setCommitmentOption}>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="2" id="h2-gpm" /><Label htmlFor="h2-gpm">2 hours</Label></div>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="4" id="h4-gpm" /><Label htmlFor="h4-gpm">4 hours</Label></div>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="8" id="h8-gpm" /><Label htmlFor="h8-gpm">8 hours</Label></div>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="custom" id="h-custom-gpm" /><Label htmlFor="h-custom-gpm">Custom</Label></div>
+                </RadioGroup>
+                {commitmentOption === 'custom' && (
+                    <Input className="mt-2" type="number" placeholder="Enter hours per day" value={customCommitment} onChange={(e) => setCustomCommitment(e.target.value)} required min="1" />
+                )}
             </div>
             <Button onClick={handleFindGroupProjects} disabled={findButtonDisabled}>
               Find Projects

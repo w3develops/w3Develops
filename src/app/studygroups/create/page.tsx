@@ -12,7 +12,7 @@ import { useUser, useFirestore } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { collection, serverTimestamp, query, where, getDocs, doc, writeBatch, arrayUnion, Timestamp } from 'firebase/firestore';
-import { topics, commitmentLevels, ONE_WEEK_IN_MS } from '@/lib/constants';
+import { topics, ONE_WEEK_IN_MS } from '@/lib/constants';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose, DrawerFooter, DrawerDescription } from '@/components/ui/drawer';
 import { ChevronDown } from 'lucide-react';
@@ -32,7 +32,8 @@ export default function CreateGroupPage() {
   const [topic, setTopic] = useState('');
   const [customTopic, setCustomTopic] = useState('');
   const [description, setDescription] = useState('');
-  const [commitment, setCommitment] = useState('part-time');
+  const [commitmentOption, setCommitmentOption] = useState('4');
+  const [customCommitment, setCustomCommitment] = useState('');
   const [commitmentDays, setCommitmentDays] = useState<string[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -58,9 +59,9 @@ export default function CreateGroupPage() {
         return;
     }
     const finalTopic = topic === 'Other' ? customTopic : topic;
-    const finalCommitment = commitmentLevels[commitment as keyof typeof commitmentLevels];
+    const finalCommitment = commitmentOption === 'custom' ? `${customCommitment}hr/day` : `${commitmentOption}hr/day`;
     
-    if (!name || !finalTopic || !commitment || commitmentDays.length === 0) {
+    if (!name || !finalTopic || !finalCommitment || commitmentDays.length === 0) {
       toast({ variant: "destructive", title: "Missing Fields", description: "Please fill out all required fields." });
       return;
     }
@@ -68,7 +69,6 @@ export default function CreateGroupPage() {
     setIsSubmitting(true);
     
     try {
-        // Check for existing, non-full, recent groups
         const oneWeekAgoTimestamp = Date.now() - ONE_WEEK_IN_MS;
         const q = query(
             collection(firestore, 'studyGroups'),
@@ -91,10 +91,9 @@ export default function CreateGroupPage() {
                 description: "A similar group that is not full was found. Please join that one instead from the explore page!",
             });
             router.push('/studygroups');
-            return; // Stop the creation process
+            return;
         }
 
-        // If no suitable group, proceed to create
         const batch = writeBatch(firestore);
         const newGroupRef = doc(collection(firestore, 'studyGroups'));
 
@@ -202,25 +201,16 @@ export default function CreateGroupPage() {
             )}
 
             <div className="grid gap-2">
-                <Label>Time Commitment</Label>
-                <RadioGroup defaultValue="part-time" onValueChange={setCommitment} value={commitment}>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="casual" id="casual" />
-                        <Label htmlFor="casual">{commitmentLevels['casual']}</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="part-time" id="part-time" />
-                        <Label htmlFor="part-time">{commitmentLevels['part-time']}</Label>
-                    </div>
-                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="formal" id="formal" />
-                        <Label htmlFor="formal">{commitmentLevels['formal']}</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="full-time" id="full-time" />
-                        <Label htmlFor="full-time">{commitmentLevels['full-time']}</Label>
-                    </div>
+                <Label>Time Commitment (Hours per day)</Label>
+                <RadioGroup value={commitmentOption} onValueChange={setCommitmentOption}>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="2" id="h2-sg" /><Label htmlFor="h2-sg">2 hours</Label></div>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="4" id="h4-sg" /><Label htmlFor="h4-sg">4 hours</Label></div>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="8" id="h8-sg" /><Label htmlFor="h8-sg">8 hours</Label></div>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="custom" id="h-custom-sg" /><Label htmlFor="h-custom-sg">Custom</Label></div>
                 </RadioGroup>
+                {commitmentOption === 'custom' && (
+                    <Input className="mt-2" type="number" placeholder="Enter hours per day" value={customCommitment} onChange={(e) => setCustomCommitment(e.target.value)} required min="1" />
+                )}
             </div>
             
             <div className="grid gap-2">
