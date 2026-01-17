@@ -1,17 +1,12 @@
+
 'use client';
 
 import { Award } from 'lucide-react';
 import Link from 'next/link';
 
 const hallOfFameData = {
-    "2025": [
-        { name: "John Doe", profileUrl: "#" },
-        { name: "Jane Smith", profileUrl: "#" },
-    ],
-    "2024": [
-        { name: "Alex Johnson", profileUrl: "#" },
-        { name: "Emily White", profileUrl: "#" },
-        { name: "Chris Green", profileUrl: "#" },
+    "2026": [
+        { name: "Jondevops", profileUrl: "https://github.com/JonDevOps" },
     ]
 };
 
