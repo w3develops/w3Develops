@@ -190,6 +190,11 @@ export default function GroupDashboardPage({ params }: { params: { groupId: stri
            <div className="flex flex-wrap gap-4 items-center">
              <Badge variant="secondary" className="text-base">{group.topic}</Badge>
              <Badge variant="outline" className="text-base">{group.commitment}</Badge>
+             {group.commitmentDays && group.commitmentDays.length > 0 && (
+                <Badge variant="outline" className="text-base">
+                    {group.commitmentDays.join(', ')}
+                </Badge>
+            )}
            </div>
            <div className="flex items-center text-sm text-muted-foreground">
                 <CalendarDays className="w-4 h-4 mr-2" />

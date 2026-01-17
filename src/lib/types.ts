@@ -55,6 +55,7 @@ export interface GroupProject {
   githubUrl?: string;
   topic: string;
   commitment: string;
+  commitmentDays: string[];
   createdAt: Timestamp;
 }
 
@@ -67,6 +68,7 @@ export interface StudyGroup {
   memberIds: string[];
   topic: string;
   commitment: string;
+  commitmentDays: string[];
   createdAt: Timestamp;
 }
 
@@ -140,5 +142,3 @@ export interface SoloProject {
   description: string;
   createdAt: Timestamp;
 }
-
-    

@@ -190,6 +190,11 @@ export default function GroupProjectDashboardPage({ params }: { params: { groupP
            <div className="flex flex-wrap gap-4 items-center">
              <Badge variant="secondary" className="text-base">{groupProject.topic}</Badge>
              <Badge variant="outline" className="text-base">{groupProject.commitment}</Badge>
+             {groupProject.commitmentDays && groupProject.commitmentDays.length > 0 && (
+                <Badge variant="outline" className="text-base">
+                    {groupProject.commitmentDays.join(', ')}
+                </Badge>
+            )}
               {groupProject.githubUrl && (
                 <a href={groupProject.githubUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
                     <Github className="w-5 h-5" /> GitHub Repository

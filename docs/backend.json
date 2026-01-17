@@ -208,6 +208,13 @@
           "type": "string",
           "description": "The expected time commitment for the group."
         },
+        "commitmentDays": {
+          "type": "array",
+          "description": "The days of the week for group meetings.",
+          "items": {
+            "type": "string"
+          }
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -221,6 +228,7 @@
         "creatorId",
         "topic",
         "commitment",
+        "commitmentDays",
         "createdAt"
       ]
     },
@@ -331,6 +339,13 @@
           "type": "string",
           "description": "The expected time commitment for the project."
         },
+        "commitmentDays": {
+          "type": "array",
+          "description": "The days of the week for project meetings.",
+          "items": {
+            "type": "string"
+          }
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -344,6 +359,7 @@
         "creatorId",
         "topic",
         "commitment",
+        "commitmentDays",
         "createdAt"
       ]
     },
@@ -554,5 +570,3 @@
     }
   }
 }
-
-    

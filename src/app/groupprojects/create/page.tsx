@@ -17,7 +17,9 @@ import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose, DrawerFooter, DrawerDescription } from '@/components/ui/drawer';
 import { ChevronDown } from 'lucide-react';
 import NameSearchInput from '@/components/NameSearchInput';
+import { Checkbox } from '@/components/ui/checkbox';
 
+const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function CreateGroupProjectPage() {
   const { user, isUserLoading } = useUser();
@@ -32,6 +34,7 @@ export default function CreateGroupProjectPage() {
   const [topic, setTopic] = useState('');
   const [customTopic, setCustomTopic] = useState('');
   const [commitment, setCommitment] = useState('part-time');
+  const [commitmentDays, setCommitmentDays] = useState<string[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
 
@@ -40,6 +43,14 @@ export default function CreateGroupProjectPage() {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
+  
+  const handleDayChange = (day: string, checked: boolean) => {
+    if (checked) {
+      setCommitmentDays(prev => [...prev, day]);
+    } else {
+      setCommitmentDays(prev => prev.filter(d => d !== day));
+    }
+  };
 
   const handleCreateGroupProject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +63,7 @@ export default function CreateGroupProjectPage() {
     const finalTopic = topic === 'Other' ? customTopic : topic;
     const finalCommitment = commitmentLevels[commitment as keyof typeof commitmentLevels];
 
-    if (!name || !finalTopic || !commitment) {
+    if (!name || !finalTopic || !commitment || commitmentDays.length === 0) {
       toast({ variant: "destructive", title: "Missing Fields", description: "Please fill out all required fields." });
       return;
     }
@@ -95,6 +106,7 @@ export default function CreateGroupProjectPage() {
         name_lowercase: name.toLowerCase(),
         topic: finalTopic,
         commitment: finalCommitment,
+        commitmentDays: commitmentDays,
         githubUrl: githubUrl,
         description: description || `A new group project for ${finalTopic}`,
         creatorId: user.uid,
@@ -213,6 +225,18 @@ export default function CreateGroupProjectPage() {
                         <Label htmlFor="full-time">{commitmentLevels['full-time']}</Label>
                     </div>
                 </RadioGroup>
+            </div>
+            
+            <div className="grid gap-2">
+                <Label>Meeting Days</Label>
+                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    {daysOfWeek.map(day => (
+                        <div key={day} className="flex items-center gap-2">
+                            <Checkbox id={`day-${day}`} onCheckedChange={(checked) => handleDayChange(day, !!checked)} />
+                            <Label htmlFor={`day-${day}`}>{day}</Label>
+                        </div>
+                    ))}
+                </div>
             </div>
 
             <div className="grid gap-2">

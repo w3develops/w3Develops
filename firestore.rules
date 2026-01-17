@@ -76,6 +76,8 @@ service cloud.firestore {
                     && request.resource.data.name is string
                     && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 75
                     && request.resource.data.memberIds == [request.auth.uid]
+                    && request.resource.data.commitmentDays is list
+                    && request.resource.data.commitmentDays.size() > 0
                     && request.resource.data.createdAt == request.time;
       allow update: if request.auth != null
                     && resource.data.memberIds.size() < 25
@@ -154,6 +156,8 @@ service cloud.firestore {
                     && request.resource.data.name is string
                     && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 75
                     && request.resource.data.memberIds == [request.auth.uid]
+                    && request.resource.data.commitmentDays is list
+                    && request.resource.data.commitmentDays.size() > 0
                     && request.resource.data.createdAt == request.time;
       allow update: if request.auth != null
                     && resource.data.memberIds.size() < 25
@@ -219,5 +223,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
