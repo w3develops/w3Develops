@@ -98,7 +98,7 @@ export default function SecurityPage() {
                         <li>We will acknowledge the report, check if it's in scope, and let you know if we need more information.</li>
                         <li>We will analyze the report and may ask for more details for investigation.</li>
                         <li>We will fix confirmed issues and coordinate disclosure timing with you.</li>
-                        <li>We will recognize valid reports in our <span className="font-semibold">Hall of Fame</span>.</li>
+                        <li>We will recognize valid reports in our <Link href="/contribute/security/hall-of-fame" className="font-semibold text-yellow-400 hover:underline">Hall of Fame</Link>.</li>
                     </ul>
                 </section>
 

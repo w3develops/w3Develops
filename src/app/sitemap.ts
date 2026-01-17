@@ -1,4 +1,3 @@
-
 import { MetadataRoute } from 'next';
 
 const URL = 'https://w3develops.org';
@@ -18,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/cookies',
     '/contribute',
     '/contribute/security',
+    '/contribute/security/hall-of-fame',
     '/donate',
     '/explore',
     '/faq',
@@ -56,5 +56,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(),
   }));
 }
-
-    
