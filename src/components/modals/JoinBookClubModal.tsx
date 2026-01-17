@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { topics, commitmentLevels, ONE_WEEK_IN_MS } from '@/lib/constants';
+import { topics, ONE_WEEK_IN_MS } from '@/lib/constants';
 import { collection, query, where, Query, Timestamp } from 'firebase/firestore';
 import { BookClub } from '@/lib/types';
 import JoinBookClubButton from '../JoinBookClubButton';
@@ -21,6 +21,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, Drawer
 import { ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import NameSearchInput from '../NameSearchInput';
+import { Input } from '../ui/input';
 
 
 interface JoinBookClubModalProps {
@@ -35,26 +36,30 @@ export function JoinBookClubModal({ isOpen, onClose }: JoinBookClubModalProps) {
 
   const [topic, setTopic] = useState('');
   const [customTopic, setCustomTopic] = useState('');
-  const [commitment, setCommitment] = useState('part-time');
+  const [commitmentHourOption, setCommitmentHourOption] = useState('1');
+  const [customCommitmentHours, setCustomCommitmentHours] = useState('');
   const [step, setStep] = useState(1);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [availableClubs, setAvailableClubs] = useState<BookClub[]>([]);
 
   const finalTopic = topic === 'Other' ? customTopic : topic;
 
+  const finalCommitmentHours = useMemo(() => {
+      return commitmentHourOption === 'custom' ? customCommitmentHours : commitmentHourOption;
+  }, [commitmentHourOption, customCommitmentHours]);
+
   const matchingClubsQuery = useMemo(() => {
-    if (step !== 2 || !finalTopic || !commitment) return null;
+    if (step !== 2 || !finalTopic || !finalCommitmentHours) return null;
     
     const oneWeekAgo = new Date(Date.now() - ONE_WEEK_IN_MS);
-    const commitmentValue = commitmentLevels[commitment as keyof typeof commitmentLevels];
 
     return query(
       collection(firestore, 'bookClubs'),
       where('topic', '==', finalTopic),
-      where('commitment', '==', commitmentValue),
+      where('commitmentHours', '==', finalCommitmentHours),
       where('createdAt', '>', Timestamp.fromDate(oneWeekAgo))
     ) as Query<BookClub>;
-  }, [step, finalTopic, commitment, firestore]);
+  }, [step, finalTopic, finalCommitmentHours, firestore]);
 
   const { data: matchingClubs, isLoading } = useCollection<BookClub>(matchingClubsQuery);
 
@@ -66,7 +71,7 @@ export function JoinBookClubModal({ isOpen, onClose }: JoinBookClubModalProps) {
   }, [matchingClubs, user]);
 
   const handleFindClubs = () => {
-    if (!finalTopic || !commitment) return;
+    if (!finalTopic || !finalCommitmentHours) return;
     setStep(2);
   };
   
@@ -74,7 +79,8 @@ export function JoinBookClubModal({ isOpen, onClose }: JoinBookClubModalProps) {
     setStep(1);
     setTopic('');
     setCustomTopic('');
-    setCommitment('part-time');
+    setCommitmentHourOption('1');
+    setCustomCommitmentHours('');
     setAvailableClubs([]);
     onClose();
   }
@@ -84,7 +90,7 @@ export function JoinBookClubModal({ isOpen, onClose }: JoinBookClubModalProps) {
     router.push(`/book-clubs/${clubId}`);
   };
 
-  const findButtonDisabled = !finalTopic || !commitment || (topic === 'Other' && !customTopic);
+  const findButtonDisabled = !finalTopic || !finalCommitmentHours || (topic === 'Other' && !customTopic);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -151,25 +157,16 @@ export function JoinBookClubModal({ isOpen, onClose }: JoinBookClubModalProps) {
               </div>
             )}
             <div className="grid gap-2">
-              <Label>Time Commitment</Label>
-              <RadioGroup defaultValue="part-time" onValueChange={setCommitment} value={commitment}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="casual" id="casual-modal-club" />
-                  <Label htmlFor="casual-modal-club">{commitmentLevels['casual']}</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="part-time" id="part-time-modal-club" />
-                  <Label htmlFor="part-time-modal-club">{commitmentLevels['part-time']}</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="formal" id="formal-modal-club" />
-                  <Label htmlFor="formal-modal-club">{commitmentLevels['formal']}</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="full-time" id="full-time-modal-club" />
-                  <Label htmlFor="full-time-modal-club">{commitmentLevels['full-time']}</Label>
-                </div>
-              </RadioGroup>
+                <Label>Time Commitment (Hours per day)</Label>
+                <RadioGroup value={commitmentHourOption} onValueChange={setCommitmentHourOption}>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="1" id="h1-modal-club" /><Label htmlFor="h1-modal-club">1 hour</Label></div>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="2" id="h2-modal-club" /><Label htmlFor="h2-modal-club">2 hours</Label></div>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="3" id="h3-modal-club" /><Label htmlFor="h3-modal-club">3 hours</Label></div>
+                    <div className="flex items-center space-x-2"><RadioGroupItem value="custom" id="h-custom-modal-club" /><Label htmlFor="h-custom-modal-club">Custom</Label></div>
+                </RadioGroup>
+                {commitmentHourOption === 'custom' && (
+                    <Input className="mt-2" type="number" placeholder="Enter hours per day" value={customCommitmentHours} onChange={(e) => setCustomCommitmentHours(e.target.value)} required min="1" />
+                )}
             </div>
             <Button onClick={handleFindClubs} disabled={findButtonDisabled}>
               Find Clubs
@@ -209,5 +206,3 @@ export function JoinBookClubModal({ isOpen, onClose }: JoinBookClubModalProps) {
     </Dialog>
   );
 }
-
-    
