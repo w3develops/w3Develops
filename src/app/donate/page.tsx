@@ -61,23 +61,33 @@ export default function DonatePage() {
                 <CardContent className="space-y-8">
                     <div>
                         <h3 className="text-lg font-semibold mb-4 text-center">Support us on your favorite platform</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <Button asChild size="lg" className="h-auto py-4">
-                                <Link href="https://www.patreon.com/c/w3develops" target="_blank" rel="noopener noreferrer">
+                        <div className="space-y-4">
+                            <Button asChild size="lg" className="h-auto py-4 w-full">
+                                <Link href="https://www.paypal.com/pool/9m8XofK5YA?sr=wccr" target="_blank" rel="noopener noreferrer">
                                     <div className="flex flex-col items-center gap-2">
                                         <Heart className="w-6 h-6" />
-                                        <span className="font-bold">Support on Patreon</span>
+                                        <span className="font-bold">Donate via PayPal Pool</span>
                                     </div>
                                 </Link>
                             </Button>
-                            <Button asChild size="lg" className="h-auto py-4">
-                                <Link href="https://opencollective.com/w3develops" target="_blank" rel="noopener noreferrer">
-                                    <div className="flex flex-col items-center gap-2">
-                                        <Heart className="w-6 h-6" />
-                                        <span className="font-bold">Donate via Open Collective</span>
-                                    </div>
-                                </Link>
-                            </Button>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <Button asChild size="lg" className="h-auto py-4">
+                                    <Link href="https://www.patreon.com/c/w3develops" target="_blank" rel="noopener noreferrer">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <Heart className="w-6 h-6" />
+                                            <span className="font-bold">Support on Patreon</span>
+                                        </div>
+                                    </Link>
+                                </Button>
+                                <Button asChild size="lg" className="h-auto py-4">
+                                    <Link href="https://opencollective.com/w3develops" target="_blank" rel="noopener noreferrer">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <Heart className="w-6 h-6" />
+                                            <span className="font-bold">Donate via Open Collective</span>
+                                        </div>
+                                    </Link>
+                                </Button>
+                            </div>
                         </div>
                     </div>
                     
@@ -100,6 +110,25 @@ export default function DonatePage() {
                                 </div>
                             </div>
                         ))}
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-center">Other Methods</h3>
+                         <div>
+                            <h4 className="text-md font-semibold mb-2">Chime</h4>
+                            <div className="flex items-center gap-2">
+                                <Input 
+                                    type="text" 
+                                    readOnly 
+                                    value="$LearnToCode" 
+                                    className="font-mono text-sm bg-muted"
+                                />
+                                <Button variant="outline" size="icon" onClick={() => handleCopy('$LearnToCode')}>
+                                    <Copy className="h-4 w-4" />
+                                    <span className="sr-only">Copy Chime username</span>
+                                </Button>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="pt-4 text-sm text-muted-foreground">
