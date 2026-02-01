@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useMemo } from 'react';
@@ -274,7 +275,7 @@ function SearchResults() {
                         <p className="text-sm text-muted-foreground h-10 overflow-hidden">{club.description}</p>
                         <div className="flex flex-col text-sm text-muted-foreground gap-2">
                             <div className="flex items-center"><Users className="w-4 h-4 mr-2" />{club.memberIds.length} / 25 Members</div>
-                            {club.commitmentHours && <Badge variant="outline" className="w-fit">{club.commitmentHours}</Badge>}
+                            {club.commitmentHours && <Badge variant="outline" className="w-fit">{club.commitmentHours}hr/day</Badge>}
                             <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(club.createdAt as any)}</div>
                         </div>
                     </CardContent>
