@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Suspense, useMemo } from 'react';
@@ -333,3 +334,5 @@ export default function SearchPage() {
         </Suspense>
     )
 }
+
+    
