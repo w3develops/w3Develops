@@ -128,6 +128,21 @@ export default function DonatePage() {
                                 </Button>
                             </div>
                         </div>
+                        <div>
+                            <h4 className="text-md font-semibold mb-2">Cash App</h4>
+                            <div className="flex items-center gap-2">
+                                <Input 
+                                    type="text" 
+                                    readOnly 
+                                    value="$LearnToCode" 
+                                    className="font-mono text-sm bg-muted"
+                                />
+                                <Button variant="outline" size="icon" onClick={() => handleCopy('$LearnToCode')}>
+                                    <Copy className="h-4 w-4" />
+                                    <span className="sr-only">Copy Cash App username</span>
+                                </Button>
+                            </div>
+                        </div>
                          <div>
                             <h4 className="text-md font-semibold mb-2">Chime</h4>
                             <div className="flex items-center gap-2">
