@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -115,6 +114,21 @@ export default function DonatePage() {
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold text-center">Other Methods</h3>
                          <div>
+                            <h4 className="text-md font-semibold mb-2">Zelle</h4>
+                            <div className="flex items-center gap-2">
+                                <Input 
+                                    type="text" 
+                                    readOnly 
+                                    value="4156102648" 
+                                    className="font-mono text-sm bg-muted"
+                                />
+                                <Button variant="outline" size="icon" onClick={() => handleCopy('4156102648')}>
+                                    <Copy className="h-4 w-4" />
+                                    <span className="sr-only">Copy Zelle phone number</span>
+                                </Button>
+                            </div>
+                        </div>
+                         <div>
                             <h4 className="text-md font-semibold mb-2">Chime</h4>
                             <div className="flex items-center gap-2">
                                 <Input 
@@ -139,4 +153,3 @@ export default function DonatePage() {
         </div>
     );
 }
-
