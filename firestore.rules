@@ -21,7 +21,7 @@ service cloud.firestore {
     }
 
     function isMentorshipMember(mentorshipId) {
-      return request.auth != null && get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data.memberIds.hasAny([request.auth.uid]);
+      return request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
     }
 
     function isAddingSelfToList(listAfter, listBefore) {
@@ -60,6 +60,7 @@ service cloud.firestore {
 
         let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
 
+        // This rule allows a batch write to update both mentor/menteeIds and mentorshipIds
         return (isAddingMentor && changedKeys.hasAll(['mentorIds', 'mentorshipIds']) && changedKeys.size() == 2 && isAddingMentorshipId) ||
                (isAddingMentee && changedKeys.hasAll(['menteeIds', 'mentorshipIds']) && changedKeys.size() == 2 && isAddingMentorshipId);
     }
@@ -75,8 +76,7 @@ service cloud.firestore {
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
           (isAddingSelfToList(request.resource.data.followers, resource.data.get('followers', [])) ||
             isRemovingSelfFromList(request.resource.data.followers, resource.data.get('followers', [])))
-        ) ||
-        isMentorshipUpdate(userId);
+        ) || isMentorshipUpdate(userId);
     }
 
     match /usernames/{username} {
@@ -95,7 +95,7 @@ service cloud.firestore {
     }
 
     match /mentorships/{mentorshipId} {
-      allow read: if request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
+      allow read: if isMentorshipMember(mentorshipId);
       allow create: if request.auth != null && request.resource.data.memberIds.hasAny([request.auth.uid]);
       allow update: if request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
       allow delete: if false;

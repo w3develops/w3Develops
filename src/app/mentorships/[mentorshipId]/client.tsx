@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useDoc } from '@/firebase/firestore/use-doc';
@@ -133,9 +134,9 @@ export default function MentorshipDashboardPage({ params }: { params: { mentorsh
 
   return (
     <div className="space-y-8 p-4 md:p-10">
-        <Link href="/account" className="flex items-center text-sm text-muted-foreground hover:text-foreground">
+        <Link href="/mentorship" className="flex items-center text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
+            Back to Mentorship
         </Link>
       
         <Card>

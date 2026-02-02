@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
@@ -123,7 +124,6 @@ function MentorshipManagement({ user, userProfile }: { user: any, userProfile: U
             await batch.commit();
             toast({ title: `Request ${newStatus}` });
         } catch (serverError) {
-            console.error("Error handling mentorship request:", serverError);
             const permissionError = new FirestorePermissionError({
                 path: `batch write for mentorship request ${request.id}`,
                 operation: 'update',

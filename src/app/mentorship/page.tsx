@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -237,7 +238,6 @@ function MentorshipDashboard({ user, userProfile }: { user: any, userProfile: Us
             await batch.commit();
             toast({ title: `Request ${newStatus}` });
         } catch (serverError) {
-            console.error("Error handling mentorship request:", serverError);
             const permissionError = new FirestorePermissionError({
                 path: `batch write for mentorship request ${request.id}`,
                 operation: 'update',
