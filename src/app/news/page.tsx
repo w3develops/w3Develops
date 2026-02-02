@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Rss } from "lucide-react";
 import Link from "next/link";
@@ -10,11 +11,6 @@ interface Post {
   link: string;
   isoDate: string;
   source: string;
-}
-
-// Mock function for initial render, real data will be fetched on the client
-async function getNews(): Promise<Post[]> {
-    return [];
 }
 
 function formatDate(dateString: string) {

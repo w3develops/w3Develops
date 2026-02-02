@@ -32,6 +32,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/mentorship',
     '/meetups',
     '/news',
+    '/news/archive',
     '/newsletter',
     '/notifications',
     '/pair-programming',
