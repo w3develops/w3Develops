@@ -57,6 +57,6 @@
     "typescript": "^5"
   },
   "overrides": {
-    "caniuse-lite": "^1.0.30001632"
+    "caniuse-lite": "^1.0.30001648"
   }
 }
