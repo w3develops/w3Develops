@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -22,7 +23,7 @@ import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/e
 
 interface TaskListProps {
   groupOrCohortId: string;
-  collectionPath: 'studyGroups' | 'groupProjects' | 'bookClubs';
+  collectionPath: 'studyGroups' | 'groupProjects' | 'bookClubs' | 'mentorships';
   memberIds: string[];
 }
 
