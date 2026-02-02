@@ -96,8 +96,9 @@ function MentorshipManagement({ user, userProfile }: { user: any, userProfile: U
             await batch.commit();
             toast({ title: `Request ${newStatus}` });
         } catch (error: any) {
-            console.error("Error accepting mentorship request:", error);
-            toast({ variant: 'destructive', title: "Error", description: "Could not update request. This may be due to a permissions issue."});
+            console.error("Error handling mentorship request:", error);
+            const errorMessage = error.message || "Could not update request. This may be due to a permissions issue.";
+            toast({ variant: 'destructive', title: "Error", description: errorMessage});
         }
     };
     

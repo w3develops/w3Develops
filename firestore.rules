@@ -21,11 +21,14 @@ service cloud.firestore {
     }
 
     function isAddingToList(list, newList) {
-      return newList.size() == list.size() + 1 && newList.hasAll(list);
+      // Handles adding the first item to a non-existent list
+      return (list == null && newList.size() == 1) || 
+             (list != null && newList.size() == list.size() + 1 && newList.hasAll(list));
     }
 
     function isRemovingFromList(list, newList) {
-      return newList.size() == list.size() - 1 && list.hasAll(newList);
+      // Can't remove from a list that doesn't exist or is already empty
+      return list != null && list.size() > 0 && newList.size() == list.size() - 1 && list.hasAll(newList);
     }
 
     match /users/{userId} {
