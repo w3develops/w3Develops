@@ -157,6 +157,52 @@
           "items": {
             "type": "string"
           }
+        },
+        "mentorshipRole": {
+          "type": "string",
+          "enum": [
+            "none",
+            "mentor",
+            "mentee",
+            "both"
+          ],
+          "description": "The user's role in the mentorship program."
+        },
+        "mentorshipStatus": {
+          "type": "string",
+          "enum": [
+            "open",
+            "closed"
+          ],
+          "description": "Whether the user is open to new mentorship requests."
+        },
+        "mentoringSkills": {
+          "type": "array",
+          "description": "Skills the user is willing to mentor in.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "seekingSkills": {
+          "type": "array",
+          "description": "Skills the user is seeking mentorship for.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "mentorIds": {
+          "type": "array",
+          "description": "A list of user IDs who are mentoring this user.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "menteeIds": {
+          "type": "array",
+          "description": "A list of user IDs this user is mentoring.",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -482,6 +528,58 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the project was submitted." }
       },
       "required": ["id", "userId", "username", "name", "projectUrl", "createdAt"]
+    },
+    "MentorshipRequest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MentorshipRequest",
+      "type": "object",
+      "description": "Represents a request for mentorship between two users.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "fromUid": {
+          "type": "string"
+        },
+        "toUid": {
+          "type": "string"
+        },
+        "fromUsername": {
+          "type": "string"
+        },
+        "toUsername": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "seeking_mentor",
+            "seeking_mentee"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "accepted",
+            "declined"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "fromUid",
+        "toUid",
+        "fromUsername",
+        "toUsername",
+        "type",
+        "status",
+        "createdAt"
+      ]
     }
   },
   "auth": {
@@ -567,6 +665,12 @@
     "/soloProjects/{soloProjectId}": {
       "schema": { "$ref": "#/entities/SoloProject" },
       "description": "Stores user-submitted solo projects."
+    },
+    "/mentorshipRequests/{requestId}": {
+      "schema": {
+        "$ref": "#/entities/MentorshipRequest"
+      },
+      "description": "Stores mentorship requests between users."
     }
   }
 }

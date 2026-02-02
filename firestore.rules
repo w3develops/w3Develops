@@ -43,7 +43,7 @@ service cloud.firestore {
       // Allow user to update their own fields
       allow write: if isOwner(userId) && (
         (
-          request.resource.data.keys().hasAll(['bio', 'skills', 'socialLinks', 'followInfoPrivate', 'profilePictureUrl', 'notificationSettings', 'lastLoginAt', 'lastLogoutAt', 'lastCheckInAt', 'status'])
+          request.resource.data.keys().hasAll(['bio', 'skills', 'socialLinks', 'followInfoPrivate', 'profilePictureUrl', 'notificationSettings', 'lastLoginAt', 'lastLogoutAt', 'lastCheckInAt', 'status', 'mentorshipRole', 'mentorshipStatus', 'mentoringSkills', 'seekingSkills', 'mentorIds', 'menteeIds'])
         ) ||
         // Allow user to add/remove SOMEONE ELSE from their own following list
         (isAddingToList(resource.data.following, request.resource.data.following)) ||
@@ -58,7 +58,12 @@ service cloud.firestore {
         (isAddingToList(resource.data.soloProjectIds, request.resource.data.soloProjectIds)) ||
         (isRemovingFromList(resource.data.soloProjectIds, request.resource.data.soloProjectIds)) ||
         (isAddingToList(resource.data.starredSoloProjectIds, request.resource.data.starredSoloProjectIds)) ||
-        (isRemovingFromList(resource.data.starredSoloProjectIds, request.resource.data.starredSoloProjectIds))
+        (isRemovingFromList(resource.data.starredSoloProjectIds, request.resource.data.starredSoloProjectIds)) ||
+        // Mentorship ID updates
+        (isAddingToList(resource.data.mentorIds, request.resource.data.mentorIds)) ||
+        (isRemovingFromList(resource.data.mentorIds, request.resource.data.mentorIds)) ||
+        (isAddingToList(resource.data.menteeIds, request.resource.data.menteeIds)) ||
+        (isRemovingFromList(resource.data.menteeIds, request.resource.data.menteeIds))
       );
     }
 
@@ -67,6 +72,12 @@ service cloud.firestore {
       allow list: if false;
       allow create: if request.auth.uid == request.resource.data.uid;
       allow update, delete: if false;
+    }
+    
+    match /mentorshipRequests/{requestId} {
+        allow read: if request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid;
+        allow create: if request.auth.uid == request.resource.data.fromUid;
+        allow update: if request.auth.uid == resource.data.toUid; // Allow recipient to update status (accept/decline)
     }
 
     match /studyGroups/{groupId} {

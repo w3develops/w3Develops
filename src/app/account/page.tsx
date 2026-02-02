@@ -3,21 +3,22 @@
 
 import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
 import { useMemo, useEffect, useState } from 'react';
-import { doc, DocumentReference, collection, query, where, Query, documentId } from 'firebase/firestore';
+import { doc, DocumentReference, collection, query, where, Query, documentId, writeBatch, arrayUnion, updateDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { UserProfile, StudyGroup, GroupProject, SoloProject, BookClub } from '@/lib/types';
+import { UserProfile, StudyGroup, GroupProject, SoloProject, BookClub, MentorshipRequest } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Github, Linkedin, Twitter, PlusCircle, Star } from 'lucide-react';
+import { Github, Linkedin, Twitter, PlusCircle, Star, GraduationCap } from 'lucide-react';
 import { JoinCohortModal } from '@/components/modals/JoinCohortModal';
 import { JoinGroupModal } from '@/components/modals/JoinGroupModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import SubmitSoloProjectForm from '@/components/forms/SubmitSoloProjectForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { JoinBookClubModal } from '@/components/modals/JoinBookClubModal';
+import { useToast } from '@/components/ui/use-toast';
 
 function AccountPageSkeleton() {
   return (
@@ -56,6 +57,110 @@ function AccountPageSkeleton() {
       </div>
     </div>
   )
+}
+
+function MentorshipManagement({ user, userProfile }: { user: any, userProfile: UserProfile }) {
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const incomingRequestsQuery = useMemo(() => {
+        return query(
+            collection(firestore, 'mentorshipRequests'),
+            where('toUid', '==', user.uid),
+            where('status', '==', 'pending')
+        );
+    }, [firestore, user.uid]);
+
+    const { data: incomingRequests, isLoading: isLoadingRequests } = useCollection<MentorshipRequest>(incomingRequestsQuery);
+
+    const handleRequest = async (request: MentorshipRequest, newStatus: 'accepted' | 'declined') => {
+        const requestRef = doc(firestore, 'mentorshipRequests', request.id);
+        const batch = writeBatch(firestore);
+
+        batch.update(requestRef, { status: newStatus });
+
+        if (newStatus === 'accepted') {
+            const requesterRef = doc(firestore, 'users', request.fromUid);
+            const currentUserRef = doc(firestore, 'users', user.uid);
+
+            if (request.type === 'seeking_mentor') { // Requester wants ME to be their mentor
+                batch.update(requesterRef, { mentorIds: arrayUnion(user.uid) });
+                batch.update(currentUserRef, { menteeIds: arrayUnion(request.fromUid) });
+            } else { // Requester wants to be MY mentor
+                batch.update(requesterRef, { menteeIds: arrayUnion(user.uid) });
+                batch.update(currentUserRef, { mentorIds: arrayUnion(request.fromUid) });
+            }
+        }
+        
+        try {
+            await batch.commit();
+            toast({ title: `Request ${newStatus}` });
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: "Error", description: `Could not update request: ${error.message}`});
+        }
+    };
+    
+    const { data: mentors } = useCollection<UserProfile>(
+        userProfile.mentorIds && userProfile.mentorIds.length > 0 
+        ? query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.mentorIds.slice(0, 10))) 
+        : null
+    );
+
+    const { data: mentees } = useCollection<UserProfile>(
+        userProfile.menteeIds && userProfile.menteeIds.length > 0
+        ? query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.menteeIds.slice(0, 10)))
+        : null
+    );
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><GraduationCap />Mentorship</CardTitle>
+                <CardDescription>Manage your mentorship connections and requests.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div>
+                    <h3 className="font-semibold mb-2">Incoming Requests</h3>
+                    {isLoadingRequests && <p>Loading requests...</p>}
+                    {!isLoadingRequests && (!incomingRequests || incomingRequests.length === 0) && <p className="text-sm text-muted-foreground">No new requests.</p>}
+                    <div className="space-y-2">
+                        {incomingRequests?.map(req => (
+                            <div key={req.id} className="flex items-center justify-between p-2 border rounded-md">
+                                <p className="text-sm">{req.fromUsername} wants to be your {req.type === 'seeking_mentor' ? 'mentee' : 'mentor'}.</p>
+                                <div className="flex gap-2">
+                                    <Button size="sm" onClick={() => handleRequest(req, 'accepted')}>Accept</Button>
+                                    <Button size="sm" variant="outline" onClick={() => handleRequest(req, 'declined')}>Decline</Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 className="font-semibold mb-2">Your Mentors</h3>
+                        {mentors && mentors.length > 0 ? (
+                           <ul className="divide-y">
+                                {mentors.map(m => <li key={m.id} className="py-2"><Link href={`/users/${m.id}`} className="font-medium hover:underline">{m.username}</Link></li>)}
+                           </ul>
+                        ) : <p className="text-sm text-muted-foreground">You have no mentors yet.</p>}
+                    </div>
+                     <div>
+                        <h3 className="font-semibold mb-2">Your Mentees</h3>
+                         {mentees && mentees.length > 0 ? (
+                           <ul className="divide-y">
+                                {mentees.map(m => <li key={m.id} className="py-2"><Link href={`/users/${m.id}`} className="font-medium hover:underline">{m.username}</Link></li>)}
+                           </ul>
+                        ) : <p className="text-sm text-muted-foreground">You have no mentees yet.</p>}
+                    </div>
+                </div>
+
+                 <Button asChild variant="secondary" className="w-full">
+                    <Link href="/mentorship">Explore Mentorship Program</Link>
+                </Button>
+            </CardContent>
+        </Card>
+    )
 }
 
 export default function AccountPage() {
@@ -161,6 +266,8 @@ export default function AccountPage() {
           </div>
         </div>
         
+        <MentorshipManagement user={user} userProfile={userProfile} />
+
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
            <Card>
             <CardHeader>
@@ -316,5 +423,3 @@ export default function AccountPage() {
     </div>
   );
 }
-
-    

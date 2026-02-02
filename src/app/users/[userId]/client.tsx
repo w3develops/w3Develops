@@ -8,7 +8,7 @@ import { UserProfile, StudyGroup, GroupProject, SoloProject } from '@/lib/types'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Github, Linkedin, Twitter, BrainCircuit, Users, Lock, UserCheck, UserPlus, CalendarDays, ExternalLink } from 'lucide-react';
+import { Github, Linkedin, Twitter, BrainCircuit, Users, Lock, UserCheck, UserPlus, CalendarDays, ExternalLink, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -282,6 +282,13 @@ export default function UserProfilePage({ params }: { params: { userId: string }
   }
   
   const showFollowInfo = isOwner || !userProfile.followInfoPrivate;
+  
+  const mentorshipBadge = useMemo(() => {
+    if (userProfile.mentorshipRole === 'mentor') return <Badge variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Mentor</Badge>;
+    if (userProfile.mentorshipRole === 'mentee') return <Badge variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Mentee</Badge>;
+    if (userProfile.mentorshipRole === 'both') return <Badge variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Mentor & Mentee</Badge>;
+    return null;
+  }, [userProfile.mentorshipRole]);
 
   return (
     <div className="space-y-8 p-4 md:p-10">
@@ -292,7 +299,10 @@ export default function UserProfilePage({ params }: { params: { userId: string }
             <AvatarFallback className="text-5xl">{userProfile.username?.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
           <div className="flex-1 text-center md:text-left">
-            <h1 className="text-3xl font-headline">{userProfile.username}</h1>
+            <div className="flex items-center justify-center md:justify-start gap-4">
+              <h1 className="text-3xl font-headline">{userProfile.username}</h1>
+              {mentorshipBadge}
+            </div>
             <div className="flex items-center justify-center md:justify-start gap-2 text-sm text-muted-foreground mt-2">
               <CalendarDays className="h-4 w-4" />
               <span>Joined on {formatTimestamp(userProfile.createdAt)}</span>
@@ -337,18 +347,32 @@ export default function UserProfilePage({ params }: { params: { userId: string }
         </CardHeader>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl"><BrainCircuit className="w-5 h-5" /> Skills</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {userProfile.skills && userProfile.skills.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {userProfile.skills.map(skill => <Badge key={skill}>{skill}</Badge>)}
-            </div>
-          ) : <p className="text-sm text-muted-foreground">No skills listed yet.</p>}
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+            <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl"><BrainCircuit className="w-5 h-5" /> Mentoring Skills</CardTitle>
+            </CardHeader>
+            <CardContent>
+            {userProfile.mentoringSkills && userProfile.mentoringSkills.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                {userProfile.mentoringSkills.map(skill => <Badge key={skill}>{skill}</Badge>)}
+                </div>
+            ) : <p className="text-sm text-muted-foreground">No mentoring skills listed yet.</p>}
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl"><BrainCircuit className="w-5 h-5" /> Seeking Skills</CardTitle>
+            </CardHeader>
+            <CardContent>
+            {userProfile.seekingSkills && userProfile.seekingSkills.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                {userProfile.seekingSkills.map(skill => <Badge key={skill}>{skill}</Badge>)}
+                </div>
+            ) : <p className="text-sm text-muted-foreground">No skills being sought yet.</p>}
+            </CardContent>
+        </Card>
+      </div>
       
       {userId && <UserActivity userId={userId} />}
       

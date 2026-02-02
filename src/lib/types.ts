@@ -12,6 +12,9 @@ export interface NotificationSettings {
 }
 
 export type UserStatus = 'active' | 'paused' | 'inactive';
+export type MentorshipRole = 'none' | 'mentor' | 'mentee' | 'both';
+export type MentorshipStatus = 'open' | 'closed';
+
 
 export interface UserProfile {
   id: string;
@@ -43,6 +46,12 @@ export interface UserProfile {
   notificationSettings?: NotificationSettings;
   status?: UserStatus;
   lastCheckInAt?: Timestamp | FieldValue | null;
+  mentorshipRole?: MentorshipRole;
+  mentorshipStatus?: MentorshipStatus;
+  mentoringSkills?: string[];
+  seekingSkills?: string[];
+  mentorIds?: string[];
+  menteeIds?: string[];
 }
 
 export interface GroupProject {
@@ -141,4 +150,15 @@ export interface SoloProject {
   projectUrl: string;
   description: string;
   createdAt: Timestamp;
+}
+
+export interface MentorshipRequest {
+    id: string;
+    fromUid: string;
+    toUid: string;
+    fromUsername: string;
+    toUsername: string;
+    type: 'seeking_mentor' | 'seeking_mentee';
+    status: 'pending' | 'accepted' | 'declined';
+    createdAt: Timestamp;
 }
