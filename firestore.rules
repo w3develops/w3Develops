@@ -20,46 +20,30 @@ service cloud.firestore {
        return request.auth != null && get(/databases/$(database)/documents/groupProjects/$(groupProjectId)).data.memberIds.hasAny([request.auth.uid]);
     }
 
+    function isAddingSelf(field) {
+        let before = resource.data[field];
+        let after = request.resource.data[field];
+        let beforeSet = (before == null) ? [].toSet() : before.toSet();
+        return after.toSet().equals(beforeSet.union([request.auth.uid].toSet()));
+    }
+
+    function isRemovingSelf(field) {
+        let before = resource.data[field];
+        let after = request.resource.data[field];
+        let beforeSet = (before == null) ? [].toSet() : before.toSet();
+        return after.toSet().equals(beforeSet.difference([request.auth.uid].toSet()));
+    }
+
     match /users/{userId} {
       allow read: if true;
       allow create: if isOwner(userId);
       allow delete: if isOwner(userId);
       allow update: if
-        // Case 1: The user is updating their OWN document.
-        isOwner(userId)
-      ||
-        // Case 2: A non-owner is updating THIS user's document.
-        // This is only allowed for specific list-update operations (follow, mentor, mentee).
-        (
-          request.auth != null && request.auth.uid != userId &&
-          (
-            // Allow adding/removing self from followers.
-            (
-                request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
-                (
-                    (resource.data.followers == null && request.resource.data.followers.size() == 1 && request.resource.data.followers[0] == request.auth.uid) ||
-                    (resource.data.followers != null && request.resource.data.followers == resource.data.followers.toSet().union([request.auth.uid].toSet())) ||
-                    (resource.data.followers != null && request.resource.data.followers == resource.data.followers.toSet().difference([request.auth.uid].toSet()))
-                )
-            ) ||
-            // Allow adding self to mentorIds list.
-            (
-                request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mentorIds']) &&
-                (
-                    (resource.data.mentorIds == null && request.resource.data.mentorIds.size() == 1 && request.resource.data.mentorIds[0] == request.auth.uid) ||
-                    (resource.data.mentorIds != null && request.resource.data.mentorIds == resource.data.mentorIds.toSet().union([request.auth.uid].toSet()))
-                )
-            ) ||
-            // Allow adding self to menteeIds list.
-            (
-                request.resource.data.diff(resource.data).affectedKeys().hasOnly(['menteeIds']) &&
-                (
-                    (resource.data.menteeIds == null && request.resource.data.menteeIds.size() == 1 && request.resource.data.menteeIds[0] == request.auth.uid) ||
-                    (resource.data.menteeIds != null && request.resource.data.menteeIds == resource.data.menteeIds.toSet().union([request.auth.uid].toSet()))
-                )
-            )
-          )
-        );
+        isOwner(userId) || (request.auth.uid != userId && (
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) && (isAddingSelf('followers') || isRemovingSelf('followers'))) ||
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mentorIds']) && isAddingSelf('mentorIds')) ||
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['menteeIds']) && isAddingSelf('menteeIds'))
+      ));
     }
 
     match /usernames/{username} {
