@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useDoc } from '@/firebase/firestore/use-doc';
@@ -87,7 +86,32 @@ export default function MentorshipDashboardPage({ params }: { params: { mentorsh
 
   const { data: mentorship, isLoading: isMentorshipLoading, error: mentorshipError } = useDoc<Mentorship>(mentorshipDocRef);
 
-  if (isMentorshipLoading || isUserLoading) {
+  const partnerId = useMemo(() => {
+      if (!user || !mentorship) return null;
+      return mentorship.memberIds.find(id => id !== user.uid);
+  }, [user, mentorship]);
+
+  const partnerDocRef = useMemo(() => {
+    if (!partnerId) return null;
+    return doc(firestore, 'users', partnerId) as DocumentReference<UserProfile>;
+  }, [partnerId, firestore]);
+
+  const { data: partnerProfile, isLoading: isPartnerLoading } = useDoc<UserProfile>(partnerDocRef);
+
+  const { partnerRole, userRole, pageTitle, pageDescription } = useMemo(() => {
+    if (!user || !mentorship || !partnerProfile) {
+        return { partnerRole: 'Partner', userRole: '', pageTitle: 'Mentorship Dashboard', pageDescription: 'A shared space for your mentorship.' };
+    }
+    const isCurrentUserMentor = user.uid === mentorship.mentorId;
+    const partnerRole = isCurrentUserMentor ? 'Mentee' : 'Mentor';
+    const userRole = isCurrentUserMentor ? 'Mentor' : 'Mentee';
+    const pageTitle = `Mentorship with ${partnerProfile.username}`;
+    const pageDescription = `This is your shared dashboard. You are the ${userRole}.`;
+
+    return { partnerRole, userRole, pageTitle, pageDescription };
+  }, [user, mentorship, partnerProfile]);
+
+  if (isMentorshipLoading || isUserLoading || isPartnerLoading) {
     return <div className="text-center py-10 p-4 md:p-10">Loading mentorship dashboard...</div>;
   }
   
@@ -107,9 +131,6 @@ export default function MentorshipDashboardPage({ params }: { params: { mentorsh
        return <div className="text-center py-10 text-destructive p-4 md:p-10">You do not have permission to view this page.</div>
   }
 
-  const partnerId = mentorship.memberIds.find(id => id !== user.uid);
-  const partnerRole = user.uid === mentorship.mentorId ? 'Mentee' : 'Mentor';
-
   return (
     <div className="space-y-8 p-4 md:p-10">
         <Link href="/account" className="flex items-center text-sm text-muted-foreground hover:text-foreground">
@@ -119,8 +140,8 @@ export default function MentorshipDashboardPage({ params }: { params: { mentorsh
       
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline text-3xl">Mentorship Dashboard</CardTitle>
-                <CardDescription>A shared space for you and your {partnerRole.toLowerCase()}.</CardDescription>
+                <CardTitle className="font-headline text-3xl">{pageTitle}</CardTitle>
+                <CardDescription>{pageDescription}</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="flex items-center text-sm text-muted-foreground">

@@ -268,12 +268,16 @@ export default function UserProfilePage({ params }: { params: { userId: string }
     fetchUserProfile();
   }, [userId, firestore]);
   
-  const mentorshipBadge = useMemo(() => {
+  const mentorshipBadges = useMemo(() => {
     if (!userProfile) return null;
-    if (userProfile.mentorshipRole === 'mentor') return <Badge variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Mentor</Badge>;
-    if (userProfile.mentorshipRole === 'mentee') return <Badge variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Mentee</Badge>;
-    if (userProfile.mentorshipRole === 'both') return <Badge variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Mentor & Mentee</Badge>;
-    return null;
+    const roles = [];
+    if (userProfile.mentorshipRole === 'mentor' || userProfile.mentorshipRole === 'both') {
+      roles.push(<Badge key="mentor" variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Mentor</Badge>);
+    }
+    if (userProfile.mentorshipRole === 'mentee' || userProfile.mentorshipRole === 'both') {
+      roles.push(<Badge key="mentee" variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Mentee</Badge>);
+    }
+    return roles;
   }, [userProfile]);
 
   if (isProfileLoading) {
@@ -299,9 +303,9 @@ export default function UserProfilePage({ params }: { params: { userId: string }
             <AvatarFallback className="text-5xl">{userProfile.username?.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
           <div className="flex-1 text-center md:text-left">
-            <div className="flex items-center justify-center md:justify-start gap-4">
+            <div className="flex items-center justify-center md:justify-start gap-4 flex-wrap">
               <h1 className="text-3xl font-headline">{userProfile.username}</h1>
-              {mentorshipBadge}
+              {mentorshipBadges}
             </div>
             <div className="flex items-center justify-center md:justify-start gap-2 text-sm text-muted-foreground mt-2">
               <CalendarDays className="h-4 w-4" />

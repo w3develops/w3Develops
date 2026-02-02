@@ -20,8 +20,8 @@ service cloud.firestore {
        return request.auth != null && get(/databases/$(database)/documents/groupProjects/$(groupProjectId)).data.memberIds.hasAny([request.auth.uid]);
     }
 
-    function isMentorshipMember() {
-      return request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
+    function isMentorshipMember(mentorshipId) {
+      return request.auth != null && get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data.memberIds.hasAny([request.auth.uid]);
     }
 
     function isAddingSelfToList(listAfter, listBefore) {
@@ -53,18 +53,19 @@ service cloud.firestore {
           (isAddingSelfToList(request.resource.data.followers, resource.data.get('followers', [])) ||
             isRemovingSelfFromList(request.resource.data.followers, resource.data.get('followers', [])))
         ) ||
-        // Rule for accepting mentorship (2 fields)
+        // Rule for accepting a request TO BE A MENTOR for someone else
         (
           request.resource.data.diff(resource.data).affectedKeys().size() == 2 &&
           request.resource.data.diff(resource.data).affectedKeys().hasAll(['mentorshipIds', 'mentorIds']) &&
           isAddingSelfToList(request.resource.data.mentorIds, resource.data.get('mentorIds', [])) &&
-          isAddingSelfToList(request.resource.data.mentorshipIds, resource.data.get('mentorshipIds', []))
+          (request.resource.data.mentorshipIds.size() == resource.data.get('mentorshipIds', []).size() + 1)
         ) ||
+        // Rule for accepting a request TO BE A MENTEE of someone else
         (
           request.resource.data.diff(resource.data).affectedKeys().size() == 2 &&
           request.resource.data.diff(resource.data).affectedKeys().hasAll(['mentorshipIds', 'menteeIds']) &&
           isAddingSelfToList(request.resource.data.menteeIds, resource.data.get('menteeIds', [])) &&
-          isAddingSelfToList(request.resource.data.mentorshipIds, resource.data.get('mentorshipIds', []))
+          (request.resource.data.mentorshipIds.size() == resource.data.get('mentorshipIds', []).size() + 1)
         );
     }
 
@@ -84,23 +85,23 @@ service cloud.firestore {
     }
 
     match /mentorships/{mentorshipId} {
-      allow read: if isMentorshipMember();
+      allow read: if isMentorshipMember(mentorshipId);
       allow create: if request.auth != null && request.resource.data.memberIds.hasAny([request.auth.uid]);
-      allow update: if isMentorshipMember();
+      allow update: if isMentorshipMember(mentorshipId);
       allow delete: if false;
 
       match /tasks/{taskId} {
-        allow read: if isMentorshipMember();
-        allow create: if isMentorshipMember() 
+        allow read: if isMentorshipMember(mentorshipId);
+        allow create: if isMentorshipMember(mentorshipId) 
                       && request.resource.data.creatorId == request.auth.uid
                       && request.resource.data.isCompleted == false;
-        allow update: if isMentorshipMember();
-        allow delete: if isMentorshipMember() && resource.data.creatorId == request.auth.uid;
+        allow update: if isMentorshipMember(mentorshipId);
+        allow delete: if isMentorshipMember(mentorshipId) && resource.data.creatorId == request.auth.uid;
       }
       
       match /checkIns/{checkInId} {
-        allow read: if isMentorshipMember();
-        allow create: if isMentorshipMember() 
+        allow read: if isMentorshipMember(mentorshipId);
+        allow create: if isMentorshipMember(mentorshipId) 
                       && request.resource.data.userId == request.auth.uid
                       && request.resource.data.content is string
                       && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
