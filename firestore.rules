@@ -20,18 +20,18 @@ service cloud.firestore {
        return request.auth != null && get(/databases/$(database)/documents/groupProjects/$(groupProjectId)).data.memberIds.hasAny([request.auth.uid]);
     }
 
-    function isAddingSelf(field) {
-        let before = resource.data[field];
-        let after = request.resource.data[field];
-        let beforeSet = (before == null) ? [].toSet() : before.toSet();
-        return after.toSet().equals(beforeSet.union([request.auth.uid].toSet()));
+    function isAddingSelfToList(listAfter, listBefore) {
+      // True if the user is adding themselves to a list and not already in it.
+      return listAfter.size() == listBefore.size() + 1
+             && listAfter.hasAll(listBefore)
+             && !listBefore.hasAny([request.auth.uid]);
     }
 
-    function isRemovingSelf(field) {
-        let before = resource.data[field];
-        let after = request.resource.data[field];
-        let beforeSet = (before == null) ? [].toSet() : before.toSet();
-        return after.toSet().equals(beforeSet.difference([request.auth.uid].toSet()));
+    function isRemovingSelfFromList(listAfter, listBefore) {
+      // True if the user is removing themselves from a list they were previously in.
+      return listBefore.size() == listAfter.size() + 1
+             && listBefore.hasAll(listAfter)
+             && listBefore.hasAny([request.auth.uid]);
     }
 
     match /users/{userId} {
@@ -40,9 +40,19 @@ service cloud.firestore {
       allow delete: if isOwner(userId);
       allow update: if
         isOwner(userId) || (request.auth.uid != userId && (
-          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) && (isAddingSelf('followers') || isRemovingSelf('followers'))) ||
-          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mentorIds']) && isAddingSelf('mentorIds')) ||
-          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['menteeIds']) && isAddingSelf('menteeIds'))
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
+            (isAddingSelfToList(request.resource.data.followers, resource.data.get('followers', [])) || 
+             isRemovingSelfFromList(request.resource.data.followers, resource.data.get('followers', [])))
+          ) ||
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mentorIds']) &&
+            isAddingSelfToList(request.resource.data.mentorIds, resource.data.get('mentorIds', []))
+          ) ||
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['menteeIds']) &&
+            isAddingSelfToList(request.resource.data.menteeIds, resource.data.get('menteeIds', []))
+          )
       ));
     }
 
