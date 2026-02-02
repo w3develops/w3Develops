@@ -101,7 +101,7 @@ export default function MentorshipDashboardPage({ params }: { params: { mentorsh
 
   const { partnerRole, userRole, pageTitle, pageDescription } = useMemo(() => {
     if (!user || !mentorship || !partnerProfile) {
-        return { partnerRole: 'Partner', userRole: '', pageTitle: 'Mentorship Dashboard', pageDescription: 'A shared space for your mentorship.' };
+        return { partnerRole: null, userRole: '', pageTitle: 'Mentorship Dashboard', pageDescription: 'A shared space for your mentorship.' };
     }
     const isCurrentUserMentor = user.uid === mentorship.mentorId;
     const partnerRole = isCurrentUserMentor ? 'Mentee' : 'Mentor';
@@ -152,7 +152,7 @@ export default function MentorshipDashboardPage({ params }: { params: { mentorsh
             </CardContent>
         </Card>
         
-        {partnerId && <PartnerProfile userId={partnerId} role={partnerRole} />}
+        {partnerId && partnerRole && <PartnerProfile userId={partnerId} role={partnerRole} />}
 
         <TaskList 
             groupOrCohortId={mentorshipId}
