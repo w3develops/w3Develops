@@ -35,6 +35,17 @@ function UserCheckInsDisplay({ memberId, memberProfiles, allCheckins, isLoading,
         if (userCheckins.length === 0) return null;
         return userCheckins[0]; // Already sorted by most recent
     }, [userCheckins]);
+    
+    const [timeAgoString, setTimeAgoString] = useState('');
+
+    useEffect(() => {
+      if (lastCheckin) {
+        setTimeAgoString(timeAgo(lastCheckin.createdAt));
+      } else {
+        setTimeAgoString('');
+      }
+    }, [lastCheckin]);
+
 
     if (isLoading) {
         return <div>Loading check-ins...</div>;
@@ -53,9 +64,9 @@ function UserCheckInsDisplay({ memberId, memberProfiles, allCheckins, isLoading,
                         </Link>
                         <span>{member?.username}</span>
                     </div>
-                    {lastCheckin && (
+                    {timeAgoString && (
                         <p className="text-xs text-muted-foreground mr-4">
-                            Last updated: {timeAgo(lastCheckin.createdAt)}
+                            Last updated: {timeAgoString}
                         </p>
                     )}
                 </div>
