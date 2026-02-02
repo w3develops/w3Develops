@@ -347,33 +347,6 @@ export default function UserProfilePage({ params }: { params: { userId: string }
         </CardHeader>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-            <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl"><BrainCircuit className="w-5 h-5" /> Mentoring Skills</CardTitle>
-            </CardHeader>
-            <CardContent>
-            {userProfile.mentoringSkills && userProfile.mentoringSkills.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                {userProfile.mentoringSkills.map(skill => <Badge key={skill}>{skill}</Badge>)}
-                </div>
-            ) : <p className="text-sm text-muted-foreground">No mentoring skills listed yet.</p>}
-            </CardContent>
-        </Card>
-        <Card>
-            <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl"><BrainCircuit className="w-5 h-5" /> Seeking Skills</CardTitle>
-            </CardHeader>
-            <CardContent>
-            {userProfile.seekingSkills && userProfile.seekingSkills.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                {userProfile.seekingSkills.map(skill => <Badge key={skill}>{skill}</Badge>)}
-                </div>
-            ) : <p className="text-sm text-muted-foreground">No skills being sought yet.</p>}
-            </CardContent>
-        </Card>
-      </div>
-
        <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><BrainCircuit className="mr-2" />Skills</CardTitle>

@@ -42,7 +42,7 @@ function MentorshipSetupForm({ user, userProfile }: { user: any, userProfile: Us
         setIsSubmitting(true);
         
         const existingSkills = userProfile.skills || [];
-        const combinedSkills = [...new Set([...existingSkills, ...mentoringSkills])];
+        const combinedSkills = [...new Set([...existingSkills, ...mentoringSkills, ...seekingSkills])];
 
         try {
             await updateDoc(userDocRef, {
@@ -180,6 +180,32 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
     const { data: mentors, isLoading: mentorsLoading } = useCollection<UserProfile>(mentorsQuery);
     const { data: mentees, isLoading: menteesLoading } = useCollection<UserProfile>(menteesQuery);
 
+    const outgoingRequestsQuery = useMemo(() => {
+        if (!currentUserProfile.id) return null;
+        return query(
+            collection(firestore, 'mentorshipRequests'),
+            where('fromUid', '==', currentUserProfile.id),
+            where('status', '==', 'pending')
+        );
+    }, [firestore, currentUserProfile.id]);
+
+    const incomingRequestsQuery = useMemo(() => {
+        if (!currentUserProfile.id) return null;
+        return query(
+            collection(firestore, 'mentorshipRequests'),
+            where('toUid', '==', currentUserProfile.id),
+            where('status', '==', 'pending')
+        );
+    }, [firestore, currentUserProfile.id]);
+
+    const { data: outgoingRequests, isLoading: outgoingLoading } = useCollection<MentorshipRequest>(outgoingRequestsQuery);
+    const { data: incomingRequests, isLoading: incomingLoading } = useCollection<MentorshipRequest>(incomingRequestsQuery);
+    
+    const allPendingRequests = useMemo(() => {
+        return [...(outgoingRequests || []), ...(incomingRequests || [])];
+    }, [outgoingRequests, incomingRequests]);
+
+
     const handleRequest = async (targetUser: UserProfile, type: MentorshipRequest['type']) => {
         try {
             const requestsCollection = collection(firestore, 'mentorshipRequests');
@@ -198,32 +224,41 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
         }
     };
     
-    const UserList = ({ users, type }: { users: UserProfile[] | null, type: 'mentor' | 'mentee' }) => {
+    const UserList = ({ users, type, pendingRequests }: { users: UserProfile[] | null, type: 'mentor' | 'mentee', pendingRequests: MentorshipRequest[] }) => {
         if (!users || users.length === 0) {
             return <p className="text-muted-foreground text-center py-8">No {type}s found matching your criteria.</p>
         }
 
         return (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {users.filter(u => u.id !== currentUserProfile.id).map(user => (
-                    <Card key={user.id}>
-                        <CardHeader className="flex-row items-center gap-4">
-                            <Link href={`/users/${user.id}`}><Avatar><AvatarImage src={user.profilePictureUrl} /><AvatarFallback>{user.username.charAt(0)}</AvatarFallback></Avatar></Link>
-                            <div>
-                                <Link href={`/users/${user.id}`}><CardTitle className="text-base line-clamp-1">{user.username}</CardTitle></Link>
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                    {(type === 'mentor' ? user.mentoringSkills : user.seekingSkills)?.slice(0, 3).map(skill => <Badge key={skill} variant="secondary">{skill}</Badge>)}
+                {users.filter(u => u.id !== currentUserProfile.id).map(user => {
+                    const hasPendingRequest = pendingRequests.some(req => req.fromUid === user.id || req.toUid === user.id);
+                    return (
+                        <Card key={user.id}>
+                            <CardHeader className="flex-row items-center gap-4">
+                                <Link href={`/users/${user.id}`}><Avatar><AvatarImage src={user.profilePictureUrl} /><AvatarFallback>{user.username.charAt(0)}</AvatarFallback></Avatar></Link>
+                                <div>
+                                    <Link href={`/users/${user.id}`}><CardTitle className="text-base line-clamp-1">{user.username}</CardTitle></Link>
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                        {(type === 'mentor' ? user.mentoringSkills : user.seekingSkills)?.slice(0, 3).map(skill => <Badge key={skill} variant="secondary">{skill}</Badge>)}
+                                    </div>
                                 </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                             <Button className="w-full" onClick={() => handleRequest(user, type === 'mentor' ? 'seeking_mentor' : 'seeking_mentee' )}>Request</Button>
-                        </CardContent>
-                    </Card>
-                ))}
+                            </CardHeader>
+                            <CardContent>
+                                {hasPendingRequest ? (
+                                    <Button className="w-full" disabled>Pending</Button>
+                                ) : (
+                                    <Button className="w-full" onClick={() => handleRequest(user, type === 'mentor' ? 'seeking_mentor' : 'seeking_mentee' )}>Request</Button>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )
+                })}
             </div>
         )
     };
+
+    const isLoading = mentorsLoading || menteesLoading || outgoingLoading || incomingLoading;
 
     return (
         <Card>
@@ -232,11 +267,11 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
                 <CardDescription>Browse and filter to find the right person to connect with.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                 <div className="flex gap-2">
-                    <Search className="absolute left-9 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                 <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Select value={skillFilter} onValueChange={(value) => setSkillFilter(value === 'all-skills' ? '' : value)}>
-                        <SelectTrigger><SelectValue placeholder="Filter by skill..." /></SelectTrigger>
-                        <SelectContent className="max-h-96">
+                        <SelectTrigger className="pl-10"><SelectValue placeholder="Filter by skill..." /></SelectTrigger>
+                        <SelectContent className="max-h-96 overflow-y-auto">
                             <SelectItem value="all-skills">All Skills</SelectItem>
                             {topics.map(topic => (
                                 <SelectItem key={topic} value={topic}>{topic}</SelectItem>
@@ -250,10 +285,10 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
                         <TabsTrigger value="mentees">Find a Mentee</TabsTrigger>
                     </TabsList>
                     <TabsContent value="mentors" className="pt-4">
-                        {mentorsLoading ? <p>Loading mentors...</p> : <UserList users={mentors} type="mentor" />}
+                        {isLoading ? <p>Loading mentors...</p> : <UserList users={mentors} type="mentor" pendingRequests={allPendingRequests} />}
                     </TabsContent>
                     <TabsContent value="mentees" className="pt-4">
-                        {menteesLoading ? <p>Loading mentees...</p> : <UserList users={mentees} type="mentee" />}
+                        {isLoading ? <p>Loading mentees...</p> : <UserList users={mentees} type="mentee" pendingRequests={allPendingRequests}/>}
                     </TabsContent>
                  </Tabs>
             </CardContent>
