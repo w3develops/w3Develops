@@ -269,6 +269,14 @@ export default function UserProfilePage({ params }: { params: { userId: string }
     fetchUserProfile();
   }, [userId, firestore]);
   
+  const mentorshipBadge = useMemo(() => {
+    if (!userProfile) return null;
+    if (userProfile.mentorshipRole === 'mentor') return <Badge variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Mentor</Badge>;
+    if (userProfile.mentorshipRole === 'mentee') return <Badge variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Mentee</Badge>;
+    if (userProfile.mentorshipRole === 'both') return <Badge variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Mentor & Mentee</Badge>;
+    return null;
+  }, [userProfile]);
+
   if (isProfileLoading) {
     return (
         <div className="p-4 md:p-10">
@@ -282,13 +290,6 @@ export default function UserProfilePage({ params }: { params: { userId: string }
   }
   
   const showFollowInfo = isOwner || !userProfile.followInfoPrivate;
-  
-  const mentorshipBadge = useMemo(() => {
-    if (userProfile.mentorshipRole === 'mentor') return <Badge variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Mentor</Badge>;
-    if (userProfile.mentorshipRole === 'mentee') return <Badge variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Mentee</Badge>;
-    if (userProfile.mentorshipRole === 'both') return <Badge variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Mentor & Mentee</Badge>;
-    return null;
-  }, [userProfile.mentorshipRole]);
 
   return (
     <div className="space-y-8 p-4 md:p-10">
