@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -135,12 +134,12 @@ export default function DonatePage() {
                                 <Input 
                                     type="text" 
                                     readOnly 
-                                    value="https://cash.app/$LearnToCode" 
+                                    value="$LearnToCode" 
                                     className="font-mono text-sm bg-muted"
                                 />
-                                <Button variant="outline" size="icon" onClick={() => handleCopy('https://cash.app/$LearnToCode')}>
+                                <Button variant="outline" size="icon" onClick={() => handleCopy('$LearnToCode')}>
                                     <Copy className="h-4 w-4" />
-                                    <span className="sr-only">Copy Cash App URL</span>
+                                    <span className="sr-only">Copy Cash App username</span>
                                 </Button>
                             </div>
                         </div>
