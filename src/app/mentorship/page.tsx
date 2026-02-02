@@ -180,30 +180,31 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
     const { data: mentors, isLoading: mentorsLoading } = useCollection<UserProfile>(mentorsQuery);
     const { data: mentees, isLoading: menteesLoading } = useCollection<UserProfile>(menteesQuery);
 
-    const outgoingRequestsQuery = useMemo(() => {
+    const requestsSentQuery = useMemo(() => {
         if (!currentUserProfile.id) return null;
         return query(
             collection(firestore, 'mentorshipRequests'),
-            where('fromUid', '==', currentUserProfile.id),
-            where('status', '==', 'pending')
+            where('fromUid', '==', currentUserProfile.id)
         );
     }, [firestore, currentUserProfile.id]);
 
-    const incomingRequestsQuery = useMemo(() => {
+    const requestsReceivedQuery = useMemo(() => {
         if (!currentUserProfile.id) return null;
         return query(
             collection(firestore, 'mentorshipRequests'),
-            where('toUid', '==', currentUserProfile.id),
-            where('status', '==', 'pending')
+            where('toUid', '==', currentUserProfile.id)
         );
     }, [firestore, currentUserProfile.id]);
 
-    const { data: outgoingRequests, isLoading: outgoingLoading } = useCollection<MentorshipRequest>(outgoingRequestsQuery);
-    const { data: incomingRequests, isLoading: incomingLoading } = useCollection<MentorshipRequest>(incomingRequestsQuery);
-    
-    const allPendingRequests = useMemo(() => {
-        return [...(outgoingRequests || []), ...(incomingRequests || [])];
-    }, [outgoingRequests, incomingRequests]);
+    const { data: sentRequests, isLoading: sentLoading } = useCollection<MentorshipRequest>(requestsSentQuery);
+    const { data: receivedRequests, isLoading: receivedLoading } = useCollection<MentorshipRequest>(requestsReceivedQuery);
+
+    const allRequests = useMemo(() => {
+        const combined = new Map<string, MentorshipRequest>();
+        (sentRequests || []).forEach(req => combined.set(req.id, req));
+        (receivedRequests || []).forEach(req => combined.set(req.id, req));
+        return Array.from(combined.values());
+    }, [sentRequests, receivedRequests]);
 
 
     const handleRequest = async (targetUser: UserProfile, type: MentorshipRequest['type']) => {
@@ -224,7 +225,7 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
         }
     };
     
-    const UserList = ({ users, type, pendingRequests }: { users: UserProfile[] | null, type: 'mentor' | 'mentee', pendingRequests: MentorshipRequest[] }) => {
+    const UserList = ({ users, type, allRequests }: { users: UserProfile[] | null, type: 'mentor' | 'mentee', allRequests: MentorshipRequest[] }) => {
         if (!users || users.length === 0) {
             return <p className="text-muted-foreground text-center py-8">No {type}s found matching your criteria.</p>
         }
@@ -232,7 +233,35 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
         return (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {users.filter(u => u.id !== currentUserProfile.id).map(user => {
-                    const hasPendingRequest = pendingRequests.some(req => req.fromUid === user.id || req.toUid === user.id);
+                    const relevantRequest = allRequests.find(req => 
+                        (req.fromUid === currentUserProfile.id && req.toUid === user.id) || 
+                        (req.fromUid === user.id && req.toUid === currentUserProfile.id)
+                    );
+
+                    const mentorshipId = [currentUserProfile.id, user.id].sort().join('_');
+                    const isConnected = currentUserProfile.mentorshipIds?.includes(mentorshipId);
+
+                    let button;
+                    if (isConnected) {
+                        button = <Button className="w-full" disabled variant="secondary">Connected</Button>;
+                    } else if (relevantRequest) {
+                        switch(relevantRequest.status) {
+                            case 'pending':
+                                button = <Button className="w-full" disabled>Pending</Button>;
+                                break;
+                            case 'accepted':
+                                button = <Button className="w-full" disabled variant="secondary">Accepted</Button>;
+                                break;
+                            case 'declined':
+                                button = <Button className="w-full" disabled variant="outline">Declined</Button>;
+                                break;
+                            default:
+                                button = <Button className="w-full" onClick={() => handleRequest(user, type === 'mentor' ? 'seeking_mentor' : 'seeking_mentee' )}>Request</Button>;
+                        }
+                    } else {
+                        button = <Button className="w-full" onClick={() => handleRequest(user, type === 'mentor' ? 'seeking_mentor' : 'seeking_mentee' )}>Request</Button>;
+                    }
+
                     return (
                         <Card key={user.id}>
                             <CardHeader className="flex-row items-center gap-4">
@@ -245,11 +274,7 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                {hasPendingRequest ? (
-                                    <Button className="w-full" disabled>Pending</Button>
-                                ) : (
-                                    <Button className="w-full" onClick={() => handleRequest(user, type === 'mentor' ? 'seeking_mentor' : 'seeking_mentee' )}>Request</Button>
-                                )}
+                                {button}
                             </CardContent>
                         </Card>
                     )
@@ -258,7 +283,7 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
         )
     };
 
-    const isLoading = mentorsLoading || menteesLoading || outgoingLoading || incomingLoading;
+    const isLoading = mentorsLoading || menteesLoading || sentLoading || receivedLoading;
 
     return (
         <Card>
@@ -285,10 +310,10 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
                         <TabsTrigger value="mentees">Find a Mentee</TabsTrigger>
                     </TabsList>
                     <TabsContent value="mentors" className="pt-4">
-                        {isLoading ? <p>Loading mentors...</p> : <UserList users={mentors} type="mentor" pendingRequests={allPendingRequests} />}
+                        {isLoading ? <p>Loading mentors...</p> : <UserList users={mentors} type="mentor" allRequests={allRequests} />}
                     </TabsContent>
                     <TabsContent value="mentees" className="pt-4">
-                        {isLoading ? <p>Loading mentees...</p> : <UserList users={mentees} type="mentee" pendingRequests={allPendingRequests}/>}
+                        {isLoading ? <p>Loading mentees...</p> : <UserList users={mentees} type="mentee" allRequests={allRequests}/>}
                     </TabsContent>
                  </Tabs>
             </CardContent>
