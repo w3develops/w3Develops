@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { X, BrainCircuit, Search, GraduationCap } from "lucide-react";
 import { UserProfile, MentorshipRole, MentorshipStatus, MentorshipRequest } from "@/lib/types";
-import { doc, DocumentReference, updateDoc, writeBatch, serverTimestamp, collection, addDoc, query, where, Timestamp } from "firebase/firestore";
+import { doc, DocumentReference, updateDoc, writeBatch, serverTimestamp, collection, addDoc, query, where, Timestamp, documentId } from "firebase/firestore";
 import { useToast } from "@/components/ui/use-toast";
 import { topics } from "@/lib/constants";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -143,6 +143,69 @@ function MentorshipSetupForm({ user, userProfile }: { user: any, userProfile: Us
                 )}
                 
                 <Button onClick={handleUpdate} disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Save Profile'}</Button>
+            </CardContent>
+        </Card>
+    )
+}
+
+function CurrentConnections({ user, userProfile }: { user: any, userProfile: UserProfile }) {
+    const firestore = useFirestore();
+    
+    const { data: mentors, isLoading: isLoadingMentors } = useCollection<UserProfile>(
+        userProfile.mentorIds && userProfile.mentorIds.length > 0 
+        ? query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.mentorIds.slice(0, 10))) 
+        : null
+    );
+
+    const { data: mentees, isLoading: isLoadingMentees } = useCollection<UserProfile>(
+        userProfile.menteeIds && userProfile.menteeIds.length > 0
+        ? query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.menteeIds.slice(0, 10)))
+        : null
+    );
+
+    if (!userProfile.mentorIds?.length && !userProfile.menteeIds?.length) {
+        return null;
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Your Connections</CardTitle>
+                <CardDescription>Your current mentors and mentees.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 className="font-semibold mb-2">Your Mentors</h3>
+                        {isLoadingMentors ? <p>Loading...</p> : mentors && mentors.length > 0 ? (
+                           <ul className="divide-y">
+                                {mentors.map(m => {
+                                    const mentorshipId = [user.uid, m.id].sort().join('_');
+                                    return (
+                                        <li key={m.id} className="py-2">
+                                            <Link href={`/mentorships/${mentorshipId}`} className="font-medium hover:underline">{m.username}</Link>
+                                        </li>
+                                    )
+                                })}
+                           </ul>
+                        ) : <p className="text-sm text-muted-foreground">You have no mentors yet.</p>}
+                    </div>
+                     <div>
+                        <h3 className="font-semibold mb-2">Your Mentees</h3>
+                         {isLoadingMentees ? <p>Loading...</p> : mentees && mentees.length > 0 ? (
+                           <ul className="divide-y">
+                                {mentees.map(m => {
+                                    const mentorshipId = [user.uid, m.id].sort().join('_');
+                                    return (
+                                        <li key={m.id} className="py-2">
+                                            <Link href={`/mentorships/${mentorshipId}`} className="font-medium hover:underline">{m.username}</Link>
+                                        </li>
+                                    )
+                                })}
+                           </ul>
+                        ) : <p className="text-sm text-muted-foreground">You have no mentees yet.</p>}
+                    </div>
+                </div>
             </CardContent>
         </Card>
     )
@@ -355,6 +418,7 @@ export default function MentorshipPage() {
                 </p>
             </div>
             <MentorshipSetupForm user={user} userProfile={userProfile} />
+            <CurrentConnections user={user} userProfile={userProfile} />
             <MentorshipFinder currentUserProfile={userProfile} />
         </div>
     );
