@@ -19,6 +19,8 @@ import SubmitSoloProjectForm from '@/components/forms/SubmitSoloProjectForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { JoinBookClubModal } from '@/components/modals/JoinBookClubModal';
 import { useToast } from '@/components/ui/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 function AccountPageSkeleton() {
   return (
@@ -112,16 +114,26 @@ function MentorshipManagement({ user, userProfile }: { user: any, userProfile: U
             batch.update(currentUserRef, { mentorshipIds: arrayUnion(mentorshipId) });
         }
         
-        try {
-            await batch.commit();
-            toast({ title: `Request ${newStatus}` });
-        } catch (error: any) {
-            console.error("Error handling mentorship request:", error);
-            const errorMessage = error.message 
-                ? `Firebase: ${error.message}` 
-                : `Could not update request. This may be due to a permissions issue. Error: ${JSON.stringify(error)}`;
-            toast({ variant: 'destructive', title: "Error", description: errorMessage, duration: 10000 });
-        }
+        batch.commit()
+            .then(() => {
+                toast({ title: `Request ${newStatus}` });
+            })
+            .catch(async (serverError) => {
+                console.error("Error handling mentorship request:", serverError);
+                // Create a generic context for batch writes as it can affect multiple docs
+                const permissionError = new FirestorePermissionError({
+                    path: `batch write for mentorship request ${request.id}`,
+                    operation: 'update',
+                    requestResourceData: { status: newStatus },
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                toast({
+                    variant: 'destructive',
+                    title: "Error",
+                    description: "Failed to accept request due to a permission issue.",
+                    duration: 10000
+                });
+            });
     };
     
     const { data: mentors } = useCollection<UserProfile>(
