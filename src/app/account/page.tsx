@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
@@ -358,6 +357,8 @@ export default function AccountPage() {
           </Card>
 
         </div>
+        
+        <MentorshipManagement user={user} userProfile={userProfile} />
 
         <Card>
             <CardHeader>
@@ -417,8 +418,6 @@ export default function AccountPage() {
                 </Tabs>
             </CardContent>
         </Card>
-        
-        <MentorshipManagement user={user} userProfile={userProfile} />
 
       </div>
     </div>
