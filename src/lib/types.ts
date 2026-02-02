@@ -52,6 +52,7 @@ export interface UserProfile {
   seekingSkills?: string[];
   mentorIds?: string[];
   menteeIds?: string[];
+  mentorshipIds?: string[];
 }
 
 export interface GroupProject {
@@ -161,4 +162,12 @@ export interface MentorshipRequest {
     type: 'seeking_mentor' | 'seeking_mentee';
     status: 'pending' | 'accepted' | 'declined';
     createdAt: Timestamp;
+}
+
+export interface Mentorship {
+  id: string;
+  memberIds: string[];
+  mentorId: string;
+  menteeId: string;
+  createdAt: Timestamp;
 }

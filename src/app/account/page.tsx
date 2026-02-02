@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
 import { useMemo, useEffect, useState } from 'react';
-import { doc, DocumentReference, collection, query, where, Query, documentId, writeBatch, arrayUnion, updateDoc } from 'firebase/firestore';
+import { doc, DocumentReference, collection, query, where, Query, documentId, writeBatch, arrayUnion, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -82,13 +83,33 @@ function MentorshipManagement({ user, userProfile }: { user: any, userProfile: U
             const requesterRef = doc(firestore, 'users', request.fromUid);
             const currentUserRef = doc(firestore, 'users', user.uid);
 
+            const sortedUserIds = [request.fromUid, user.uid].sort();
+            const mentorshipId = sortedUserIds.join('_');
+            const mentorshipRef = doc(firestore, 'mentorships', mentorshipId);
+
+            let mentorId, menteeId;
             if (request.type === 'seeking_mentor') { // Requester wants ME to be their mentor
+                mentorId = user.uid;
+                menteeId = request.fromUid;
                 batch.update(requesterRef, { mentorIds: arrayUnion(user.uid) });
                 batch.update(currentUserRef, { menteeIds: arrayUnion(request.fromUid) });
             } else { // Requester wants to be MY mentor
+                mentorId = request.fromUid;
+                menteeId = user.uid;
                 batch.update(requesterRef, { menteeIds: arrayUnion(user.uid) });
                 batch.update(currentUserRef, { mentorIds: arrayUnion(request.fromUid) });
             }
+
+            batch.set(mentorshipRef, {
+                id: mentorshipId,
+                memberIds: sortedUserIds,
+                mentorId: mentorId,
+                menteeId: menteeId,
+                createdAt: serverTimestamp()
+            });
+
+            batch.update(requesterRef, { mentorshipIds: arrayUnion(mentorshipId) });
+            batch.update(currentUserRef, { mentorshipIds: arrayUnion(mentorshipId) });
         }
         
         try {
@@ -144,7 +165,14 @@ function MentorshipManagement({ user, userProfile }: { user: any, userProfile: U
                         <h3 className="font-semibold mb-2">Your Mentors</h3>
                         {mentors && mentors.length > 0 ? (
                            <ul className="divide-y">
-                                {mentors.map(m => <li key={m.id} className="py-2"><Link href={`/users/${m.id}`} className="font-medium hover:underline">{m.username}</Link></li>)}
+                                {mentors.map(m => {
+                                    const mentorshipId = [user.uid, m.id].sort().join('_');
+                                    return (
+                                        <li key={m.id} className="py-2">
+                                            <Link href={`/mentorships/${mentorshipId}`} className="font-medium hover:underline">{m.username}</Link>
+                                        </li>
+                                    )
+                                })}
                            </ul>
                         ) : <p className="text-sm text-muted-foreground">You have no mentors yet.</p>}
                     </div>
@@ -152,7 +180,14 @@ function MentorshipManagement({ user, userProfile }: { user: any, userProfile: U
                         <h3 className="font-semibold mb-2">Your Mentees</h3>
                          {mentees && mentees.length > 0 ? (
                            <ul className="divide-y">
-                                {mentees.map(m => <li key={m.id} className="py-2"><Link href={`/users/${m.id}`} className="font-medium hover:underline">{m.username}</Link></li>)}
+                                {mentees.map(m => {
+                                    const mentorshipId = [user.uid, m.id].sort().join('_');
+                                    return (
+                                        <li key={m.id} className="py-2">
+                                            <Link href={`/mentorships/${mentorshipId}`} className="font-medium hover:underline">{m.username}</Link>
+                                        </li>
+                                    )
+                                })}
                            </ul>
                         ) : <p className="text-sm text-muted-foreground">You have no mentees yet.</p>}
                     </div>

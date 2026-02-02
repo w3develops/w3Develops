@@ -20,18 +20,24 @@ service cloud.firestore {
        return request.auth != null && get(/databases/$(database)/documents/groupProjects/$(groupProjectId)).data.memberIds.hasAny([request.auth.uid]);
     }
 
+    function isMentorshipMember(mentorshipId) {
+      return request.auth != null && get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data.memberIds.hasAny([request.auth.uid]);
+    }
+
     function isAddingSelfToList(listAfter, listBefore) {
-      // True if the user is adding themselves to a list and not already in it.
-      return listAfter.size() == listBefore.size() + 1
+      return request.auth != null
+             && listAfter.size() == listBefore.size() + 1
              && listAfter.hasAll(listBefore)
+             && listAfter.hasAny([request.auth.uid])
              && !listBefore.hasAny([request.auth.uid]);
     }
 
     function isRemovingSelfFromList(listAfter, listBefore) {
-      // True if the user is removing themselves from a list they were previously in.
-      return listBefore.size() == listAfter.size() + 1
+      return request.auth != null
+             && listBefore.size() == listAfter.size() + 1
              && listBefore.hasAll(listAfter)
-             && listBefore.hasAny([request.auth.uid]);
+             && listBefore.hasAny([request.auth.uid])
+             && !listAfter.hasAny([request.auth.uid]);
     }
 
     match /users/{userId} {
@@ -39,21 +45,27 @@ service cloud.firestore {
       allow create: if isOwner(userId);
       allow delete: if isOwner(userId);
       allow update: if
-        isOwner(userId) || (request.auth.uid != userId && (
+        isOwner(userId) || (
+          request.auth.uid != userId &&
+          request.resource.data.diff(resource.data).affectedKeys().size() == 1 &&
           (
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
-            (isAddingSelfToList(request.resource.data.followers, resource.data.get('followers', [])) || 
-             isRemovingSelfFromList(request.resource.data.followers, resource.data.get('followers', [])))
-          ) ||
-          (
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mentorIds']) &&
-            isAddingSelfToList(request.resource.data.mentorIds, resource.data.get('mentorIds', []))
-          ) ||
-          (
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['menteeIds']) &&
-            isAddingSelfToList(request.resource.data.menteeIds, resource.data.get('menteeIds', []))
+            (
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
+              (isAddingSelfToList(request.resource.data.followers, resource.data.get('followers', [])) ||
+               isRemovingSelfFromList(request.resource.data.followers, resource.data.get('followers', [])))
+            ) ||
+            (
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mentorIds']) &&
+              (isAddingSelfToList(request.resource.data.mentorIds, resource.data.get('mentorIds', [])) ||
+               isRemovingSelfFromList(request.resource.data.mentorIds, resource.data.get('mentorIds', [])))
+            ) ||
+            (
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['menteeIds']) &&
+              (isAddingSelfToList(request.resource.data.menteeIds, resource.data.get('menteeIds', [])) ||
+               isRemovingSelfFromList(request.resource.data.menteeIds, resource.data.get('menteeIds', [])))
+            )
           )
-      ));
+        );
     }
 
     match /usernames/{username} {
@@ -67,6 +79,35 @@ service cloud.firestore {
         allow read: if request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid;
         allow create: if request.auth.uid == request.resource.data.fromUid;
         allow update: if request.auth.uid == resource.data.toUid; // Allow recipient to update status (accept/decline)
+    }
+
+    match /mentorships/{mentorshipId} {
+      allow read: if isMentorshipMember(mentorshipId);
+      allow create: if request.auth != null && request.resource.data.memberIds.hasAny([request.auth.uid]);
+      allow update: if isMentorshipMember(mentorshipId);
+      allow delete: if false;
+
+      match /tasks/{taskId} {
+        allow read: if isMentorshipMember(mentorshipId);
+        allow create: if isMentorshipMember(mentorshipId) 
+                      && request.resource.data.creatorId == request.auth.uid
+                      && request.resource.data.isCompleted == false;
+        allow update: if isMentorshipMember(mentorshipId);
+        allow delete: if isMentorshipMember(mentorshipId) && resource.data.creatorId == request.auth.uid;
+      }
+      
+      match /checkIns/{checkInId} {
+        allow read: if isMentorshipMember(mentorshipId);
+        allow create: if isMentorshipMember(mentorshipId) 
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
+                      && request.resource.data.type in ['daily', 'weekly'];
+        allow update: if isOwner(request.resource.data.userId)
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
+        allow delete: if false;
+      }
     }
 
     match /studyGroups/{groupId} {

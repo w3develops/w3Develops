@@ -203,6 +203,13 @@
           "items": {
             "type": "string"
           }
+        },
+        "mentorshipIds": {
+          "type": "array",
+          "description": "A list of Mentorship IDs this user is part of.",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -580,6 +587,20 @@
         "status",
         "createdAt"
       ]
+    },
+    "Mentorship": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Mentorship",
+      "type": "object",
+      "description": "Represents a mentorship relationship between two users.",
+      "properties": {
+        "id": { "type": "string" },
+        "memberIds": { "type": "array", "items": { "type": "string" } },
+        "mentorId": { "type": "string" },
+        "menteeId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "memberIds", "mentorId", "menteeId", "createdAt"]
     }
   },
   "auth": {
@@ -671,6 +692,18 @@
         "$ref": "#/entities/MentorshipRequest"
       },
       "description": "Stores mentorship requests between users."
+    },
+    "/mentorships/{mentorshipId}": {
+      "schema": { "$ref": "#/entities/Mentorship" },
+      "description": "Stores mentorship session data."
+    },
+    "/mentorships/{mentorshipId}/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/Task" },
+      "description": "Stores tasks for a specific mentorship."
+    },
+    "/mentorships/{mentorshipId}/checkIns/{checkInId}": {
+      "schema": { "$ref": "#/entities/CheckIn" },
+      "description": "Stores check-ins for a specific mentorship."
     }
   }
 }
