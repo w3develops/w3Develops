@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,14 +38,19 @@ function MentorshipSetupForm({ user, userProfile }: { user: any, userProfile: Us
     }, [user, firestore]);
 
     const handleUpdate = async () => {
-        if (!userDocRef) return;
+        if (!userDocRef || !userProfile) return;
         setIsSubmitting(true);
+        
+        const existingSkills = userProfile.skills || [];
+        const combinedSkills = [...new Set([...existingSkills, ...mentoringSkills])];
+
         try {
             await updateDoc(userDocRef, {
                 mentorshipRole: role,
                 mentorshipStatus: status,
                 mentoringSkills: mentoringSkills,
                 seekingSkills: seekingSkills,
+                skills: combinedSkills,
             });
             toast({ title: "Success", description: "Your mentorship profile has been updated." });
         } catch (error: any) {
@@ -206,7 +210,7 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
                         <CardHeader className="flex-row items-center gap-4">
                             <Link href={`/users/${user.id}`}><Avatar><AvatarImage src={user.profilePictureUrl} /><AvatarFallback>{user.username.charAt(0)}</AvatarFallback></Avatar></Link>
                             <div>
-                                <Link href={`/users/${user.id}`}><CardTitle>{user.username}</CardTitle></Link>
+                                <Link href={`/users/${user.id}`}><CardTitle className="text-base line-clamp-1">{user.username}</CardTitle></Link>
                                 <div className="flex flex-wrap gap-1 mt-2">
                                     {(type === 'mentor' ? user.mentoringSkills : user.seekingSkills)?.slice(0, 3).map(skill => <Badge key={skill} variant="secondary">{skill}</Badge>)}
                                 </div>
@@ -232,7 +236,7 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
                     <Search className="absolute left-9 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Select value={skillFilter} onValueChange={(value) => setSkillFilter(value === 'all-skills' ? '' : value)}>
                         <SelectTrigger><SelectValue placeholder="Filter by skill..." /></SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-96">
                             <SelectItem value="all-skills">All Skills</SelectItem>
                             {topics.map(topic => (
                                 <SelectItem key={topic} value={topic}>{topic}</SelectItem>

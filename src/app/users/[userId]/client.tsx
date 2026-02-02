@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useCollection, useFirestore, useUser } from '@/firebase';
@@ -374,6 +373,21 @@ export default function UserProfilePage({ params }: { params: { userId: string }
             </CardContent>
         </Card>
       </div>
+
+       <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><BrainCircuit className="mr-2" />Skills</CardTitle>
+        </CardHeader>
+        <CardContent>
+            {userProfile.skills && userProfile.skills.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {userProfile.skills.map(skill => (
+                  <Badge key={skill}>{skill}</Badge>
+                ))}
+              </div>
+            ) : <p className="text-sm text-muted-foreground">No skills have been added yet.</p>}
+        </CardContent>
+      </Card>
       
       {userId && <UserActivity userId={userId} />}
       
