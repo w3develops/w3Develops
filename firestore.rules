@@ -33,23 +33,36 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if true;
-      allow create: if request.auth.uid == userId;
+      allow create: if isOwner(userId);
       allow delete: if isOwner(userId);
       allow update: if
-        // Case 1: The user is updating their OWN document. This is permissive for now to allow profile edits and list management.
+        // Case 1: The user is updating their OWN document.
         isOwner(userId)
       ||
         // Case 2: A non-owner is updating THIS user's document.
         (
-          request.auth != null && (
+          request.auth != null && request.auth.uid != userId &&
+          (
             // Allow another user to add/remove THEMSELVES from THIS user's followers list
             (
-                (isAddingToList(resource.data.followers, request.resource.data.followers) && request.resource.data.followers.hasAny([request.auth.uid])) ||
-                (isRemovingFromList(resource.data.followers, request.resource.data.followers) && !request.resource.data.followers.hasAny([request.auth.uid]))
+                request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
+                (
+                    (isAddingToList(resource.data.followers, request.resource.data.followers) && request.resource.data.followers.hasAny([request.auth.uid])) ||
+                    (isRemovingFromList(resource.data.followers, request.resource.data.followers) && resource.data.followers.hasAny([request.auth.uid]))
+                )
             ) ||
-            // Allow another user to add THEMSELVES as a mentor/mentee to THIS user's list.
-            (isAddingToList(resource.data.mentorIds, request.resource.data.mentorIds) && request.resource.data.mentorIds.hasAny([request.auth.uid])) ||
-            (isAddingToList(resource.data.menteeIds, request.resource.data.menteeIds) && request.resource.data.menteeIds.hasAny([request.auth.uid]))
+            // Allow another user to add THEMSELVES as a mentor to THIS user's list
+            (
+                request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mentorIds']) &&
+                isAddingToList(resource.data.mentorIds, request.resource.data.mentorIds) &&
+                request.resource.data.mentorIds.hasAny([request.auth.uid])
+            ) ||
+            // Allow another user to add THEMSELVES as a mentee to THIS user's list
+            (
+                request.resource.data.diff(resource.data).affectedKeys().hasOnly(['menteeIds']) &&
+                isAddingToList(resource.data.menteeIds, request.resource.data.menteeIds) &&
+                request.resource.data.menteeIds.hasAny([request.auth.uid])
+            )
           )
         );
     }
