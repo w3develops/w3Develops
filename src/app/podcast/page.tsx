@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -71,7 +70,7 @@ export default function PodcastPage() {
                 <CardHeader>
                     <CardTitle className="font-headline text-3xl flex items-center gap-3">
                         <Podcast className="h-8 w-8" />
-                        w3Develops Podcast
+                        w3Develops devTalks Podcast
                     </CardTitle>
                     <CardDescription>
                         Listen to our latest episodes, updated daily from our YouTube channel.
