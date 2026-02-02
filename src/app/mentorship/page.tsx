@@ -434,7 +434,11 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
 
                     let button;
                     if (isConnected) {
-                        button = <Button className="w-full" disabled variant="secondary">Connected</Button>;
+                        button = (
+                            <Button asChild className="w-full" variant="secondary">
+                                <Link href={`/mentorships/${mentorshipId}`}>Dashboard</Link>
+                            </Button>
+                        );
                     } else if (relevantRequest) {
                         switch(relevantRequest.status) {
                             case 'pending':
