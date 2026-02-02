@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import {
 } from "@/components/ui/accordion";
 import { Link2 } from "lucide-react";
 import Link from "next/link";
-import { programmingTheoryResources, webLearningResources, mobileLearningResources, backendLearningResources, databaseResources, cybersecurityResources, aiMachineLearningResources, web3LearningResources, systemsLearningResources } from "@/lib/learning-resources";
+import { programmingTheoryResources, webLearningResources, mobileLearningResources, backendLearningResources, databaseResources, cybersecurityResources, aiMachineLearningResources, web3LearningResources, systemsLearningResources, digitalMarketingResources } from "@/lib/learning-resources";
 
 interface LearningResource {
     topic: string;
@@ -61,6 +62,12 @@ export default function LearnPage() {
                 title="Learn Web Development"
                 description="Curated resources to help you learn and master essential web development skills, from frontend to backend."
                 resources={webLearningResources}
+            />
+
+            <LearningSection 
+                title="Digital Marketing"
+                description="Explore resources to learn about digital marketing strategies and tools."
+                resources={digitalMarketingResources}
             />
 
             <LearningSection 

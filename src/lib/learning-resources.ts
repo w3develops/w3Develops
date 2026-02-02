@@ -117,6 +117,18 @@ export const webLearningResources: LearningResource[] = [
     },
 ];
 
+export const digitalMarketingResources: LearningResource[] = [
+    {
+        topic: "Digital Marketing",
+        description: "A collection of resources to learn digital marketing, from SEO and content marketing to analytics.",
+        links: [
+            { title: "Google Digital Garage", url: "https://skillshop.exceedlms.com/student/catalog/list?category_ids=7879-google-digital-garage" },
+            { title: "HubSpot Academy", url: "https://academy.hubspot.com" },
+            { title: "Semrush Academy", url: "https://www.semrush.com/academy/" }
+        ]
+    }
+];
+
 export const mobileLearningResources: LearningResource[] = [
     {
         topic: "React Native",
