@@ -21,7 +21,7 @@ service cloud.firestore {
     }
 
     function isMentorshipMember(mentorshipId) {
-      return request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
+      return request.auth != null && get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data.memberIds.hasAny([request.auth.uid]);
     }
 
     function isAddingSelfToList(listAfter, listBefore) {
