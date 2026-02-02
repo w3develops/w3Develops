@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,17 +46,25 @@ function MentorshipSetupForm({ user, userProfile }: { user: any, userProfile: Us
         const existingSkills = userProfile.skills || [];
         const combinedSkills = [...new Set([...existingSkills, ...mentoringSkills, ...seekingSkills])];
 
+        const updateData = {
+            mentorshipRole: role,
+            mentorshipStatus: status,
+            mentoringSkills: mentoringSkills,
+            seekingSkills: seekingSkills,
+            skills: combinedSkills,
+        };
+
         try {
-            await updateDoc(userDocRef, {
-                mentorshipRole: role,
-                mentorshipStatus: status,
-                mentoringSkills: mentoringSkills,
-                seekingSkills: seekingSkills,
-                skills: combinedSkills,
-            });
+            await updateDoc(userDocRef, updateData);
             toast({ title: "Success", description: "Your mentorship profile has been updated." });
         } catch (error: any) {
-            toast({ variant: 'destructive', title: "Error", description: error.message });
+             const permissionError = new FirestorePermissionError({
+                path: userDocRef.path,
+                operation: 'update',
+                requestResourceData: updateData,
+              } satisfies SecurityRuleContext);
+            errorEmitter.emit('permission-error', permissionError);
+            toast({ variant: 'destructive', title: "Error", description: "Could not update profile due to permissions." });
         } finally {
             setIsSubmitting(false);
         }
@@ -254,7 +261,7 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
         );
     }, [firestore, currentUserProfile.id]);
 
-    const requestsReceivedQuery = useMemo(() => {
+    const receivedRequestsQuery = useMemo(() => {
         if (!currentUserProfile.id) return null;
         return query(
             collection(firestore, 'mentorshipRequests'),
@@ -263,7 +270,7 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
     }, [firestore, currentUserProfile.id]);
 
     const { data: sentRequests, isLoading: sentLoading } = useCollection<MentorshipRequest>(requestsSentQuery);
-    const { data: receivedRequests, isLoading: receivedLoading } = useCollection<MentorshipRequest>(requestsReceivedQuery);
+    const { data: receivedRequests, isLoading: receivedLoading } = useCollection<MentorshipRequest>(receivedRequestsQuery);
 
     const allRequests = useMemo(() => {
         const combined = new Map<string, MentorshipRequest>();
@@ -273,7 +280,7 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
     }, [sentRequests, receivedRequests]);
 
 
-    const handleRequest = (targetUser: UserProfile, type: MentorshipRequest['type']) => {
+    const handleRequest = async (targetUser: UserProfile, type: MentorshipRequest['type']) => {
         const requestsCollection = collection(firestore, 'mentorshipRequests');
         const requestData = {
             fromUid: currentUserProfile.id,
@@ -282,26 +289,24 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
             toUsername: targetUser.username,
             type: type,
             status: 'pending' as const,
-            createdAt: serverTimestamp(),
         };
 
-        addDoc(requestsCollection, requestData)
-            .then(() => {
-                toast({ title: "Request Sent!", description: `Your mentorship request has been sent to ${targetUser.username}.`})
-            })
-            .catch(async (serverError) => {
-                const permissionError = new FirestorePermissionError({
-                    path: requestsCollection.path,
-                    operation: 'create',
-                    requestResourceData: requestData,
-                } satisfies SecurityRuleContext);
-                errorEmitter.emit('permission-error', permissionError);
-                toast({
-                    variant: 'destructive',
-                    title: "Error Sending Request",
-                    description: "Could not send request. This might be a permission issue.",
-                });
+        try {
+            await addDoc(requestsCollection, { ...requestData, createdAt: serverTimestamp() });
+            toast({ title: "Request Sent!", description: `Your mentorship request has been sent to ${targetUser.username}.`})
+        } catch (serverError) {
+            const permissionError = new FirestorePermissionError({
+                path: requestsCollection.path,
+                operation: 'create',
+                requestResourceData: requestData,
+            } satisfies SecurityRuleContext);
+            errorEmitter.emit('permission-error', permissionError);
+            toast({
+                variant: 'destructive',
+                title: "Error Sending Request",
+                description: "Could not send request. This might be a permission issue.",
             });
+        }
     };
     
     const UserList = ({ users, type, allRequests }: { users: UserProfile[] | null, type: 'mentor' | 'mentee', allRequests: MentorshipRequest[] }) => {
@@ -420,7 +425,7 @@ export default function MentorshipPage() {
 
     const isLoading = isUserLoading || isProfileLoading;
 
-    if (isLoading || !userProfile) {
+    if (isLoading || !userProfile || !user) {
         return <LoadingSkeleton />;
     }
 
