@@ -20,17 +20,6 @@ service cloud.firestore {
        return request.auth != null && get(/databases/$(database)/documents/groupProjects/$(groupProjectId)).data.memberIds.hasAny([request.auth.uid]);
     }
 
-    function isAddingToList(list, newList) {
-      // Handles adding the first item to a non-existent list
-      return (list == null && newList.size() == 1) || 
-             (list != null && newList.size() == list.size() + 1 && newList.hasAll(list));
-    }
-
-    function isRemovingFromList(list, newList) {
-      // Can't remove from a list that doesn't exist or is already empty
-      return list != null && list.size() > 0 && newList.size() == list.size() - 1 && list.hasAll(newList);
-    }
-
     match /users/{userId} {
       allow read: if true;
       allow create: if isOwner(userId);
@@ -40,28 +29,34 @@ service cloud.firestore {
         isOwner(userId)
       ||
         // Case 2: A non-owner is updating THIS user's document.
+        // This is only allowed for specific list-update operations (follow, mentor, mentee).
         (
           request.auth != null && request.auth.uid != userId &&
           (
-            // Allow another user to add/remove THEMSELVES from THIS user's followers list
+            // Allow adding/removing self from followers.
             (
                 request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
                 (
-                    (isAddingToList(resource.data.followers, request.resource.data.followers) && request.resource.data.followers.hasAny([request.auth.uid])) ||
-                    (isRemovingFromList(resource.data.followers, request.resource.data.followers) && resource.data.followers.hasAny([request.auth.uid]))
+                    (resource.data.followers == null && request.resource.data.followers.size() == 1 && request.resource.data.followers[0] == request.auth.uid) ||
+                    (resource.data.followers != null && request.resource.data.followers == resource.data.followers.toSet().union([request.auth.uid].toSet())) ||
+                    (resource.data.followers != null && request.resource.data.followers == resource.data.followers.toSet().difference([request.auth.uid].toSet()))
                 )
             ) ||
-            // Allow another user to add THEMSELVES as a mentor to THIS user's list
+            // Allow adding self to mentorIds list.
             (
                 request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mentorIds']) &&
-                isAddingToList(resource.data.mentorIds, request.resource.data.mentorIds) &&
-                request.resource.data.mentorIds.hasAny([request.auth.uid])
+                (
+                    (resource.data.mentorIds == null && request.resource.data.mentorIds.size() == 1 && request.resource.data.mentorIds[0] == request.auth.uid) ||
+                    (resource.data.mentorIds != null && request.resource.data.mentorIds == resource.data.mentorIds.toSet().union([request.auth.uid].toSet()))
+                )
             ) ||
-            // Allow another user to add THEMSELVES as a mentee to THIS user's list
+            // Allow adding self to menteeIds list.
             (
                 request.resource.data.diff(resource.data).affectedKeys().hasOnly(['menteeIds']) &&
-                isAddingToList(resource.data.menteeIds, request.resource.data.menteeIds) &&
-                request.resource.data.menteeIds.hasAny([request.auth.uid])
+                (
+                    (resource.data.menteeIds == null && request.resource.data.menteeIds.size() == 1 && request.resource.data.menteeIds[0] == request.auth.uid) ||
+                    (resource.data.menteeIds != null && request.resource.data.menteeIds == resource.data.menteeIds.toSet().union([request.auth.uid].toSet()))
+                )
             )
           )
         );
@@ -93,8 +88,10 @@ service cloud.firestore {
       allow update: if request.auth != null
                     && resource.data.memberIds.size() < 25
                     && request.time - resource.data.createdAt < duration.value(7, 'd')
-                    && isAddingToList(resource.data.memberIds, request.resource.data.memberIds)
-                    && request.resource.data.memberIds[request.resource.data.memberIds.size() - 1] == request.auth.uid;
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])
+                    && request.resource.data.memberIds.size() == resource.data.memberIds.size() + 1
+                    && request.resource.data.memberIds.hasAll(resource.data.memberIds)
+                    && request.resource.data.memberIds.hasAny([request.auth.uid]);
     
       match /tasks/{taskId} {
         allow read: if true;
@@ -134,8 +131,10 @@ service cloud.firestore {
       allow update: if request.auth != null
                     && resource.data.memberIds.size() < 25
                     && request.time - resource.data.createdAt < duration.value(7, 'd')
-                    && isAddingToList(resource.data.memberIds, request.resource.data.memberIds)
-                    && request.resource.data.memberIds[request.resource.data.memberIds.size() - 1] == request.auth.uid;
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])
+                    && request.resource.data.memberIds.size() == resource.data.memberIds.size() + 1
+                    && request.resource.data.memberIds.hasAll(resource.data.memberIds)
+                    && request.resource.data.memberIds.hasAny([request.auth.uid]);
     
       match /tasks/{taskId} {
         allow read: if true;
@@ -173,8 +172,10 @@ service cloud.firestore {
       allow update: if request.auth != null
                     && resource.data.memberIds.size() < 25
                     && request.time - resource.data.createdAt < duration.value(7, 'd')
-                    && isAddingToList(resource.data.memberIds, request.resource.data.memberIds)
-                    && request.resource.data.memberIds[request.resource.data.memberIds.size() - 1] == request.auth.uid;
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])
+                    && request.resource.data.memberIds.size() == resource.data.memberIds.size() + 1
+                    && request.resource.data.memberIds.hasAll(resource.data.memberIds)
+                    && request.resource.data.memberIds.hasAny([request.auth.uid]);
 
       match /tasks/{taskId} {
         allow read: if true;

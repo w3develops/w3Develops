@@ -96,8 +96,10 @@ function MentorshipManagement({ user, userProfile }: { user: any, userProfile: U
             toast({ title: `Request ${newStatus}` });
         } catch (error: any) {
             console.error("Error handling mentorship request:", error);
-            const errorMessage = error.message || "Could not update request. This may be due to a permissions issue.";
-            toast({ variant: 'destructive', title: "Error", description: errorMessage});
+            const errorMessage = error.message 
+                ? `Firebase: ${error.message}` 
+                : `Could not update request. This may be due to a permissions issue. Error: ${JSON.stringify(error)}`;
+            toast({ variant: 'destructive', title: "Error", description: errorMessage, duration: 10000 });
         }
     };
     
