@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
@@ -362,24 +361,6 @@ export default function AccountPage() {
         </div>
         
         <MentorshipManagement user={user} userProfile={userProfile} />
-
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2"><BrainCircuit />Your Skills</CardTitle>
-                <CardDescription>The skills you have listed on your profile.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                {userProfile.skills && userProfile.skills.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                        {userProfile.skills.map(skill => (
-                            <Badge key={skill} variant="secondary">{skill}</Badge>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="text-sm text-muted-foreground">You haven't added any skills yet. <Link href="/profile/edit" className="underline font-medium">Edit your profile</Link> to add some.</p>
-                )}
-            </CardContent>
-        </Card>
 
         <Card>
             <CardHeader>
