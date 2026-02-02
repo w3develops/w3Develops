@@ -230,10 +230,10 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
             <CardContent className="space-y-4">
                  <div className="flex gap-2">
                     <Search className="absolute left-9 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Select value={skillFilter} onValueChange={setSkillFilter}>
+                    <Select value={skillFilter} onValueChange={(value) => setSkillFilter(value === 'all-skills' ? '' : value)}>
                         <SelectTrigger><SelectValue placeholder="Filter by skill..." /></SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">All Skills</SelectItem>
+                            <SelectItem value="all-skills">All Skills</SelectItem>
                             {topics.map(topic => (
                                 <SelectItem key={topic} value={topic}>{topic}</SelectItem>
                             ))}

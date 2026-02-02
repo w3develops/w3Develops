@@ -265,8 +265,6 @@ export default function AccountPage() {
             <h1 className="text-3xl font-headline">Hello, {userProfile.username || user.email}!</h1>
           </div>
         </div>
-        
-        <MentorshipManagement user={user} userProfile={userProfile} />
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
            <Card>
@@ -419,6 +417,9 @@ export default function AccountPage() {
                 </Tabs>
             </CardContent>
         </Card>
+        
+        <MentorshipManagement user={user} userProfile={userProfile} />
+
       </div>
     </div>
   );
