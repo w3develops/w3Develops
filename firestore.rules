@@ -31,6 +31,12 @@ service cloud.firestore {
              && listAfter.hasAny([request.auth.uid])
              && !listBefore.hasAny([request.auth.uid]);
     }
+    
+    function isBeingAddedToMentorshipList(userId, listAfter, listBefore) {
+      return listAfter.size() == listBefore.size() + 1
+             && listAfter.hasAll(listBefore)
+             && listAfter.hasAny([userId]);
+    }
 
     function isRemovingSelfFromList(listAfter, listBefore) {
       return request.auth != null
@@ -45,27 +51,30 @@ service cloud.firestore {
       allow create: if isOwner(userId);
       allow delete: if isOwner(userId);
       allow update: if
+        // Owner can update their own document
         isOwner(userId) ||
-        // Rule for following/unfollowing (1 field)
+        // A user can follow/unfollow another user
         (
           request.resource.data.diff(resource.data).affectedKeys().size() == 1 &&
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
           (isAddingSelfToList(request.resource.data.followers, resource.data.get('followers', [])) ||
             isRemovingSelfFromList(request.resource.data.followers, resource.data.get('followers', [])))
         ) ||
-        // Rule for accepting a request TO BE A MENTOR for someone else
+        // A user who accepted a request can update the requester's profile
         (
           request.resource.data.diff(resource.data).affectedKeys().size() == 2 &&
-          request.resource.data.diff(resource.data).affectedKeys().hasAll(['mentorshipIds', 'mentorIds']) &&
-          isAddingSelfToList(request.resource.data.mentorIds, resource.data.get('mentorIds', [])) &&
-          (request.resource.data.mentorshipIds.size() == resource.data.get('mentorshipIds', []).size() + 1)
-        ) ||
-        // Rule for accepting a request TO BE A MENTEE of someone else
-        (
-          request.resource.data.diff(resource.data).affectedKeys().size() == 2 &&
-          request.resource.data.diff(resource.data).affectedKeys().hasAll(['mentorshipIds', 'menteeIds']) &&
-          isAddingSelfToList(request.resource.data.menteeIds, resource.data.get('menteeIds', [])) &&
-          (request.resource.data.mentorshipIds.size() == resource.data.get('mentorshipIds', []).size() + 1)
+          (
+            (
+              request.resource.data.diff(resource.data).affectedKeys().hasAll(['mentorshipIds', 'mentorIds']) &&
+              isBeingAddedToMentorshipList(request.auth.uid, request.resource.data.mentorIds, resource.data.get('mentorIds', [])) &&
+              request.resource.data.mentorshipIds.size() == resource.data.get('mentorshipIds', []).size() + 1
+            ) ||
+            (
+              request.resource.data.diff(resource.data).affectedKeys().hasAll(['mentorshipIds', 'menteeIds']) &&
+              isBeingAddedToMentorshipList(request.auth.uid, request.resource.data.menteeIds, resource.data.get('menteeIds', [])) &&
+              request.resource.data.mentorshipIds.size() == resource.data.get('mentorshipIds', []).size() + 1
+            )
+          )
         );
     }
 
@@ -79,8 +88,7 @@ service cloud.firestore {
     match /mentorshipRequests/{requestId} {
         allow read: if request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid;
         allow create: if request.auth.uid == request.resource.data.fromUid
-                      && request.resource.data.status == 'pending'
-                      && request.resource.data.createdAt == request.time;
+                      && request.resource.data.status == 'pending';
         allow update: if request.auth.uid == resource.data.toUid; // Allow recipient to update status (accept/decline)
     }
 
@@ -121,8 +129,7 @@ service cloud.firestore {
                     && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 75
                     && request.resource.data.memberIds == [request.auth.uid]
                     && request.resource.data.commitmentDays is list
-                    && request.resource.data.commitmentDays.size() > 0
-                    && request.resource.data.createdAt == request.time;
+                    && request.resource.data.commitmentDays.size() > 0;
       allow update: if request.auth != null
                     && resource.data.memberIds.size() < 25
                     && request.time - resource.data.createdAt < duration.value(7, 'd')
@@ -164,8 +171,7 @@ service cloud.firestore {
                     && request.resource.data.commitmentHours is string
                     && request.resource.data.commitmentDays is list
                     && request.resource.data.commitmentDays.size() > 0
-                    && request.resource.data.memberIds == [request.auth.uid]
-                    && request.resource.data.createdAt == request.time;
+                    && request.resource.data.memberIds == [request.auth.uid];
       allow update: if request.auth != null
                     && resource.data.memberIds.size() < 25
                     && request.time - resource.data.createdAt < duration.value(7, 'd')
@@ -205,8 +211,7 @@ service cloud.firestore {
                     && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 75
                     && request.resource.data.memberIds == [request.auth.uid]
                     && request.resource.data.commitmentDays is list
-                    && request.resource.data.commitmentDays.size() > 0
-                    && request.resource.data.createdAt == request.time;
+                    && request.resource.data.commitmentDays.size() > 0;
       allow update: if request.auth != null
                     && resource.data.memberIds.size() < 25
                     && request.time - resource.data.createdAt < duration.value(7, 'd')

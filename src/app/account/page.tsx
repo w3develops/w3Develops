@@ -114,26 +114,24 @@ function MentorshipManagement({ user, userProfile }: { user: any, userProfile: U
             batch.update(currentUserRef, { mentorshipIds: arrayUnion(mentorshipId) });
         }
         
-        batch.commit()
-            .then(() => {
-                toast({ title: `Request ${newStatus}` });
-            })
-            .catch(async (serverError) => {
-                console.error("Error handling mentorship request:", serverError);
-                // Create a generic context for batch writes as it can affect multiple docs
-                const permissionError = new FirestorePermissionError({
-                    path: `batch write for mentorship request ${request.id}`,
-                    operation: 'update',
-                    requestResourceData: { status: newStatus },
-                });
-                errorEmitter.emit('permission-error', permissionError);
-                toast({
-                    variant: 'destructive',
-                    title: "Error",
-                    description: "Failed to accept request due to a permission issue.",
-                    duration: 10000
-                });
+        try {
+            await batch.commit();
+            toast({ title: `Request ${newStatus}` });
+        } catch (serverError) {
+            console.error("Error handling mentorship request:", serverError);
+            const permissionError = new FirestorePermissionError({
+                path: `batch write for mentorship request ${request.id}`,
+                operation: 'update',
+                requestResourceData: { status: newStatus },
             });
+            errorEmitter.emit('permission-error', permissionError);
+            toast({
+                variant: 'destructive',
+                title: "Error",
+                description: "Failed to accept request due to a permission issue. Please check your permissions and try again.",
+                duration: 10000
+            });
+        }
     };
     
     const { data: mentors } = useCollection<UserProfile>(

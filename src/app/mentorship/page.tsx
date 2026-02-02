@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { X, BrainCircuit, Search, GraduationCap } from "lucide-react";
 import { UserProfile, MentorshipRole, MentorshipStatus, MentorshipRequest } from "@/lib/types";
-import { doc, DocumentReference, updateDoc, writeBatch, serverTimestamp, collection, addDoc, query, where, Timestamp, documentId } from "firebase/firestore";
+import { doc, DocumentReference, updateDoc, writeBatch, serverTimestamp, collection, addDoc, query, where, Timestamp, documentId, arrayUnion } from "firebase/firestore";
 import { useToast } from "@/components/ui/use-toast";
 import { topics } from "@/lib/constants";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -177,12 +178,13 @@ function MentorshipDashboard({ user, userProfile }: { user: any, userProfile: Us
     const { toast } = useToast();
 
     const incomingRequestsQuery = useMemo(() => {
+        if (!user) return null;
         return query(
             collection(firestore, 'mentorshipRequests'),
             where('toUid', '==', user.uid),
             where('status', '==', 'pending')
         );
-    }, [firestore, user.uid]);
+    }, [firestore, user]);
 
     const { data: incomingRequests, isLoading: isLoadingRequests } = useCollection<MentorshipRequest>(incomingRequestsQuery);
 
@@ -355,16 +357,10 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
         );
     }, [firestore, currentUserProfile.id]);
     
-     const receivedRequestsQuery = useMemo(() => {
-        if (!currentUserProfile.id) return null;
-        return query(
-            collection(firestore, 'mentorshipRequests'),
-            where('toUid', '==', currentUserProfile.id)
-        );
-    }, [firestore, currentUserProfile.id]);
-
     const { data: sentRequests, isLoading: sentLoading } = useCollection<MentorshipRequest>(requestsSentQuery);
-    const { data: receivedRequests, isLoading: receivedLoading } = useCollection<MentorshipRequest>(receivedRequestsQuery);
+    const { data: receivedRequests, isLoading: receivedLoading } = useCollection<MentorshipRequest>(
+        currentUserProfile.id ? query(collection(firestore, 'mentorshipRequests'), where('toUid', '==', currentUserProfile.id)) : null
+    );
 
     const allRequests = useMemo(() => {
         const combined = new Map<string, MentorshipRequest>();
