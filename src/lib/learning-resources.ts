@@ -299,7 +299,8 @@ export const cybersecurityResources: LearningResource[] = [
             { title: "CyberDefenders", url: "https://cyberdefenders.org/" },
             { title: "TryHackMe", url: "https://tryhackme.com/" },
             { title: "Hack The Box", url: "https://www.hackthebox.com/" },
-            { title: "Hack This Site", url: "https://www.hackthissite.org/" }
+            { title: "Hack This Site", url: "https://www.hackthissite.org/" },
+            { title: "GitHub Secure Code Game", url: "https://github.com/skills/secure-code-game" }
         ]
     }
 ];
