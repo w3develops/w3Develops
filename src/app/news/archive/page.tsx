@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,19 +12,19 @@ export default function NewsArchivePage() {
                 <CardHeader>
                     <Button asChild variant="outline" size="sm" className="w-fit">
                         <Link href="/news" className="gap-2">
-                            <ArrowLeft className="h-4 w-4" /> Back to News
+                            <ArrowLeft className="h-4 w-4" /> Back to Latest News
                         </Link>
                     </Button>
                     <CardTitle className="font-headline text-3xl pt-4">News Archive</CardTitle>
                     <CardDescription>
-                        Older news and announcements.
+                        The main news page shows articles from the last 3 days. This archive will contain older posts.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="text-center py-12">
-                        <h3 className="text-xl font-semibold">Under Construction</h3>
+                        <h3 className="text-xl font-semibold">Archive Under Construction</h3>
                         <p className="text-muted-foreground mt-2">
-                            This page is coming soon. Stay tuned!
+                            This historical archive is coming soon. Please check back later!
                         </p>
                     </div>
                 </CardContent>
