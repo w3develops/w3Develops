@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,7 +41,7 @@ function MentorshipSetupForm({ user, userProfile }: { user: any, userProfile: Us
     }, [user, firestore]);
 
     const handleUpdate = async () => {
-        if (!userDocRef || !userProfile) return;
+        if (!userDocRef) return;
         setIsSubmitting(true);
 
         let newRole: MentorshipRole = 'none';
@@ -60,8 +59,8 @@ function MentorshipSetupForm({ user, userProfile }: { user: any, userProfile: Us
         const updateData = {
             mentorshipRole: newRole,
             mentorshipStatus: status,
-            mentoringSkills: mentoringSkills,
-            seekingSkills: seekingSkills,
+            mentoringSkills: isOffering ? mentoringSkills : [],
+            seekingSkills: isSeeking ? seekingSkills : [],
             skills: combinedSkills,
         };
 
@@ -124,14 +123,16 @@ function MentorshipSetupForm({ user, userProfile }: { user: any, userProfile: Us
                         <Switch id="seeking-switch" checked={isSeeking} onCheckedChange={setIsSeeking} />
                     </div>
                 </div>
-
-                <div className="flex items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                        <Label htmlFor="status-switch" className="text-base">Accepting New Requests</Label>
-                        <p className="text-sm text-muted-foreground">Allow others to send you mentorship requests.</p>
+                
+                 {(isOffering || isSeeking) && (
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="status-switch" className="text-base">Accepting New Requests</Label>
+                            <p className="text-sm text-muted-foreground">Allow others to send you mentorship requests.</p>
+                        </div>
+                        <Switch id="status-switch" checked={status === 'open'} onCheckedChange={(checked) => setStatus(checked ? 'open' : 'closed')} />
                     </div>
-                    <Switch id="status-switch" checked={status === 'open'} onCheckedChange={(checked) => setStatus(checked ? 'open' : 'closed')} />
-                </div>
+                )}
                 
                 { isOffering && (
                     <div className="space-y-2">
@@ -193,6 +194,7 @@ function MentorshipDashboard({ user, userProfile }: { user: any, userProfile: Us
         const batch = writeBatch(firestore);
 
         batch.update(requestRef, { status: newStatus });
+        let batchUpdateData = {};
 
         if (newStatus === 'accepted') {
             const requesterRef = doc(firestore, 'users', request.fromUid);
@@ -203,17 +205,23 @@ function MentorshipDashboard({ user, userProfile }: { user: any, userProfile: Us
             const mentorshipRef = doc(firestore, 'mentorships', mentorshipId);
 
             let mentorId, menteeId;
+            let requesterUpdate: { [key: string]: any } = { mentorshipIds: arrayUnion(mentorshipId) };
+            let currentUserUpdate: { [key: string]: any } = { mentorshipIds: arrayUnion(mentorshipId) };
+
             if (request.type === 'seeking_mentor') { // Requester wants ME to be their mentor
                 mentorId = user.uid;
                 menteeId = request.fromUid;
-                batch.update(requesterRef, { mentorIds: arrayUnion(user.uid), mentorshipIds: arrayUnion(mentorshipId) });
-                batch.update(currentUserRef, { menteeIds: arrayUnion(request.fromUid), mentorshipIds: arrayUnion(mentorshipId) });
+                requesterUpdate['mentorIds'] = arrayUnion(user.uid);
+                currentUserUpdate['menteeIds'] = arrayUnion(request.fromUid);
             } else { // Requester wants to be MY mentor
                 mentorId = request.fromUid;
                 menteeId = user.uid;
-                batch.update(requesterRef, { menteeIds: arrayUnion(user.uid), mentorshipIds: arrayUnion(mentorshipId) });
-                batch.update(currentUserRef, { mentorIds: arrayUnion(request.fromUid), mentorshipIds: arrayUnion(mentorshipId) });
+                requesterUpdate['menteeIds'] = arrayUnion(user.uid);
+                currentUserUpdate['mentorIds'] = arrayUnion(request.fromUid);
             }
+            
+            batch.update(requesterRef, requesterUpdate);
+            batch.update(currentUserRef, currentUserUpdate);
 
             batch.set(mentorshipRef, {
                 id: mentorshipId,
@@ -222,6 +230,7 @@ function MentorshipDashboard({ user, userProfile }: { user: any, userProfile: Us
                 menteeId: menteeId,
                 createdAt: serverTimestamp()
             });
+            batchUpdateData = { requesterUpdate, currentUserUpdate };
         }
         
         try {
@@ -232,7 +241,7 @@ function MentorshipDashboard({ user, userProfile }: { user: any, userProfile: Us
             const permissionError = new FirestorePermissionError({
                 path: `batch write for mentorship request ${request.id}`,
                 operation: 'update',
-                requestResourceData: { status: newStatus },
+                requestResourceData: batchUpdateData,
             });
             errorEmitter.emit('permission-error', permissionError);
             toast({
@@ -358,9 +367,16 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
     }, [firestore, currentUserProfile.id]);
     
     const { data: sentRequests, isLoading: sentLoading } = useCollection<MentorshipRequest>(requestsSentQuery);
-    const { data: receivedRequests, isLoading: receivedLoading } = useCollection<MentorshipRequest>(
-        currentUserProfile.id ? query(collection(firestore, 'mentorshipRequests'), where('toUid', '==', currentUserProfile.id)) : null
-    );
+    
+    const receivedRequestsQuery = useMemo(() => {
+        if (!currentUserProfile.id) return null;
+        return query(
+            collection(firestore, 'mentorshipRequests'),
+            where('toUid', '==', currentUserProfile.id)
+        );
+    }, [firestore, currentUserProfile.id]);
+    
+    const { data: receivedRequests, isLoading: receivedLoading } = useCollection<MentorshipRequest>(receivedRequestsQuery);
 
     const allRequests = useMemo(() => {
         const combined = new Map<string, MentorshipRequest>();
@@ -370,7 +386,7 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
     }, [sentRequests, receivedRequests]);
 
 
-    const handleRequest = async (targetUser: UserProfile, type: MentorshipRequest['type']) => {
+    const handleRequest = async (targetUser: UserProfile, type: 'seeking_mentor' | 'seeking_mentee') => {
         const requestsCollection = collection(firestore, 'mentorshipRequests');
         const requestData = {
             fromUid: currentUserProfile.id,
@@ -400,9 +416,9 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
         }
     };
     
-    const UserList = ({ users, type, allRequests }: { users: UserProfile[] | null, type: 'mentor' | 'mentee', allRequests: MentorshipRequest[] }) => {
+    const UserList = ({ users, listType, allRequests }: { users: UserProfile[] | null, listType: 'mentor' | 'mentee', allRequests: MentorshipRequest[] }) => {
         if (!users || users.length === 0) {
-            return <p className="text-muted-foreground text-center py-8">No {type}s found matching your criteria.</p>
+            return <p className="text-muted-foreground text-center py-8">No {listType}s found matching your criteria.</p>
         }
 
         return (
@@ -431,10 +447,11 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
                                 button = <Button className="w-full" disabled variant="outline">Declined</Button>;
                                 break;
                             default:
-                                button = <Button className="w-full" onClick={() => handleRequest(user, type === 'mentor' ? 'seeking_mentor' : 'seeking_mentee' )}>Request</Button>;
+                                button = <Button className="w-full" onClick={() => handleRequest(user, listType === 'mentor' ? 'seeking_mentor' : 'seeking_mentee' )}>Request</Button>;
                         }
                     } else {
-                        button = <Button className="w-full" onClick={() => handleRequest(user, type === 'mentor' ? 'seeking_mentor' : 'seeking_mentee' )}>Request</Button>;
+                         const requestType = listType === 'mentor' ? 'seeking_mentor' : 'seeking_mentee';
+                         button = <Button className="w-full" onClick={() => handleRequest(user, requestType)}>Request</Button>;
                     }
 
                     return (
@@ -444,7 +461,7 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
                                 <div>
                                     <Link href={`/users/${user.id}`}><CardTitle className="text-base line-clamp-1">{user.username}</CardTitle></Link>
                                     <div className="flex flex-wrap gap-1 mt-2">
-                                        {(type === 'mentor' ? user.mentoringSkills : user.seekingSkills)?.slice(0, 3).map(skill => <Badge key={skill} variant="secondary">{skill}</Badge>)}
+                                        {(listType === 'mentor' ? user.mentoringSkills : user.seekingSkills)?.slice(0, 3).map(skill => <Badge key={skill} variant="secondary">{skill}</Badge>)}
                                     </div>
                                 </div>
                             </CardHeader>
@@ -485,10 +502,10 @@ function MentorshipFinder({ currentUserProfile }: { currentUserProfile: UserProf
                         <TabsTrigger value="mentees">Find a Mentee</TabsTrigger>
                     </TabsList>
                     <TabsContent value="mentors" className="pt-4">
-                        {isLoading ? <p>Loading mentors...</p> : <UserList users={mentors} type="mentor" allRequests={allRequests} />}
+                        {isLoading ? <p>Loading mentors...</p> : <UserList users={mentors} listType="mentor" allRequests={allRequests} />}
                     </TabsContent>
                     <TabsContent value="mentees" className="pt-4">
-                        {isLoading ? <p>Loading mentees...</p> : <UserList users={mentees} type="mentee" allRequests={allRequests}/>}
+                        {isLoading ? <p>Loading mentees...</p> : <UserList users={mentees} listType="mentee" allRequests={allRequests}/>}
                     </TabsContent>
                  </Tabs>
             </CardContent>
@@ -515,7 +532,11 @@ export default function MentorshipPage() {
     }, [user, isUserLoading, router]);
     
     if (isUserLoading || isProfileLoading || !user || !userProfile) {
-        return <LoadingSkeleton />;
+        return (
+            <div className="p-4 md:p-10">
+                <LoadingSkeleton />
+            </div>
+        );
     }
 
     return (

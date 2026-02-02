@@ -45,37 +45,38 @@ service cloud.firestore {
              && listBefore.hasAny([request.auth.uid])
              && !listAfter.hasAny([request.auth.uid]);
     }
+    
+    function isMentorshipUpdate(userId) {
+        let isAddingMentor = request.resource.data.mentorIds.size() == resource.data.get('mentorIds', []).size() + 1 &&
+                             request.resource.data.mentorIds.hasAll(resource.data.get('mentorIds', [])) &&
+                             request.resource.data.mentorIds.hasAny([request.auth.uid]);
+
+        let isAddingMentee = request.resource.data.menteeIds.size() == resource.data.get('menteeIds', []).size() + 1 &&
+                             request.resource.data.menteeIds.hasAll(resource.data.get('menteeIds', [])) &&
+                             request.resource.data.menteeIds.hasAny([request.auth.uid]);
+                             
+        let isAddingMentorshipId = request.resource.data.mentorshipIds.size() == resource.data.get('mentorshipIds', []).size() + 1 &&
+                                   request.resource.data.mentorshipIds.hasAll(resource.data.get('mentorshipIds', []));
+
+        let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
+
+        return (isAddingMentor && changedKeys.hasAll(['mentorIds', 'mentorshipIds']) && changedKeys.size() == 2 && isAddingMentorshipId) ||
+               (isAddingMentee && changedKeys.hasAll(['menteeIds', 'mentorshipIds']) && changedKeys.size() == 2 && isAddingMentorshipId);
+    }
 
     match /users/{userId} {
       allow read: if true;
       allow create: if isOwner(userId);
       allow delete: if isOwner(userId);
       allow update: if
-        // Owner can update their own document
         isOwner(userId) ||
-        // A user can follow/unfollow another user
         (
           request.resource.data.diff(resource.data).affectedKeys().size() == 1 &&
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
           (isAddingSelfToList(request.resource.data.followers, resource.data.get('followers', [])) ||
             isRemovingSelfFromList(request.resource.data.followers, resource.data.get('followers', [])))
         ) ||
-        // A user who accepted a request can update the requester's profile
-        (
-          request.resource.data.diff(resource.data).affectedKeys().size() == 2 &&
-          (
-            (
-              request.resource.data.diff(resource.data).affectedKeys().hasAll(['mentorshipIds', 'mentorIds']) &&
-              isBeingAddedToMentorshipList(request.auth.uid, request.resource.data.mentorIds, resource.data.get('mentorIds', [])) &&
-              request.resource.data.mentorshipIds.size() == resource.data.get('mentorshipIds', []).size() + 1
-            ) ||
-            (
-              request.resource.data.diff(resource.data).affectedKeys().hasAll(['mentorshipIds', 'menteeIds']) &&
-              isBeingAddedToMentorshipList(request.auth.uid, request.resource.data.menteeIds, resource.data.get('menteeIds', [])) &&
-              request.resource.data.mentorshipIds.size() == resource.data.get('mentorshipIds', []).size() + 1
-            )
-          )
-        );
+        isMentorshipUpdate(userId);
     }
 
     match /usernames/{username} {
@@ -88,14 +89,15 @@ service cloud.firestore {
     match /mentorshipRequests/{requestId} {
         allow read: if request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid;
         allow create: if request.auth.uid == request.resource.data.fromUid
-                      && request.resource.data.status == 'pending';
-        allow update: if request.auth.uid == resource.data.toUid; // Allow recipient to update status (accept/decline)
+                      && request.resource.data.status == 'pending'
+                      && request.resource.data.fromUid != request.resource.data.toUid;
+        allow update: if request.auth.uid == resource.data.toUid;
     }
 
     match /mentorships/{mentorshipId} {
-      allow read: if isMentorshipMember(mentorshipId);
+      allow read: if request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
       allow create: if request.auth != null && request.resource.data.memberIds.hasAny([request.auth.uid]);
-      allow update: if isMentorshipMember(mentorshipId);
+      allow update: if request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
       allow delete: if false;
 
       match /tasks/{taskId} {

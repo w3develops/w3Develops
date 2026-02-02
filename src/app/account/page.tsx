@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
@@ -80,6 +79,7 @@ function MentorshipManagement({ user, userProfile }: { user: any, userProfile: U
         const batch = writeBatch(firestore);
 
         batch.update(requestRef, { status: newStatus });
+        let batchUpdateData = {};
 
         if (newStatus === 'accepted') {
             const requesterRef = doc(firestore, 'users', request.fromUid);
@@ -90,17 +90,23 @@ function MentorshipManagement({ user, userProfile }: { user: any, userProfile: U
             const mentorshipRef = doc(firestore, 'mentorships', mentorshipId);
 
             let mentorId, menteeId;
+            let requesterUpdate: { [key: string]: any } = { mentorshipIds: arrayUnion(mentorshipId) };
+            let currentUserUpdate: { [key: string]: any } = { mentorshipIds: arrayUnion(mentorshipId) };
+
             if (request.type === 'seeking_mentor') { // Requester wants ME to be their mentor
                 mentorId = user.uid;
                 menteeId = request.fromUid;
-                batch.update(requesterRef, { mentorIds: arrayUnion(user.uid) });
-                batch.update(currentUserRef, { menteeIds: arrayUnion(request.fromUid) });
+                requesterUpdate['mentorIds'] = arrayUnion(user.uid);
+                currentUserUpdate['menteeIds'] = arrayUnion(request.fromUid);
             } else { // Requester wants to be MY mentor
                 mentorId = request.fromUid;
                 menteeId = user.uid;
-                batch.update(requesterRef, { menteeIds: arrayUnion(user.uid) });
-                batch.update(currentUserRef, { mentorIds: arrayUnion(request.fromUid) });
+                requesterUpdate['menteeIds'] = arrayUnion(user.uid);
+                currentUserUpdate['mentorIds'] = arrayUnion(request.fromUid);
             }
+            
+            batch.update(requesterRef, requesterUpdate);
+            batch.update(currentUserRef, currentUserUpdate);
 
             batch.set(mentorshipRef, {
                 id: mentorshipId,
@@ -110,8 +116,7 @@ function MentorshipManagement({ user, userProfile }: { user: any, userProfile: U
                 createdAt: serverTimestamp()
             });
 
-            batch.update(requesterRef, { mentorshipIds: arrayUnion(mentorshipId) });
-            batch.update(currentUserRef, { mentorshipIds: arrayUnion(mentorshipId) });
+            batchUpdateData = { requesterUpdate, currentUserUpdate };
         }
         
         try {
@@ -122,7 +127,7 @@ function MentorshipManagement({ user, userProfile }: { user: any, userProfile: U
             const permissionError = new FirestorePermissionError({
                 path: `batch write for mentorship request ${request.id}`,
                 operation: 'update',
-                requestResourceData: { status: newStatus },
+                requestResourceData: batchUpdateData,
             });
             errorEmitter.emit('permission-error', permissionError);
             toast({
