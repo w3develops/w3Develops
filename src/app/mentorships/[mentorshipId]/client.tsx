@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useDoc } from '@/firebase/firestore/use-doc';
@@ -99,19 +98,6 @@ export default function MentorshipDashboardPage({ params }: { params: { mentorsh
 
   const { data: partnerProfile, isLoading: isPartnerLoading } = useDoc<UserProfile>(partnerDocRef);
 
-  const { partnerRole, userRole, pageTitle, pageDescription } = useMemo(() => {
-    if (!user || !mentorship || !partnerProfile) {
-        return { partnerRole: null, userRole: '', pageTitle: 'Mentorship Dashboard', pageDescription: 'A shared space for your mentorship.' };
-    }
-    const isCurrentUserMentor = user.uid === mentorship.mentorId;
-    const partnerRole = isCurrentUserMentor ? 'Mentee' : 'Mentor';
-    const userRole = isCurrentUserMentor ? 'Mentor' : 'Mentee';
-    const pageTitle = `Mentorship with ${partnerProfile.username}`;
-    const pageDescription = `This is your shared dashboard. You are the ${userRole}.`;
-
-    return { partnerRole, userRole, pageTitle, pageDescription };
-  }, [user, mentorship, partnerProfile]);
-
   if (isMentorshipLoading || isUserLoading || isPartnerLoading) {
     return <div className="text-center py-10 p-4 md:p-10">Loading mentorship dashboard...</div>;
   }
@@ -131,6 +117,16 @@ export default function MentorshipDashboardPage({ params }: { params: { mentorsh
   if (!mentorship.memberIds.includes(user.uid)) {
        return <div className="text-center py-10 text-destructive p-4 md:p-10">You do not have permission to view this page.</div>
   }
+
+  if (!partnerProfile) {
+    return <div className="text-center py-10 p-4 md:p-10">Loading partner information...</div>
+  }
+
+  const isCurrentUserMentor = user.uid === mentorship.mentorId;
+  const partnerRole: "Mentor" | "Mentee" = isCurrentUserMentor ? 'Mentee' : 'Mentor';
+  const userRole: "Mentor" | "Mentee" = isCurrentUserMentor ? 'Mentor' : 'Mentee';
+  const pageTitle = `Mentorship with ${partnerProfile.username}`;
+  const pageDescription = `This is your shared dashboard. You are the ${userRole}.`;
 
   return (
     <div className="space-y-8 p-4 md:p-10">
