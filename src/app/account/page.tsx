@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
@@ -10,7 +11,7 @@ import { UserProfile, StudyGroup, GroupProject, SoloProject, BookClub, Mentorshi
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Github, Linkedin, Twitter, PlusCircle, Star, GraduationCap } from 'lucide-react';
+import { Github, Linkedin, Twitter, PlusCircle, Star, GraduationCap, BrainCircuit } from 'lucide-react';
 import { JoinCohortModal } from '@/components/modals/JoinCohortModal';
 import { JoinGroupModal } from '@/components/modals/JoinGroupModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -95,7 +96,8 @@ function MentorshipManagement({ user, userProfile }: { user: any, userProfile: U
             await batch.commit();
             toast({ title: `Request ${newStatus}` });
         } catch (error: any) {
-            toast({ variant: 'destructive', title: "Error", description: `Could not update request: ${error.message}`});
+            console.error("Error accepting mentorship request:", error);
+            toast({ variant: 'destructive', title: "Error", description: "Could not update request. This may be due to a permissions issue."});
         }
     };
     
@@ -359,6 +361,24 @@ export default function AccountPage() {
         </div>
         
         <MentorshipManagement user={user} userProfile={userProfile} />
+
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><BrainCircuit />Your Skills</CardTitle>
+                <CardDescription>The skills you have listed on your profile.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {userProfile.skills && userProfile.skills.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                        {userProfile.skills.map(skill => (
+                            <Badge key={skill} variant="secondary">{skill}</Badge>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="text-sm text-muted-foreground">You haven't added any skills yet. <Link href="/profile/edit" className="underline font-medium">Edit your profile</Link> to add some.</p>
+                )}
+            </CardContent>
+        </Card>
 
         <Card>
             <CardHeader>

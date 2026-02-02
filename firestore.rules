@@ -36,7 +36,10 @@ service cloud.firestore {
           // Allow another user to add/remove THEMSELVES from THIS user's followers list
           request.auth != null && (
             (isAddingToList(resource.data.followers, request.resource.data.followers) && request.resource.data.followers[request.resource.data.followers.size() - 1] == request.auth.uid) ||
-            (isRemovingFromList(resource.data.followers, request.resource.data.followers) && !request.resource.data.followers.hasAny([request.auth.uid]))
+            (isRemovingFromList(resource.data.followers, request.resource.data.followers) && !request.resource.data.followers.hasAny([request.auth.uid])) ||
+            // Allow another user to add THEMSELVES as a mentor/mentee to THIS user's list
+            (isAddingToList(resource.data.mentorIds, request.resource.data.mentorIds) && request.resource.data.mentorIds[request.resource.data.mentorIds.size() - 1] == request.auth.uid) ||
+            (isAddingToList(resource.data.menteeIds, request.resource.data.menteeIds) && request.resource.data.menteeIds[request.resource.data.menteeIds.size() - 1] == request.auth.uid)
           )
         );
         
