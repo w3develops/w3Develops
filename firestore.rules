@@ -35,42 +35,23 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.auth.uid == userId;
       allow delete: if isOwner(userId);
-      allow update: if isOwner(userId) || (
-          // Allow another user to add/remove THEMSELVES from THIS user's followers list
+      allow update: if
+        // Case 1: The user is updating their OWN document. This is permissive for now to allow profile edits and list management.
+        isOwner(userId)
+      ||
+        // Case 2: A non-owner is updating THIS user's document.
+        (
           request.auth != null && (
-            (isAddingToList(resource.data.followers, request.resource.data.followers) && request.resource.data.followers[request.resource.data.followers.size() - 1] == request.auth.uid) ||
-            (isRemovingFromList(resource.data.followers, request.resource.data.followers) && !request.resource.data.followers.hasAny([request.auth.uid])) ||
-            // Allow another user to add THEMSELVES as a mentor/mentee to THIS user's list
-            (isAddingToList(resource.data.mentorIds, request.resource.data.mentorIds) && request.resource.data.mentorIds[request.resource.data.mentorIds.size() - 1] == request.auth.uid) ||
-            (isAddingToList(resource.data.menteeIds, request.resource.data.menteeIds) && request.resource.data.menteeIds[request.resource.data.menteeIds.size() - 1] == request.auth.uid)
+            // Allow another user to add/remove THEMSELVES from THIS user's followers list
+            (
+                (isAddingToList(resource.data.followers, request.resource.data.followers) && request.resource.data.followers.hasAny([request.auth.uid])) ||
+                (isRemovingFromList(resource.data.followers, request.resource.data.followers) && !request.resource.data.followers.hasAny([request.auth.uid]))
+            ) ||
+            // Allow another user to add THEMSELVES as a mentor/mentee to THIS user's list.
+            (isAddingToList(resource.data.mentorIds, request.resource.data.mentorIds) && request.resource.data.mentorIds.hasAny([request.auth.uid])) ||
+            (isAddingToList(resource.data.menteeIds, request.resource.data.menteeIds) && request.resource.data.menteeIds.hasAny([request.auth.uid]))
           )
         );
-        
-      // Allow user to update their own fields
-      allow write: if isOwner(userId) && (
-        (
-          request.resource.data.keys().hasAll(['bio', 'skills', 'socialLinks', 'followInfoPrivate', 'profilePictureUrl', 'notificationSettings', 'lastLoginAt', 'lastLogoutAt', 'lastCheckInAt', 'status', 'mentorshipRole', 'mentorshipStatus', 'mentoringSkills', 'seekingSkills', 'mentorIds', 'menteeIds'])
-        ) ||
-        // Allow user to add/remove SOMEONE ELSE from their own following list
-        (isAddingToList(resource.data.following, request.resource.data.following)) ||
-        (isRemovingFromList(resource.data.following, request.resource.data.following)) ||
-        // Group/Project ID updates
-        (isAddingToList(resource.data.createdStudyGroupIds, request.resource.data.createdStudyGroupIds)) ||
-        (isAddingToList(resource.data.joinedStudyGroupIds, request.resource.data.joinedStudyGroupIds)) ||
-        (isAddingToList(resource.data.createdBookClubIds, request.resource.data.createdBookClubIds)) ||
-        (isAddingToList(resource.data.joinedBookClubIds, request.resource.data.joinedBookClubIds)) ||
-        (isAddingToList(resource.data.createdGroupProjectIds, request.resource.data.createdGroupProjectIds)) ||
-        (isAddingToList(resource.data.joinedGroupProjectIds, request.resource.data.joinedGroupProjectIds)) ||
-        (isAddingToList(resource.data.soloProjectIds, request.resource.data.soloProjectIds)) ||
-        (isRemovingFromList(resource.data.soloProjectIds, request.resource.data.soloProjectIds)) ||
-        (isAddingToList(resource.data.starredSoloProjectIds, request.resource.data.starredSoloProjectIds)) ||
-        (isRemovingFromList(resource.data.starredSoloProjectIds, request.resource.data.starredSoloProjectIds)) ||
-        // Mentorship ID updates
-        (isAddingToList(resource.data.mentorIds, request.resource.data.mentorIds)) ||
-        (isRemovingFromList(resource.data.mentorIds, request.resource.data.mentorIds)) ||
-        (isAddingToList(resource.data.menteeIds, request.resource.data.menteeIds)) ||
-        (isRemovingFromList(resource.data.menteeIds, request.resource.data.menteeIds))
-      );
     }
 
     match /usernames/{username} {
