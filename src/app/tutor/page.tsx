@@ -55,7 +55,7 @@ function TutorshipSetupForm({ user, userProfile }: { user: any, userProfile: Use
         }
         
         const existingSkills = userProfile.skills || [];
-        const combinedSkills = [...new Set([...existingSkills, ...tutoringSkills, ...seekingSkills])];
+        const combinedSkills = Array.from(new Set([...existingSkills, ...tutoringSkills, ...seekingSkills]));
 
         const updateData = {
             tutorRole: newRole,
