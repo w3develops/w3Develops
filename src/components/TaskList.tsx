@@ -290,5 +290,3 @@ export default function TaskList({ groupOrCohortId, collectionPath, memberIds }:
     </Card>
   );
 }
-
-    
