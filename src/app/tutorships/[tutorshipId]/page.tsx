@@ -8,3 +8,5 @@ export async function generateStaticParams() {
 export default function Page({ params }: { params: { tutorshipId: string } }) {
   return <TutorshipDashboardPage params={params} />;
 }
+
+    
