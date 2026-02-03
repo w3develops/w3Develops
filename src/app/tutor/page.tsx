@@ -22,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from 'next/link';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { useDebounce } from "@/lib/hooks/useDebounce";
 
 function TutorshipSetupForm({ user, userProfile }: { user: any, userProfile: UserProfile }) {
     const firestore = useFirestore();
@@ -330,6 +331,8 @@ function TutorshipFinder({ currentUserProfile }: { currentUserProfile: UserProfi
     const firestore = useFirestore();
     const { toast } = useToast();
     const [skillFilter, setSkillFilter] = useState('');
+    const [nameSearch, setNameSearch] = useState('');
+    const debouncedNameSearch = useDebounce(nameSearch, 300);
 
     const tutorsQuery = useMemo(() => {
         const baseQuery = query(
@@ -355,8 +358,22 @@ function TutorshipFinder({ currentUserProfile }: { currentUserProfile: UserProfi
         return baseQuery;
     }, [firestore, skillFilter]);
     
-    const { data: tutors, isLoading: tutorsLoading } = useCollection<UserProfile>(tutorsQuery);
-    const { data: students, isLoading: studentsLoading } = useCollection<UserProfile>(studentsQuery);
+    const { data: allTutors, isLoading: tutorsLoading } = useCollection<UserProfile>(tutorsQuery);
+    const { data: allStudents, isLoading: studentsLoading } = useCollection<UserProfile>(studentsQuery);
+
+    const tutors = useMemo(() => {
+        if (!allTutors) return null;
+        if (!debouncedNameSearch) return allTutors;
+        const searchLower = debouncedNameSearch.toLowerCase();
+        return allTutors.filter(m => m.username_lowercase?.includes(searchLower));
+    }, [allTutors, debouncedNameSearch]);
+
+    const students = useMemo(() => {
+        if (!allStudents) return null;
+        if (!debouncedNameSearch) return allStudents;
+        const searchLower = debouncedNameSearch.toLowerCase();
+        return allStudents.filter(m => m.username_lowercase?.includes(searchLower));
+    }, [allStudents, debouncedNameSearch]);
 
     const requestsSentQuery = useMemo(() => {
         if (!currentUserProfile.id) return null;
@@ -488,10 +505,18 @@ function TutorshipFinder({ currentUserProfile }: { currentUserProfile: UserProfi
                 <CardDescription>Browse and filter to find the right person to connect with.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                 <div className="grid md:grid-cols-2 gap-4">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input 
+                            placeholder="Search by name..."
+                            className="pl-10"
+                            value={nameSearch}
+                            onChange={e => setNameSearch(e.target.value)}
+                        />
+                    </div>
                     <Select value={skillFilter} onValueChange={(value) => setSkillFilter(value === 'all-skills' ? '' : value)}>
-                        <SelectTrigger className="pl-10"><SelectValue placeholder="Filter by skill..." /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder="Filter by skill..." /></SelectTrigger>
                         <SelectContent className="max-h-96 overflow-y-auto">
                             <SelectItem value="all-skills">All Skills</SelectItem>
                             {topics.map(topic => (
@@ -558,5 +583,3 @@ export default function TutorPage() {
         </div>
     );
 }
-
-    
