@@ -262,6 +262,35 @@
           "items": {
             "type": "string"
           }
+        },
+        "pairProgrammingStatus": {
+          "type": "string",
+          "enum": [
+            "open",
+            "closed"
+          ],
+          "description": "Whether the user is open to new pair programming requests."
+        },
+        "pairProgrammingSkills": {
+          "type": "array",
+          "description": "Skills the user is interested in for pair programming.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "pairPartnerIds": {
+          "type": "array",
+          "description": "A list of user IDs this user is paired with.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "pairingIds": {
+          "type": "array",
+          "description": "A list of Pairing IDs this user is part of.",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -719,6 +748,37 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "memberIds", "tutorId", "studentId", "createdAt"]
+    },
+    "PairingRequest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PairingRequest",
+      "type": "object",
+      "description": "Represents a request for pair programming between two users.",
+      "properties": {
+        "id": { "type": "string" },
+        "fromUid": { "type": "string" },
+        "toUid": { "type": "string" },
+        "fromUsername": { "type": "string" },
+        "toUsername": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "accepted", "declined"]
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "fromUid", "toUid", "fromUsername", "toUsername", "status", "createdAt"]
+    },
+    "Pairing": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Pairing",
+      "type": "object",
+      "description": "Represents a pair programming relationship between two users.",
+      "properties": {
+        "id": { "type": "string" },
+        "memberIds": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "memberIds", "createdAt"]
     }
   },
   "auth": {
@@ -840,8 +900,30 @@
     "/tutorships/{tutorshipId}/checkIns/{checkInId}": {
       "schema": { "$ref": "#/entities/CheckIn" },
       "description": "Stores check-ins for a specific tutorship."
+    },
+    "/pairRequests/{requestId}": {
+      "schema": {
+        "$ref": "#/entities/PairingRequest"
+      },
+      "description": "Stores pair programming requests between users."
+    },
+    "/pairings/{pairingId}": {
+      "schema": {
+        "$ref": "#/entities/Pairing"
+      },
+      "description": "Stores pair programming session data."
+    },
+    "/pairings/{pairingId}/tasks/{taskId}": {
+      "schema": {
+        "$ref": "#/entities/Task"
+      },
+      "description": "Stores tasks for a specific pair programming session."
+    },
+    "/pairings/{pairingId}/checkIns/{checkInId}": {
+      "schema": {
+        "$ref": "#/entities/CheckIn"
+      },
+      "description": "Stores check-ins for a specific pair programming session."
     }
   }
 }
-
-    

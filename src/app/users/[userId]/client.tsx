@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useCollection, useFirestore, useUser } from '@/firebase';
@@ -8,7 +7,7 @@ import { UserProfile, StudyGroup, GroupProject, SoloProject } from '@/lib/types'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Github, Linkedin, Twitter, BrainCircuit, Users, Lock, UserCheck, UserPlus, CalendarDays, ExternalLink, GraduationCap } from 'lucide-react';
+import { Github, Linkedin, Twitter, BrainCircuit, Users, Lock, UserCheck, UserPlus, CalendarDays, ExternalLink, GraduationCap, GitBranch } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -284,6 +283,9 @@ export default function UserProfilePage({ params }: { params: { userId: string }
     if (userProfile.tutorRole === 'student' || userProfile.tutorRole === 'both') {
       roles.push(<Badge key="student" variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Student</Badge>);
     }
+    if (userProfile.pairProgrammingStatus === 'open') {
+        roles.push(<Badge key="pair" variant="secondary" className="gap-2"><GitBranch className="h-4 w-4"/>Pair Programmer</Badge>);
+    }
     return roles;
   }, [userProfile]);
 
@@ -380,5 +382,3 @@ export default function UserProfilePage({ params }: { params: { userId: string }
     </div>
   );
 }
-
-    

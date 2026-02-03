@@ -1,11 +1,10 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import { updateDoc, doc, DocumentReference } from 'firebase/firestore';
-import { UserProfile } from '@/lib/types';
+import { UserProfile, PairProgrammingStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -41,6 +40,11 @@ export default function EditProfilePage() {
   const [twitter, setTwitter] = useState('');
   const [followInfoPrivate, setFollowInfoPrivate] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Pair Programming State
+  const [pairProgrammingStatus, setPairProgrammingStatus] = useState<PairProgrammingStatus>('closed');
+  const [pairProgrammingSkills, setPairProgrammingSkills] = useState<string[]>([]);
+  const [currentPairSkill, setCurrentPairSkill] = useState('');
 
   const userDocRef = useMemo(() => {
     if (!user) return null;
@@ -58,6 +62,8 @@ export default function EditProfilePage() {
       setLinkedin(userProfile.socialLinks?.linkedin || '');
       setTwitter(userProfile.socialLinks?.twitter || '');
       setFollowInfoPrivate(userProfile.followInfoPrivate || false);
+      setPairProgrammingStatus(userProfile.pairProgrammingStatus || 'closed');
+      setPairProgrammingSkills(userProfile.pairProgrammingSkills || []);
     }
   }, [userProfile]);
   
@@ -67,15 +73,22 @@ export default function EditProfilePage() {
     }
   }, [isUserLoading, user, router]);
 
-  const handleAddSkill = () => {
-    if (currentSkill && !skills.includes(currentSkill)) {
+  const handleAddSkill = (type: 'general' | 'pair') => {
+    if (type === 'general' && currentSkill && !skills.includes(currentSkill)) {
       setSkills([...skills, currentSkill]);
       setCurrentSkill('');
+    } else if (type === 'pair' && currentPairSkill && !pairProgrammingSkills.includes(currentPairSkill)) {
+        setPairProgrammingSkills([...pairProgrammingSkills, currentPairSkill]);
+        setCurrentPairSkill('');
     }
   };
 
-  const handleRemoveSkill = (skillToRemove: string) => {
-    setSkills(skills.filter(skill => skill !== skillToRemove));
+  const handleRemoveSkill = (skillToRemove: string, type: 'general' | 'pair') => {
+    if (type === 'general') {
+        setSkills(skills.filter(skill => skill !== skillToRemove));
+    } else {
+        setPairProgrammingSkills(pairProgrammingSkills.filter(skill => skill !== skillToRemove));
+    }
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -89,13 +102,15 @@ export default function EditProfilePage() {
     
     const updatedProfileData: Partial<UserProfile> = {
       bio,
-      skills,
+      skills: [...new Set([...skills, ...pairProgrammingSkills])], // Combine and unique
       socialLinks: {
         github: ensureAbsoluteUrl(github),
         linkedin: ensureAbsoluteUrl(linkedin),
         twitter: ensureAbsoluteUrl(twitter),
       },
       followInfoPrivate,
+      pairProgrammingStatus,
+      pairProgrammingSkills,
     };
 
     try {
@@ -123,54 +138,59 @@ export default function EditProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-10">
-      <Card>
-        <CardHeader>
-          <CardTitle>Edit Your Profile</CardTitle>
-          <CardDescription>
-            Keep your profile up to date to help others connect with you.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleUpdateProfile} className="grid gap-6">
-            <div className="grid gap-2">
-              <Label htmlFor="username">Username</Label>
-              <Input id="username" value={username} disabled />
-              <p className="text-xs text-muted-foreground">Usernames cannot be changed after signup.</p>
-            </div>
+      <form onSubmit={handleUpdateProfile} className="grid gap-8">
+        <Card>
+            <CardHeader>
+            <CardTitle>Edit Your Profile</CardTitle>
+            <CardDescription>
+                Keep your profile up to date to help others connect with you.
+            </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6">
+                <div className="grid gap-2">
+                <Label htmlFor="username">Username</Label>
+                <Input id="username" value={username} disabled />
+                <p className="text-xs text-muted-foreground">Usernames cannot be changed after signup.</p>
+                </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Textarea id="bio" placeholder="Tell us about yourself" value={bio} onChange={(e) => setBio(e.target.value)} disabled={isSubmitting} maxLength={250}/>
-            </div>
+                <div className="grid gap-2">
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea id="bio" placeholder="Tell us about yourself" value={bio} onChange={(e) => setBio(e.target.value)} disabled={isSubmitting} maxLength={250}/>
+                </div>
 
-            <div className="grid gap-2">
-              <Label>Skills</Label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {skills.map(skill => (
-                  <Badge key={skill} variant="secondary" className="flex items-center gap-1">
-                    {skill}
-                    <button type="button" onClick={() => handleRemoveSkill(skill)} className="rounded-full hover:bg-muted-foreground/20" disabled={isSubmitting}>
-                      <X className="h-3 w-3"/>
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <Input 
-                    value={currentSkill} 
-                    onChange={e => setCurrentSkill(e.target.value)} 
-                    placeholder="Add a skill (e.g. React)"
-                    onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAddSkill();}}}
-                    disabled={isSubmitting}
-                    maxLength={50}
-                />
-                <Button type="button" variant="outline" onClick={handleAddSkill} disabled={isSubmitting}>Add</Button>
-              </div>
-               <p className="text-xs text-muted-foreground">Press Enter or click Add to add a skill.</p>
-            </div>
-            
-            <div className="grid gap-4">
-                <h3 className="text-lg font-medium">Social Links</h3>
+                <div className="grid gap-2">
+                <Label>Skills</Label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                    {skills.map(skill => (
+                    <Badge key={skill} variant="secondary" className="flex items-center gap-1">
+                        {skill}
+                        <button type="button" onClick={() => handleRemoveSkill(skill, 'general')} className="rounded-full hover:bg-muted-foreground/20" disabled={isSubmitting}>
+                        <X className="h-3 w-3"/>
+                        </button>
+                    </Badge>
+                    ))}
+                </div>
+                <div className="flex gap-2">
+                    <Input 
+                        value={currentSkill} 
+                        onChange={e => setCurrentSkill(e.target.value)} 
+                        placeholder="Add a general skill (e.g. React)"
+                        onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAddSkill('general');}}}
+                        disabled={isSubmitting}
+                        maxLength={50}
+                    />
+                    <Button type="button" variant="outline" onClick={() => handleAddSkill('general')} disabled={isSubmitting}>Add</Button>
+                </div>
+                <p className="text-xs text-muted-foreground">Press Enter or click Add to add a skill.</p>
+                </div>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Social Links</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4">
                  <div className="grid gap-2">
                     <Label htmlFor="github">GitHub</Label>
                     <Input id="github" placeholder="github.com/your-username" value={github} onChange={(e) => setGithub(e.target.value)} disabled={isSubmitting} maxLength={150}/>
@@ -183,10 +203,66 @@ export default function EditProfilePage() {
                     <Label htmlFor="twitter">Twitter / X</Label>
                     <Input id="twitter" placeholder="twitter.com/your-handle" value={twitter} onChange={(e) => setTwitter(e.target.value)} disabled={isSubmitting} maxLength={150}/>
                 </div>
-            </div>
+            </CardContent>
+        </Card>
+        
+         <Card>
+            <CardHeader>
+                <CardTitle>Pair Programming</CardTitle>
+                <CardDescription>Set your availability and preferred topics for pairing sessions.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6">
+                 <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                    <Label htmlFor="pair-programming-status" className="text-base">
+                        Open to Pair Programming
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                        Allow others to send you requests to pair program.
+                    </p>
+                    </div>
+                    <Switch
+                    id="pair-programming-status"
+                    checked={pairProgrammingStatus === 'open'}
+                    onCheckedChange={(checked) => setPairProgrammingStatus(checked ? 'open' : 'closed')}
+                    disabled={isSubmitting}
+                    />
+                </div>
+                {pairProgrammingStatus === 'open' && (
+                     <div className="grid gap-2">
+                        <Label>Pairing Skills</Label>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                            {pairProgrammingSkills.map(skill => (
+                            <Badge key={skill} variant="secondary" className="flex items-center gap-1">
+                                {skill}
+                                <button type="button" onClick={() => handleRemoveSkill(skill, 'pair')} className="rounded-full hover:bg-muted-foreground/20" disabled={isSubmitting}>
+                                <X className="h-3 w-3"/>
+                                </button>
+                            </Badge>
+                            ))}
+                        </div>
+                        <div className="flex gap-2">
+                            <Input 
+                                value={currentPairSkill} 
+                                onChange={e => setCurrentPairSkill(e.target.value)} 
+                                placeholder="Add a skill for pairing (e.g. TDD)"
+                                onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAddSkill('pair');}}}
+                                disabled={isSubmitting}
+                                maxLength={50}
+                            />
+                            <Button type="button" variant="outline" onClick={() => handleAddSkill('pair')} disabled={isSubmitting}>Add</Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">These are skills you want to practice in a pair.</p>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
 
-            <div className="grid gap-4">
-              <h3 className="text-lg font-medium">Privacy Settings</h3>
+        <Card>
+            <CardHeader>
+                <CardTitle>Privacy Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="follow-info-private" className="text-base">
@@ -203,14 +279,12 @@ export default function EditProfilePage() {
                   disabled={isSubmitting}
                 />
               </div>
-            </div>
-
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+            </CardContent>
+        </Card>
+        <Button type="submit" disabled={isSubmitting} className="w-full">
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+        </Button>
+      </form>
     </div>
   );
 }

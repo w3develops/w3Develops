@@ -7,11 +7,11 @@ import { doc, DocumentReference, collection, query, where, Query, documentId, wr
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { UserProfile, StudyGroup, GroupProject, SoloProject, BookClub, MentorshipRequest, TutorRequest } from '@/lib/types';
+import { UserProfile, StudyGroup, GroupProject, SoloProject, BookClub, MentorshipRequest, TutorRequest, PairingRequest } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Github, Linkedin, Twitter, PlusCircle, Star, GraduationCap, BrainCircuit } from 'lucide-react';
+import { Github, Linkedin, Twitter, PlusCircle, Star, GraduationCap, BrainCircuit, GitBranch } from 'lucide-react';
 import { JoinCohortModal } from '@/components/modals/JoinCohortModal';
 import { JoinGroupModal } from '@/components/modals/JoinGroupModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -371,6 +371,116 @@ function TutorshipManagement({ user, userProfile }: { user: any, userProfile: Us
     )
 }
 
+function PairingManagement({ user, userProfile }: { user: any, userProfile: UserProfile }) {
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const incomingRequestsQuery = useMemo(() => {
+        return query(
+            collection(firestore, 'pairRequests'),
+            where('toUid', '==', user.uid),
+            where('status', '==', 'pending')
+        );
+    }, [firestore, user.uid]);
+
+    const { data: incomingRequests, isLoading: isLoadingRequests } = useCollection<PairingRequest>(incomingRequestsQuery);
+
+    const handleRequest = async (request: PairingRequest, newStatus: 'accepted' | 'declined') => {
+        const requestRef = doc(firestore, 'pairRequests', request.id);
+        const batch = writeBatch(firestore);
+
+        batch.update(requestRef, { status: newStatus });
+        let batchUpdateData = {};
+
+        if (newStatus === 'accepted') {
+            const requesterRef = doc(firestore, 'users', request.fromUid);
+            const currentUserRef = doc(firestore, 'users', user.uid);
+            const sortedUserIds = [request.fromUid, user.uid].sort();
+            const pairingId = sortedUserIds.join('_');
+            const pairingRef = doc(firestore, 'pairings', pairingId);
+            
+            batch.update(requesterRef, { pairingIds: arrayUnion(pairingId), pairPartnerIds: arrayUnion(user.uid) });
+            batch.update(currentUserRef, { pairingIds: arrayUnion(pairingId), pairPartnerIds: arrayUnion(request.fromUid) });
+
+            batch.set(pairingRef, {
+                id: pairingId,
+                memberIds: sortedUserIds,
+                createdAt: serverTimestamp()
+            });
+            batchUpdateData = { from: request.fromUid, to: user.uid, pairingId };
+        }
+        
+        try {
+            await batch.commit();
+            toast({ title: `Request ${newStatus}` });
+        } catch (serverError) {
+            const permissionError = new FirestorePermissionError({
+                path: `batch write for pairing request ${request.id}`,
+                operation: 'update',
+                requestResourceData: batchUpdateData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            toast({
+                variant: 'destructive',
+                title: "Error",
+                description: "Failed to accept request due to a permission issue.",
+                duration: 10000
+            });
+        }
+    };
+    
+    const { data: partners } = useCollection<UserProfile>(
+        userProfile.pairPartnerIds && userProfile.pairPartnerIds.length > 0 
+        ? query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.pairPartnerIds.slice(0, 10))) 
+        : null
+    );
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><GitBranch />Pair Programming</CardTitle>
+                <CardDescription>Manage your pair programming connections and requests.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div>
+                    <h3 className="font-semibold mb-2">Incoming Requests</h3>
+                    {isLoadingRequests && <p>Loading requests...</p>}
+                    {!isLoadingRequests && (!incomingRequests || incomingRequests.length === 0) && <p className="text-sm text-muted-foreground">No new requests.</p>}
+                    <div className="space-y-2">
+                        {incomingRequests?.map(req => (
+                            <div key={req.id} className="flex items-center justify-between p-2 border rounded-md">
+                                <p className="text-sm">{req.fromUsername} wants to pair with you.</p>
+                                <div className="flex gap-2">
+                                    <Button size="sm" onClick={() => handleRequest(req, 'accepted')}>Accept</Button>
+                                    <Button size="sm" variant="outline" onClick={() => handleRequest(req, 'declined')}>Decline</Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div>
+                    <h3 className="font-semibold mb-2">Your Partners</h3>
+                    {partners && partners.length > 0 ? (
+                        <ul className="divide-y">
+                            {partners.map(p => {
+                                const pairingId = [user.uid, p.id].sort().join('_');
+                                return (
+                                    <li key={p.id} className="py-2">
+                                        <Link href={`/pairings/${pairingId}`} className="font-medium hover:underline">{p.username}</Link>
+                                    </li>
+                                )
+                            })}
+                        </ul>
+                    ) : <p className="text-sm text-muted-foreground">You have no partners yet.</p>}
+                </div>
+                 <Button asChild variant="secondary" className="w-full">
+                    <Link href="/pair-programming">Explore Pair Programming</Link>
+                </Button>
+            </CardContent>
+        </Card>
+    )
+}
+
 export default function AccountPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
@@ -569,6 +679,7 @@ export default function AccountPage() {
         
         <MentorshipManagement user={user} userProfile={userProfile} />
         <TutorshipManagement user={user} userProfile={userProfile} />
+        <PairingManagement user={user} userProfile={userProfile} />
 
         <Card>
             <CardHeader>
@@ -633,5 +744,3 @@ export default function AccountPage() {
     </div>
   );
 }
-
-    

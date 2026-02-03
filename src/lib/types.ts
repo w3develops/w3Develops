@@ -15,6 +15,7 @@ export type MentorshipRole = 'none' | 'mentor' | 'mentee' | 'both';
 export type MentorshipStatus = 'open' | 'closed';
 export type TutorRole = 'none' | 'tutor' | 'student' | 'both';
 export type TutorStatus = 'open' | 'closed';
+export type PairProgrammingStatus = 'open' | 'closed';
 
 
 export interface UserProfile {
@@ -61,6 +62,10 @@ export interface UserProfile {
   tutorIds?: string[];
   studentIds?: string[];
   tutorshipIds?: string[];
+  pairProgrammingStatus?: PairProgrammingStatus;
+  pairProgrammingSkills?: string[];
+  pairPartnerIds?: string[];
+  pairingIds?: string[];
 }
 
 export interface GroupProject {
@@ -199,4 +204,18 @@ export interface Tutorship {
   createdAt: Timestamp;
 }
 
-    
+export interface PairingRequest {
+    id: string;
+    fromUid: string;
+    toUid: string;
+    fromUsername: string;
+    toUsername: string;
+    status: 'pending' | 'accepted' | 'declined';
+    createdAt: Timestamp;
+}
+
+export interface Pairing {
+  id: string;
+  memberIds: string[];
+  createdAt: Timestamp;
+}

@@ -18,7 +18,7 @@ import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/e
 
 interface CheckInSystemProps {
   groupOrCohortId: string;
-  collectionPath: 'studyGroups' | 'groupProjects' | 'bookClubs' | 'mentorships' | 'tutorships';
+  collectionPath: 'studyGroups' | 'groupProjects' | 'bookClubs' | 'mentorships' | 'tutorships' | 'pairings';
   memberIds: string[];
 }
 

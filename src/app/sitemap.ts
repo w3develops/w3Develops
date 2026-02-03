@@ -50,7 +50,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/hackathon',
     '/marketplace',
     '/warrant-canary',
-    '/tutorships'
+    '/tutorships',
+    '/pairings'
   ];
 
   return staticRoutes.map((route) => ({
@@ -58,5 +59,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(),
   }));
 }
-
-    
