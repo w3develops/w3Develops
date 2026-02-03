@@ -269,7 +269,7 @@ export default function UserProfilePage({ params }: { params: { userId: string }
     fetchUserProfile();
   }, [userId, firestore]);
   
-  const mentorshipBadges = useMemo(() => {
+  const roleBadges = useMemo(() => {
     if (!userProfile) return null;
     const roles = [];
     if (userProfile.mentorshipRole === 'mentor' || userProfile.mentorshipRole === 'both') {
@@ -277,6 +277,12 @@ export default function UserProfilePage({ params }: { params: { userId: string }
     }
     if (userProfile.mentorshipRole === 'mentee' || userProfile.mentorshipRole === 'both') {
       roles.push(<Badge key="mentee" variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Mentee</Badge>);
+    }
+    if (userProfile.tutorRole === 'tutor' || userProfile.tutorRole === 'both') {
+      roles.push(<Badge key="tutor" variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Tutor</Badge>);
+    }
+    if (userProfile.tutorRole === 'student' || userProfile.tutorRole === 'both') {
+      roles.push(<Badge key="student" variant="secondary" className="gap-2"><GraduationCap className="h-4 w-4"/>Student</Badge>);
     }
     return roles;
   }, [userProfile]);
@@ -306,7 +312,7 @@ export default function UserProfilePage({ params }: { params: { userId: string }
           <div className="flex-1 text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start gap-4 flex-wrap">
               <h1 className="text-3xl font-headline">{userProfile.username}</h1>
-              {mentorshipBadges}
+              {roleBadges}
             </div>
             <div className="flex items-center justify-center md:justify-start gap-2 text-sm text-muted-foreground mt-2">
               <CalendarDays className="h-4 w-4" />

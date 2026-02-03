@@ -1,4 +1,3 @@
-
 import { FieldValue, Timestamp } from 'firebase/firestore';
 
 export interface NotificationSettings {
@@ -14,6 +13,8 @@ export interface NotificationSettings {
 export type UserStatus = 'active' | 'paused' | 'inactive';
 export type MentorshipRole = 'none' | 'mentor' | 'mentee' | 'both';
 export type MentorshipStatus = 'open' | 'closed';
+export type TutorRole = 'none' | 'tutor' | 'student' | 'both';
+export type TutorStatus = 'open' | 'closed';
 
 
 export interface UserProfile {
@@ -53,6 +54,13 @@ export interface UserProfile {
   mentorIds?: string[];
   menteeIds?: string[];
   mentorshipIds?: string[];
+  tutorRole?: TutorRole;
+  tutorStatus?: TutorStatus;
+  tutoringSkills?: string[];
+  seekingTutoringSkills?: string[];
+  tutorIds?: string[];
+  studentIds?: string[];
+  tutorshipIds?: string[];
 }
 
 export interface GroupProject {
@@ -169,5 +177,24 @@ export interface Mentorship {
   memberIds: string[];
   mentorId: string;
   menteeId: string;
+  createdAt: Timestamp;
+}
+
+export interface TutorRequest {
+    id: string;
+    fromUid: string;
+    toUid: string;
+    fromUsername: string;
+    toUsername: string;
+    type: 'seeking_tutor' | 'seeking_student';
+    status: 'pending' | 'accepted' | 'declined';
+    createdAt: Timestamp;
+}
+
+export interface Tutorship {
+  id: string;
+  memberIds: string[];
+  tutorId: string;
+  studentId: string;
   createdAt: Timestamp;
 }

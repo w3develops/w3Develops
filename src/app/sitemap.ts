@@ -49,7 +49,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/tutor',
     '/hackathon',
     '/marketplace',
-    '/warrant-canary'
+    '/warrant-canary',
+    '/tutorships'
   ];
 
   return staticRoutes.map((route) => ({

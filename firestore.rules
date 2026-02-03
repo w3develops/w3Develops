@@ -23,6 +23,10 @@ service cloud.firestore {
     function isMentorshipMember(mentorshipId) {
       return request.auth != null && get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data.memberIds.hasAny([request.auth.uid]);
     }
+    
+    function isTutorshipMember(tutorshipId) {
+      return request.auth != null && get(/databases/$(database)/documents/tutorships/$(tutorshipId)).data.memberIds.hasAny([request.auth.uid]);
+    }
 
     function isAddingSelfToList(listAfter, listBefore) {
       return request.auth != null
@@ -64,6 +68,24 @@ service cloud.firestore {
         return (isAddingMentor && changedKeys.hasAll(['mentorIds', 'mentorshipIds']) && changedKeys.size() == 2 && isAddingMentorshipId) ||
                (isAddingMentee && changedKeys.hasAll(['menteeIds', 'mentorshipIds']) && changedKeys.size() == 2 && isAddingMentorshipId);
     }
+    
+    function isTutorshipUpdate(userId) {
+        let isAddingTutor = request.resource.data.tutorIds.size() == resource.data.get('tutorIds', []).size() + 1 &&
+                             request.resource.data.tutorIds.hasAll(resource.data.get('tutorIds', [])) &&
+                             request.resource.data.tutorIds.hasAny([request.auth.uid]);
+
+        let isAddingStudent = request.resource.data.studentIds.size() == resource.data.get('studentIds', []).size() + 1 &&
+                             request.resource.data.studentIds.hasAll(resource.data.get('studentIds', [])) &&
+                             request.resource.data.studentIds.hasAny([request.auth.uid]);
+                             
+        let isAddingTutorshipId = request.resource.data.tutorshipIds.size() == resource.data.get('tutorshipIds', []).size() + 1 &&
+                                   request.resource.data.tutorshipIds.hasAll(resource.data.get('tutorshipIds', []));
+
+        let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
+
+        return (isAddingTutor && changedKeys.hasAll(['tutorIds', 'tutorshipIds']) && changedKeys.size() == 2 && isAddingTutorshipId) ||
+               (isAddingStudent && changedKeys.hasAll(['studentIds', 'tutorshipIds']) && changedKeys.size() == 2 && isAddingTutorshipId);
+    }
 
     match /users/{userId} {
       allow read: if true;
@@ -76,7 +98,7 @@ service cloud.firestore {
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
           (isAddingSelfToList(request.resource.data.followers, resource.data.get('followers', [])) ||
             isRemovingSelfFromList(request.resource.data.followers, resource.data.get('followers', [])))
-        ) || isMentorshipUpdate(userId);
+        ) || isMentorshipUpdate(userId) || isTutorshipUpdate(userId);
     }
 
     match /usernames/{username} {
@@ -112,6 +134,43 @@ service cloud.firestore {
       match /checkIns/{checkInId} {
         allow read: if isMentorshipMember(mentorshipId);
         allow create: if isMentorshipMember(mentorshipId) 
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
+                      && request.resource.data.type in ['daily', 'weekly'];
+        allow update: if isOwner(request.resource.data.userId)
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
+        allow delete: if false;
+      }
+    }
+    
+     match /tutorRequests/{requestId} {
+        allow read: if request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid;
+        allow create: if request.auth.uid == request.resource.data.fromUid
+                      && request.resource.data.status == 'pending'
+                      && request.resource.data.fromUid != request.resource.data.toUid;
+        allow update: if request.auth.uid == resource.data.toUid;
+    }
+
+    match /tutorships/{tutorshipId} {
+      allow read: if isTutorshipMember(tutorshipId);
+      allow create: if request.auth != null && request.resource.data.memberIds.hasAny([request.auth.uid]);
+      allow update: if request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
+      allow delete: if false;
+
+      match /tasks/{taskId} {
+        allow read: if isTutorshipMember(tutorshipId);
+        allow create: if isTutorshipMember(tutorshipId) 
+                      && request.resource.data.creatorId == request.auth.uid
+                      && request.resource.data.isCompleted == false;
+        allow update: if isTutorshipMember(tutorshipId);
+        allow delete: if isTutorshipMember(tutorshipId) && resource.data.creatorId == request.auth.uid;
+      }
+      
+      match /checkIns/{checkInId} {
+        allow read: if isTutorshipMember(tutorshipId);
+        allow create: if isTutorshipMember(tutorshipId) 
                       && request.resource.data.userId == request.auth.uid
                       && request.resource.data.content is string
                       && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000

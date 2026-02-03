@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -207,6 +206,59 @@
         "mentorshipIds": {
           "type": "array",
           "description": "A list of Mentorship IDs this user is part of.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tutorRole": {
+          "type": "string",
+          "enum": [
+            "none",
+            "tutor",
+            "student",
+            "both"
+          ],
+          "description": "The user's role in the tutoring program."
+        },
+        "tutorStatus": {
+          "type": "string",
+          "enum": [
+            "open",
+            "closed"
+          ],
+          "description": "Whether the user is open to new tutoring requests."
+        },
+        "tutoringSkills": {
+          "type": "array",
+          "description": "Skills the user is willing to tutor in.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "seekingTutoringSkills": {
+          "type": "array",
+          "description": "Skills the user is seeking tutoring for.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tutorIds": {
+          "type": "array",
+          "description": "A list of user IDs who are tutoring this user.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "studentIds": {
+          "type": "array",
+          "description": "A list of user IDs this user is tutoring.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tutorshipIds": {
+          "type": "array",
+          "description": "A list of Tutorship IDs this user is part of.",
           "items": {
             "type": "string"
           }
@@ -601,6 +653,72 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "memberIds", "mentorId", "menteeId", "createdAt"]
+    },
+    "TutorRequest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TutorRequest",
+      "type": "object",
+      "description": "Represents a request for tutoring between two users.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "fromUid": {
+          "type": "string"
+        },
+        "toUid": {
+          "type": "string"
+        },
+        "fromUsername": {
+          "type": "string"
+        },
+        "toUsername": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "seeking_tutor",
+            "seeking_student"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "accepted",
+            "declined"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "fromUid",
+        "toUid",
+        "fromUsername",
+        "toUsername",
+        "type",
+        "status",
+        "createdAt"
+      ]
+    },
+    "Tutorship": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Tutorship",
+      "type": "object",
+      "description": "Represents a tutoring relationship between two users.",
+      "properties": {
+        "id": { "type": "string" },
+        "memberIds": { "type": "array", "items": { "type": "string" } },
+        "tutorId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "memberIds", "tutorId", "studentId", "createdAt"]
     }
   },
   "auth": {
@@ -704,6 +822,24 @@
     "/mentorships/{mentorshipId}/checkIns/{checkInId}": {
       "schema": { "$ref": "#/entities/CheckIn" },
       "description": "Stores check-ins for a specific mentorship."
+    },
+    "/tutorRequests/{requestId}": {
+      "schema": {
+        "$ref": "#/entities/TutorRequest"
+      },
+      "description": "Stores tutoring requests between users."
+    },
+    "/tutorships/{tutorshipId}": {
+      "schema": { "$ref": "#/entities/Tutorship" },
+      "description": "Stores tutoring session data."
+    },
+    "/tutorships/{tutorshipId}/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/Task" },
+      "description": "Stores tasks for a specific tutorship."
+    },
+    "/tutorships/{tutorshipId}/checkIns/{checkInId}": {
+      "schema": { "$ref": "#/entities/CheckIn" },
+      "description": "Stores check-ins for a specific tutorship."
     }
   }
 }

@@ -7,7 +7,7 @@ import { doc, DocumentReference, collection, query, where, Query, documentId, wr
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { UserProfile, StudyGroup, GroupProject, SoloProject, BookClub, MentorshipRequest } from '@/lib/types';
+import { UserProfile, StudyGroup, GroupProject, SoloProject, BookClub, MentorshipRequest, TutorRequest } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -216,6 +216,161 @@ function MentorshipManagement({ user, userProfile }: { user: any, userProfile: U
     )
 }
 
+function TutorshipManagement({ user, userProfile }: { user: any, userProfile: UserProfile }) {
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const incomingRequestsQuery = useMemo(() => {
+        return query(
+            collection(firestore, 'tutorRequests'),
+            where('toUid', '==', user.uid),
+            where('status', '==', 'pending')
+        );
+    }, [firestore, user.uid]);
+
+    const { data: incomingRequests, isLoading: isLoadingRequests } = useCollection<TutorRequest>(incomingRequestsQuery);
+
+    const handleRequest = async (request: TutorRequest, newStatus: 'accepted' | 'declined') => {
+        const requestRef = doc(firestore, 'tutorRequests', request.id);
+        const batch = writeBatch(firestore);
+
+        batch.update(requestRef, { status: newStatus });
+        let batchUpdateData = {};
+
+        if (newStatus === 'accepted') {
+            const requesterRef = doc(firestore, 'users', request.fromUid);
+            const currentUserRef = doc(firestore, 'users', user.uid);
+
+            const sortedUserIds = [request.fromUid, user.uid].sort();
+            const tutorshipId = sortedUserIds.join('_');
+            const tutorshipRef = doc(firestore, 'tutorships', tutorshipId);
+
+            let tutorId, studentId;
+            let requesterUpdate: { [key: string]: any } = { tutorshipIds: arrayUnion(tutorshipId) };
+            let currentUserUpdate: { [key: string]: any } = { tutorshipIds: arrayUnion(tutorshipId) };
+
+            if (request.type === 'seeking_tutor') { // Requester wants ME to be their tutor
+                tutorId = user.uid;
+                studentId = request.fromUid;
+                requesterUpdate['tutorIds'] = arrayUnion(user.uid);
+                currentUserUpdate['studentIds'] = arrayUnion(request.fromUid);
+            } else { // Requester wants to be MY tutor
+                tutorId = request.fromUid;
+                studentId = user.uid;
+                requesterUpdate['studentIds'] = arrayUnion(user.uid);
+                currentUserUpdate['tutorIds'] = arrayUnion(request.fromUid);
+            }
+            
+            batch.update(requesterRef, requesterUpdate);
+            batch.update(currentUserRef, currentUserUpdate);
+
+            batch.set(tutorshipRef, {
+                id: tutorshipId,
+                memberIds: sortedUserIds,
+                tutorId: tutorId,
+                studentId: studentId,
+                createdAt: serverTimestamp()
+            });
+
+            batchUpdateData = { requesterUpdate, currentUserUpdate };
+        }
+        
+        try {
+            await batch.commit();
+            toast({ title: `Request ${newStatus}` });
+        } catch (serverError) {
+            const permissionError = new FirestorePermissionError({
+                path: `batch write for tutorship request ${request.id}`,
+                operation: 'update',
+                requestResourceData: batchUpdateData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            toast({
+                variant: 'destructive',
+                title: "Error",
+                description: "Failed to accept request due to a permission issue. Please check your permissions and try again.",
+                duration: 10000
+            });
+        }
+    };
+    
+    const { data: tutors } = useCollection<UserProfile>(
+        userProfile.tutorIds && userProfile.tutorIds.length > 0 
+        ? query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.tutorIds.slice(0, 10))) 
+        : null
+    );
+
+    const { data: students } = useCollection<UserProfile>(
+        userProfile.studentIds && userProfile.studentIds.length > 0
+        ? query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.studentIds.slice(0, 10)))
+        : null
+    );
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><GraduationCap />Tutorship</CardTitle>
+                <CardDescription>Manage your tutoring connections and requests.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div>
+                    <h3 className="font-semibold mb-2">Incoming Requests</h3>
+                    {isLoadingRequests && <p>Loading requests...</p>}
+                    {!isLoadingRequests && (!incomingRequests || incomingRequests.length === 0) && <p className="text-sm text-muted-foreground">No new requests.</p>}
+                    <div className="space-y-2">
+                        {incomingRequests?.map(req => (
+                            <div key={req.id} className="flex items-center justify-between p-2 border rounded-md">
+                                <p className="text-sm">{req.fromUsername} wants to be your {req.type === 'seeking_tutor' ? 'student' : 'tutor'}.</p>
+                                <div className="flex gap-2">
+                                    <Button size="sm" onClick={() => handleRequest(req, 'accepted')}>Accept</Button>
+                                    <Button size="sm" variant="outline" onClick={() => handleRequest(req, 'declined')}>Decline</Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 className="font-semibold mb-2">Your Tutors</h3>
+                        {tutors && tutors.length > 0 ? (
+                           <ul className="divide-y">
+                                {tutors.map(m => {
+                                    const tutorshipId = [user.uid, m.id].sort().join('_');
+                                    return (
+                                        <li key={m.id} className="py-2">
+                                            <Link href={`/tutorships/${tutorshipId}`} className="font-medium hover:underline">{m.username}</Link>
+                                        </li>
+                                    )
+                                })}
+                           </ul>
+                        ) : <p className="text-sm text-muted-foreground">You have no tutors yet.</p>}
+                    </div>
+                     <div>
+                        <h3 className="font-semibold mb-2">Your Students</h3>
+                         {students && students.length > 0 ? (
+                           <ul className="divide-y">
+                                {students.map(m => {
+                                    const tutorshipId = [user.uid, m.id].sort().join('_');
+                                    return (
+                                        <li key={m.id} className="py-2">
+                                            <Link href={`/tutorships/${tutorshipId}`} className="font-medium hover:underline">{m.username}</Link>
+                                        </li>
+                                    )
+                                })}
+                           </ul>
+                        ) : <p className="text-sm text-muted-foreground">You have no students yet.</p>}
+                    </div>
+                </div>
+
+                 <Button asChild variant="secondary" className="w-full">
+                    <Link href="/tutor">Explore Tutoring Program</Link>
+                </Button>
+            </CardContent>
+        </Card>
+    )
+}
+
 export default function AccountPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
@@ -413,6 +568,7 @@ export default function AccountPage() {
         </div>
         
         <MentorshipManagement user={user} userProfile={userProfile} />
+        <TutorshipManagement user={user} userProfile={userProfile} />
 
         <Card>
             <CardHeader>
