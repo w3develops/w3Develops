@@ -678,9 +678,6 @@ export default function AccountPage() {
         </div>
         
         <MentorshipManagement user={user} userProfile={userProfile} />
-        <TutorshipManagement user={user} userProfile={userProfile} />
-        <PairingManagement user={user} userProfile={userProfile} />
-
         <Card>
             <CardHeader>
                 <CardTitle>Your Projects</CardTitle>
@@ -739,6 +736,8 @@ export default function AccountPage() {
                 </Tabs>
             </CardContent>
         </Card>
+        <TutorshipManagement user={user} userProfile={userProfile} />
+        <PairingManagement user={user} userProfile={userProfile} />
 
       </div>
     </div>
