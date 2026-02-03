@@ -11,7 +11,6 @@ export const rssFeeds = [
     'https://decrypt.co/feed',
     'https://bitcoinist.com/feed/',
     'https://coincentral.com/feed/',
-    'https://crypto.forem.com/feed',
     'https://blockworks.co/feed',
     'https://bitcoinmagazine.com/feed',
     'https://nypost.com/cryptocurrency/feed/',
