@@ -157,6 +157,16 @@
             "type": "string"
           }
         },
+        "createdMeetupIds": {
+          "type": "array",
+          "description": "A list of Meetup IDs created by this user.",
+          "items": { "type": "string" }
+        },
+        "joinedMeetupIds": {
+            "type": "array",
+            "description": "A list of Meetup IDs this user has joined (but not created).",
+            "items": { "type": "string" }
+        },
         "mentorshipRole": {
           "type": "string",
           "enum": [
@@ -497,6 +507,53 @@
         "createdAt"
       ]
     },
+    "Meetup": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Meetup",
+      "type": "object",
+      "description": "Represents a community meetup event.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "name_lowercase": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "description": { "type": "string" },
+        "topic": { "type": "string" },
+        "attendeeIds": { "type": "array", "items": { "type": "string" } },
+        "dateTime": { "type": "string", "format": "date-time" },
+        "timezone": { "type": "string" },
+        "locationType": { "type": "string", "enum": ["Online", "In-Person", "Hybrid"] },
+        "locationAddress": { "type": "string" },
+        "virtualLink": { "type": "string", "format": "uri" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "name",
+        "name_lowercase",
+        "creatorId",
+        "topic",
+        "dateTime",
+        "timezone",
+        "locationType",
+        "attendeeIds",
+        "createdAt"
+      ]
+    },
+    "MeetupUpdate": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "MeetupUpdate",
+        "type": "object",
+        "description": "Represents an update or announcement for a specific meetup.",
+        "properties": {
+            "id": { "type": "string" },
+            "meetupId": { "type": "string" },
+            "creatorId": { "type": "string" },
+            "content": { "type": "string" },
+            "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "meetupId", "creatorId", "content", "createdAt"]
+    },
     "Task": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Task",
@@ -810,6 +867,22 @@
         "$ref": "#/entities/GroupProject"
       },
       "description": "Stores project data."
+    },
+    "/meetups/{meetupId}": {
+      "schema": { "$ref": "#/entities/Meetup" },
+      "description": "Stores community meetup events."
+    },
+    "/meetups/{meetupId}/updates/{updateId}": {
+        "schema": { "$ref": "#/entities/MeetupUpdate" },
+        "description": "Stores updates for a specific meetup."
+    },
+    "/meetups/{meetupId}/tasks/{taskId}": {
+        "schema": { "$ref": "#/entities/Task" },
+        "description": "Stores tasks for a specific meetup."
+    },
+    "/meetups/{meetupId}/checkIns/{checkInId}": {
+      "schema": { "$ref": "#/entities/CheckIn" },
+      "description": "Stores check-ins for a specific meetup."
     },
     "/studyGroups/{groupId}/tasks/{taskId}": {
         "schema": {

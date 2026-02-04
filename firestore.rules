@@ -19,6 +19,14 @@ service cloud.firestore {
     function isGroupProjectMember(groupProjectId) {
        return request.auth != null && get(/databases/$(database)/documents/groupProjects/$(groupProjectId)).data.memberIds.hasAny([request.auth.uid]);
     }
+    
+    function isMeetupCreator(meetupId) {
+      return request.auth != null && get(/databases/$(database)/documents/meetups/$(meetupId)).data.creatorId == request.auth.uid;
+    }
+    
+    function isMeetupAttendee(meetupId) {
+       return request.auth != null && get(/databases/$(database)/documents/meetups/$(meetupId)).data.attendeeIds.hasAny([request.auth.uid]);
+    }
 
     function isMentorshipMember(mentorshipId) {
       return request.auth != null && get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data.memberIds.hasAny([request.auth.uid]);
@@ -325,6 +333,42 @@ service cloud.firestore {
       match /checkIns/{checkInId} {
         allow read: if true;
         allow create: if isGroupProjectMember(groupProjectId)
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
+                      && request.resource.data.type in ['daily', 'weekly'];
+        allow update: if isOwner(request.resource.data.userId)
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
+        allow delete: if false;
+      }
+    }
+    
+    match /meetups/{meetupId} {
+      allow read: if true;
+      allow create: if request.auth != null 
+                    && request.resource.data.creatorId == request.auth.uid
+                    && request.resource.data.attendeeIds == [request.auth.uid];
+      allow update: if isMeetupCreator(meetupId) || 
+                    (request.auth != null && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['attendeeIds']) && isAddingSelfToList(request.resource.data.attendeeIds, resource.data.attendeeIds));
+      allow delete: if isMeetupCreator(meetupId);
+
+      match /updates/{updateId} {
+        allow read: if true;
+        allow create: if isMeetupCreator(meetupId) && request.resource.data.creatorId == request.auth.uid;
+        allow update, delete: if false;
+      }
+
+      match /tasks/{taskId} {
+        allow read: if isMeetupAttendee(meetupId);
+        allow create: if isMeetupAttendee(meetupId) && request.resource.data.creatorId == request.auth.uid && request.resource.data.isCompleted == false;
+        allow update: if isMeetupAttendee(meetupId);
+        allow delete: if (isMeetupAttendee(meetupId) && resource.data.creatorId == request.auth.uid) || isMeetupCreator(meetupId);
+      }
+      
+      match /checkIns/{checkInId} {
+        allow read: if true;
+        allow create: if isMeetupAttendee(meetupId) 
                       && request.resource.data.userId == request.auth.uid
                       && request.resource.data.content is string
                       && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
