@@ -246,3 +246,29 @@ export interface Pairing {
   memberIds: string[];
   createdAt: Timestamp;
 }
+
+export interface Competition {
+  id: string;
+  name: string;
+  name_lowercase: string;
+  description: string;
+  rules: string;
+  prize: string;
+  creatorId: string;
+  startDate: Timestamp;
+  endDate: Timestamp;
+  winnerId?: string;
+  createdAt: Timestamp;
+}
+
+export interface CompetitionEntry {
+  id: string;
+  competitionId: string;
+  userId: string;
+  username: string;
+  projectUrl: string;
+  soloProjectId?: string;
+  description?: string;
+  submittedAt: Timestamp;
+  voteCount?: number;
+}

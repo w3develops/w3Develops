@@ -612,6 +612,44 @@
       },
       "required": ["id", "message", "isRead", "createdAt"]
     },
+    "Competition": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Competition",
+      "type": "object",
+      "description": "Represents a coding competition or hackathon.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "name_lowercase": { "type": "string" },
+        "description": { "type": "string" },
+        "rules": { "type": "string" },
+        "prize": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "startDate": { "type": "string", "format": "date-time" },
+        "endDate": { "type": "string", "format": "date-time" },
+        "winnerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "name_lowercase", "description", "creatorId", "startDate", "endDate", "createdAt"]
+    },
+    "CompetitionEntry": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CompetitionEntry",
+      "type": "object",
+      "description": "Represents a user's submission to a competition.",
+      "properties": {
+        "id": { "type": "string" },
+        "competitionId": { "type": "string" },
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "projectUrl": { "type": "string", "format": "uri" },
+        "soloProjectId": { "type": "string" },
+        "description": { "type": "string" },
+        "submittedAt": { "type": "string", "format": "date-time" },
+        "voteCount": { "type": "number" }
+      },
+      "required": ["id", "competitionId", "userId", "username", "projectUrl", "submittedAt"]
+    },
     "Feedback": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Feedback",
@@ -921,6 +959,14 @@
             "$ref": "#/entities/Notification"
         },
         "description": "Stores notifications for a specific user."
+    },
+    "/competitions/{competitionId}": {
+      "schema": { "$ref": "#/entities/Competition" },
+      "description": "Stores competition data."
+    },
+    "/competitions/{competitionId}/entries/{entryId}": {
+      "schema": { "$ref": "#/entities/CompetitionEntry" },
+      "description": "Stores user entries for a specific competition."
     },
     "/feedback/{feedbackId}": {
       "schema": {

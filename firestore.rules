@@ -222,6 +222,24 @@ service cloud.firestore {
       }
     }
 
+    match /competitions/{competitionId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.creatorId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.creatorId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.creatorId == request.auth.uid;
+
+      match /entries/{entryId} {
+        allow read: if true;
+        allow create: if request.auth != null 
+                      && request.resource.data.userId == request.auth.uid
+                      && get(/databases/$(database)/documents/competitions/$(competitionId)).data.endDate > request.time;
+        allow update: if request.auth != null 
+                      && resource.data.userId == request.auth.uid
+                      && get(/databases/$(database)/documents/competitions/$(competitionId)).data.endDate > request.time;
+        allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      }
+    }
+
     match /studyGroups/{groupId} {
       allow read: if true;
       allow create: if request.auth != null
