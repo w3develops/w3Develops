@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useUser, useFirestore } from '@/firebase';
-import { arrayUnion, doc, updateDoc } from 'firebase/firestore';
+import { arrayUnion, doc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -39,17 +39,21 @@ export default function JoinMeetupButton({ meetup }: { meetup: Meetup }) {
     const handleJoin = async () => {
         setIsJoining(true);
         const meetupRef = doc(firestore, 'meetups', meetup.id);
-        const updateData = { attendeeIds: arrayUnion(user.uid) };
+        const userRef = doc(firestore, 'users', user.uid);
+        const batch = writeBatch(firestore);
+
+        batch.update(meetupRef, { attendeeIds: arrayUnion(user.uid) });
+        batch.update(userRef, { joinedMeetupIds: arrayUnion(meetup.id) });
 
         try {
-            await updateDoc(meetupRef, updateData);
+            await batch.commit();
             toast({ title: 'Success!', description: `You've joined the meetup: ${meetup.name}` });
             router.refresh();
         } catch (error: any) {
             const permissionError = new FirestorePermissionError({
-                path: meetupRef.path,
+                path: `batch write for joining meetup ${meetup.id}`,
                 operation: 'update',
-                requestResourceData: { attendeeId: user.uid },
+                requestResourceData: { attendeeId: user.uid, meetupId: meetup.id },
             } satisfies SecurityRuleContext);
             errorEmitter.emit('permission-error', permissionError);
             toast({ variant: 'destructive', title: 'Could Not Join', description: "Could not join the meetup due to a permission error." });

@@ -1,17 +1,17 @@
 
 'use client';
 
-import { useDoc } from '@/firebase/firestore/use-doc';
+import { useDoc, useCollection } from '@/firebase/firestore';
 import { useMemo, useState, useEffect } from 'react';
-import { doc, DocumentReference, collection, query, where, getDocs, Query, documentId, addDoc, serverTimestamp, orderBy, updateDoc } from 'firebase/firestore';
+import { doc, DocumentReference, collection, query, where, getDocs, Query, documentId, addDoc, serverTimestamp, orderBy } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
 import { Meetup, MeetupUpdate, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Users, CalendarDays, ArrowLeft, MapPin, Link as LinkIcon, Video, User } from 'lucide-react';
+import { Users, CalendarDays, ArrowLeft, MapPin, Video, User } from 'lucide-react';
 import Link from 'next/link';
-import { formatTimestamp, timeAgo } from '@/lib/utils';
+import { formatTimestamp } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import TaskList from '@/components/TaskList';
 import { Button } from '@/components/ui/button';
@@ -46,7 +46,8 @@ function MeetupUpdates({ meetupId, creatorId }: { meetupId: string, creatorId: s
         createdAt: serverTimestamp(),
     };
     try {
-        await addDoc(updatesCollectionRef, updateData);
+        const newDoc = await addDoc(updatesCollectionRef, updateData);
+        await updateDoc(newDoc, { id: newDoc.id });
         setContent('');
         toast({ title: 'Update Posted' });
     } catch (error) {
@@ -152,12 +153,12 @@ export default function MeetupDashboardPage({ params }: { params: { meetupId: st
   const creatorDocRef = useMemo(() => meetup ? doc(firestore, 'users', meetup.creatorId) as DocumentReference<UserProfile> : null, [meetup, firestore]);
   const { data: creator } = useDoc<UserProfile>(creatorDocRef);
 
+  const isAttendee = user && meetup ? meetup.attendeeIds.includes(user.uid) : false;
+
   if (isLoading) return <div className="text-center py-10 p-4 md:p-10">Loading meetup...</div>;
   if (error) return <div className="text-center py-10 text-destructive p-4 md:p-10">Error loading meetup data.</div>;
   if (!meetup) return <div className="text-center py-10 p-4 md:p-10">Meetup not found.</div>;
   
-  const isCreator = user?.uid === meetup.creatorId;
-
   return (
     <div className="space-y-8 p-4 md:p-10">
         <Link href="/meetups" className="flex items-center text-sm text-muted-foreground hover:text-foreground">
@@ -186,7 +187,7 @@ export default function MeetupDashboardPage({ params }: { params: { meetupId: st
         </CardContent>
       </Card>
       
-      {isCreator && <TaskList groupOrCohortId={meetupId} collectionPath="meetups" memberIds={meetup.attendeeIds} />}
+      {isAttendee && <TaskList groupOrCohortId={meetupId} collectionPath="meetups" memberIds={meetup.attendeeIds} />}
 
       <MeetupUpdates meetupId={meetupId} creatorId={meetup.creatorId} />
 

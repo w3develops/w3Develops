@@ -7,7 +7,7 @@ import { doc, DocumentReference, collection, query, where, Query, documentId, wr
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { UserProfile, StudyGroup, GroupProject, SoloProject, BookClub, MentorshipRequest, TutorRequest, PairingRequest } from '@/lib/types';
+import { UserProfile, StudyGroup, GroupProject, SoloProject, BookClub, MentorshipRequest, TutorRequest, PairingRequest, Meetup } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -538,6 +538,18 @@ export default function AccountPage() {
     
   const { data: starredProjects, isLoading: isStarredProjectsLoading } = useCollection<SoloProject>(starredSoloProjectsQuery);
 
+  const createdMeetupsQuery = useMemo(() => {
+    if (!userProfile?.createdMeetupIds || userProfile.createdMeetupIds.length === 0) return null;
+    return query(collection(firestore, 'meetups'), where(documentId(), 'in', userProfile.createdMeetupIds.slice(0, 10))) as Query<Meetup>;
+  }, [userProfile?.createdMeetupIds, firestore]);
+  const { data: createdMeetups, isLoading: isLoadingCreatedMeetups } = useCollection<Meetup>(createdMeetupsQuery);
+
+  const joinedMeetupsQuery = useMemo(() => {
+      if (!userProfile?.joinedMeetupIds || userProfile.joinedMeetupIds.length === 0) return null;
+      return query(collection(firestore, 'meetups'), where(documentId(), 'in', userProfile.joinedMeetupIds.slice(0, 10))) as Query<Meetup>;
+  }, [userProfile?.joinedMeetupIds, firestore]);
+  const { data: joinedMeetups, isLoading: isLoadingJoinedMeetups } = useCollection<Meetup>(joinedMeetupsQuery);
+
 
   if (isUserLoading || isProfileLoading || !userProfile) {
     return (
@@ -679,6 +691,59 @@ export default function AccountPage() {
         
         <Card>
             <CardHeader>
+                <CardTitle>Your Meetups</CardTitle>
+                <CardDescription>Events you have organized or are attending.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                 <Tabs defaultValue="joined" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="joined">Joined Meetups</TabsTrigger>
+                        <TabsTrigger value="created">Created Meetups</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="joined" className="pt-4">
+                        {isLoadingJoinedMeetups ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> : 
+                            (joinedMeetups && joinedMeetups.length > 0) ? (
+                            <ul className="divide-y">
+                                {joinedMeetups.map(p => (
+                                <li key={p.id} className="py-2">
+                                    <Link href={`/meetups/${p.id}`} className="font-medium hover:underline">{p.name}</Link>
+                                </li>
+                                ))}
+                            </ul>
+                            ) : (
+                            <p className="text-sm text-muted-foreground text-center py-4">You haven't joined any meetups. <Link href="/meetups" className="underline font-medium">Find one!</Link></p>
+                            )
+                        }
+                    </TabsContent>
+                    <TabsContent value="created" className="pt-4">
+                         {isLoadingCreatedMeetups ? <div className="h-10 w-full bg-muted rounded animate-pulse"></div> : 
+                            (createdMeetups && createdMeetups.length > 0) ? (
+                            <ul className="divide-y">
+                                {createdMeetups.map(p => (
+                                <li key={p.id} className="py-2">
+                                     <Link href={`/meetups/${p.id}`} className="font-medium hover:underline">{p.name}</Link>
+                                </li>
+                                ))}
+                            </ul>
+                            ) : (
+                            <p className="text-sm text-muted-foreground text-center py-4">You haven't created any meetups yet.</p>
+                            )
+                        }
+                    </TabsContent>
+                </Tabs>
+                <div className="flex gap-2 pt-4">
+                    <Button asChild size="sm" variant="secondary">
+                        <Link href="/meetups">Explore Meetups</Link>
+                    </Button>
+                    <Button asChild size="sm">
+                        <Link href="/meetups/create">Create a Meetup</Link>
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
                 <CardTitle>Your Projects</CardTitle>
                 <CardDescription>Individual projects you have showcased or starred.</CardDescription>
             </CardHeader>
@@ -735,6 +800,7 @@ export default function AccountPage() {
                 </Tabs>
             </CardContent>
         </Card>
+
         <MentorshipManagement user={user} userProfile={userProfile} />
         <TutorshipManagement user={user} userProfile={userProfile} />
         <PairingManagement user={user} userProfile={userProfile} />
