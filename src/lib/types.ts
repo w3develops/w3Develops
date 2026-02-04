@@ -1,3 +1,4 @@
+
 import { FieldValue, Timestamp } from 'firebase/firestore';
 
 export interface NotificationSettings {
@@ -43,6 +44,8 @@ export interface UserProfile {
   joinedGroupProjectIds?: string[];
   createdBookClubIds?: string[];
   joinedBookClubIds?: string[];
+  createdMeetupIds?: string[];
+  joinedMeetupIds?: string[];
   soloProjectIds?: string[];
   starredSoloProjectIds?: string[];
   notificationSettings?: NotificationSettings;
@@ -106,6 +109,30 @@ export interface BookClub {
   commitmentHours: string;
   commitmentDays: string[];
   createdAt: Timestamp;
+}
+
+export interface Meetup {
+    id: string;
+    name: string;
+    name_lowercase: string;
+    creatorId: string;
+    description: string;
+    topic: string;
+    attendeeIds: string[];
+    dateTime: Timestamp;
+    timezone: string;
+    locationType: 'Online' | 'In-Person' | 'Hybrid';
+    locationAddress?: string;
+    virtualLink?: string;
+    createdAt: Timestamp;
+}
+
+export interface MeetupUpdate {
+    id: string;
+    meetupId: string;
+    creatorId: string;
+    content: string;
+    createdAt: Timestamp;
 }
 
 export interface Task {
