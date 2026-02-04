@@ -232,7 +232,10 @@ service cloud.firestore {
         allow read: if true;
         allow create: if request.auth != null 
                       && request.resource.data.userId == request.auth.uid
-                      && get(/databases/$(database)/documents/competitions/$(competitionId)).data.endDate > request.time;
+                      && get(/databases/$(database)/documents/competitions/$(competitionId)).data.endDate > request.time
+                      && request.resource.data.username is string
+                      && request.resource.data.projectUrl is string
+                      && request.resource.data.voteCount == 0;
         allow update: if request.auth != null 
                       && resource.data.userId == request.auth.uid
                       && get(/databases/$(database)/documents/competitions/$(competitionId)).data.endDate > request.time;

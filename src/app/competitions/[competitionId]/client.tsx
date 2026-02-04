@@ -2,7 +2,7 @@
 
 import { useDoc, useCollection } from '@/firebase/firestore';
 import { useMemo, useState } from 'react';
-import { doc, DocumentReference, collection, query, orderBy, Timestamp } from 'firebase/firestore';
+import { doc, DocumentReference, collection, query, orderBy, Timestamp, where } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
 import { Competition, CompetitionEntry, UserProfile, SoloProject } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -58,9 +58,9 @@ function EntryCard({ entry }: { entry: CompetitionEntry }) {
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">
-            <Link href={entry.projectUrl} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-2">
+            <a href={entry.projectUrl} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-2">
                 Project Link <ExternalLink className="h-4 w-4" />
-            </Link>
+            </a>
         </CardTitle>
         <CardDescription>
             <Link href={`/users/${entry.userId}`} className="flex items-center gap-2 text-sm hover:underline">
@@ -99,7 +99,7 @@ export default function CompetitionDashboardPage({ params }: { params: { competi
     if (!user) return null;
     return query(collection(firestore, 'soloProjects'), where('userId', '==', user.uid));
   }, [user, firestore]);
-  const {data: userSoloProjects, isLoading: isLoadingSoloProjects } = useCollection<SoloProject>(userSoloProjectsQuery);
+  const {data: userSoloProjects } = useCollection<SoloProject>(userSoloProjectsQuery);
   
   const userHasSubmitted = useMemo(() => {
       if (!user || !entries) return false;
