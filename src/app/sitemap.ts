@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/bug-bounties',
     '/chat',
     '/competitions',
+    '/competitions/create',
     '/cookies',
     '/contribute',
     '/contribute/security',
