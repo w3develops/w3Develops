@@ -1,10 +1,9 @@
 
 'use client';
 
-import { useDoc } from '@/firebase/firestore/use-doc';
+import { useDoc, useFirestore, useUser } from '@/firebase';
 import { useMemo, useState, useEffect } from 'react';
 import { doc, DocumentReference, collection, query, where, Query, getDocs, documentId, updateDoc } from 'firebase/firestore';
-import { useFirestore, useUser } from '@/firebase';
 import { StudyGroup, UserProfile, UserStatus } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';

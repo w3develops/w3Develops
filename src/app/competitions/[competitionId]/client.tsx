@@ -1,9 +1,9 @@
+
 'use client';
 
-import { useDoc, useCollection } from '@/firebase/firestore';
+import { useDoc, useCollection, useFirestore, useUser } from '@/firebase';
 import { useMemo, useState } from 'react';
 import { doc, DocumentReference, collection, query, orderBy, Timestamp, where } from 'firebase/firestore';
-import { useFirestore, useUser } from '@/firebase';
 import { Competition, CompetitionEntry, UserProfile, SoloProject } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

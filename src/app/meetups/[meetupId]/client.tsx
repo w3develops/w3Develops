@@ -1,10 +1,8 @@
-
 'use client';
 
-import { useDoc, useCollection } from '@/firebase/firestore';
+import { useDoc, useCollection, useFirestore, useUser } from '@/firebase';
 import { useMemo, useState, useEffect } from 'react';
-import { doc, DocumentReference, collection, query, where, getDocs, Query, documentId, addDoc, serverTimestamp, orderBy } from 'firebase/firestore';
-import { useFirestore, useUser } from '@/firebase';
+import { doc, DocumentReference, collection, query, where, getDocs, Query, documentId, addDoc, serverTimestamp, orderBy, updateDoc } from 'firebase/firestore';
 import { Meetup, MeetupUpdate, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';

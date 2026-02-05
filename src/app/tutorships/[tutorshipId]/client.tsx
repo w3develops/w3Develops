@@ -1,10 +1,9 @@
 
 'use client';
 
-import { useDoc } from '@/firebase/firestore/use-doc';
+import { useDoc, useFirestore, useUser } from '@/firebase';
 import { useMemo } from 'react';
 import { doc, DocumentReference } from 'firebase/firestore';
-import { useFirestore, useUser } from '@/firebase';
 import { Tutorship, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -165,5 +164,3 @@ export default function TutorshipDashboardPage({ params }: { params: { tutorship
     </div>
   );
 }
-
-    
