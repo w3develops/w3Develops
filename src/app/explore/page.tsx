@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from 'next/link';
 import {
-    Users, Code, BookOpen, MessageSquare, GraduationCap, Hammer, Trophy, GitBranch, Rss, Briefcase, Podcast, Factory, School, LifeBuoy, HandCoins, Store
+    Users, Code, BookOpen, MessageSquare, GraduationCap, Hammer, Trophy, GitBranch, Rss, Briefcase, Podcast, Factory, School, PlusCircle
 } from "lucide-react";
 
 const mainLinks = [
@@ -31,11 +31,12 @@ const developmentLinks = [
 
 const careerLinks = [
     { href: "/job-board", label: "Job Board", icon: Briefcase, description: "Find your next tech opportunity." },
+    { href: "/job-board/create", label: "Post a Job", icon: PlusCircle, description: "Share a job with the community." },
     { href: "/tutor", label: "Tutor", icon: GraduationCap, description: "Get help from experienced tutors." },
     { href: "/mentorship", label: "Mentorship", icon: Users, description: "Find a mentor to guide your career." },
 ];
 
-const Section = ({ title, links }: { title: string, links: typeof mainLinks }) => (
+const Section = ({ title, links }: { title: string, links: { href: string; label: string; icon: React.ElementType; description: string; }[] }) => (
     <section className="space-y-4">
         <h2 className="pb-2 text-2xl font-semibold w-fit border-b-4 border-foreground">{title}</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -71,5 +72,3 @@ export default function ExplorePage() {
         </div>
     );
 }
-
-    

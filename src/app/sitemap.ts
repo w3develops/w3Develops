@@ -28,6 +28,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/hackathons',
     '/hackerspaces',
     '/job-board',
+    '/job-board/create',
     '/learn',
     '/login',
     '/marketplace',
