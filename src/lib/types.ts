@@ -271,3 +271,16 @@ export interface CompetitionEntry {
   submittedAt: Timestamp;
   voterIds: string[];
 }
+
+export interface Job {
+  id: string;
+  title: string;
+  title_lowercase: string;
+  companyName: string;
+  location: string;
+  description: string;
+  applyUrl: string;
+  postedById: string;
+  postedByUsername: string;
+  createdAt: Timestamp;
+}
