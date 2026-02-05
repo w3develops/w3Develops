@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -56,7 +55,7 @@ export default function SubmitCompetitionEntryForm({ user, competitionId, userSo
         description: description || 'No description provided.',
         soloProjectId: soloProjectId || null,
         submittedAt: serverTimestamp(),
-        voteCount: 0,
+        voterIds: [],
     };
 
     try {

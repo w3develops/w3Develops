@@ -1,4 +1,3 @@
-
 import { FieldValue, Timestamp } from 'firebase/firestore';
 
 export interface NotificationSettings {
@@ -270,5 +269,5 @@ export interface CompetitionEntry {
   soloProjectId?: string;
   description?: string;
   submittedAt: Timestamp;
-  voteCount?: number;
+  voterIds: string[];
 }

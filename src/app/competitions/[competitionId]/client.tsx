@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useDoc, useCollection, useFirestore, useUser } from '@/firebase';
@@ -20,6 +19,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import SubmitCompetitionEntryForm from '@/components/forms/SubmitCompetitionEntryForm';
+import VoteButton from '@/components/VoteButton';
 
 function CompetitionDashboardPageSkeleton() {
     return (
@@ -53,9 +53,9 @@ function CompetitionDashboardPageSkeleton() {
     );
 }
 
-function EntryCard({ entry }: { entry: CompetitionEntry }) {
+function EntryCard({ entry, competitionId, isActive }: { entry: CompetitionEntry; competitionId: string; isActive: boolean; }) {
   return (
-    <Card>
+    <Card className="flex flex-col h-full">
       <CardHeader>
         <CardTitle className="text-lg">
             <a href={entry.projectUrl} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-2">
@@ -69,9 +69,12 @@ function EntryCard({ entry }: { entry: CompetitionEntry }) {
             </Link>
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-grow flex flex-col justify-between">
         <p className="text-sm text-muted-foreground line-clamp-3 h-[60px]">{entry.description}</p>
-        <p className="text-xs text-muted-foreground mt-2">Submitted: {formatTimestamp(entry.submittedAt, true)}</p>
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-xs text-muted-foreground">Submitted: {formatTimestamp(entry.submittedAt, true)}</p>
+          <VoteButton entry={entry} competitionId={competitionId} canVote={isActive} />
+        </div>
       </CardContent>
     </Card>
   );
@@ -183,7 +186,7 @@ export default function CompetitionDashboardPage({ params }: { params: { competi
             <CardContent>
                 {isLoadingEntries ? <p>Loading entries...</p> : entries && entries.length > 0 ? (
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {entries.map(entry => <EntryCard key={entry.id} entry={entry} />)}
+                        {entries.map(entry => <EntryCard key={entry.id} entry={entry} competitionId={competitionId} isActive={isActive} />)}
                     </div>
                 ) : (
                     <p className="text-center text-muted-foreground py-8">No entries have been submitted yet.</p>
