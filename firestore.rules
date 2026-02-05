@@ -242,6 +242,12 @@ service cloud.firestore {
       }
     }
 
+    match /jobs/{jobId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.postedById == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.postedById == request.auth.uid;
+    }
+
     match /studyGroups/{groupId} {
       allow read: if true;
       allow create: if request.auth != null

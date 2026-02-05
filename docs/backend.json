@@ -879,6 +879,36 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "memberIds", "createdAt"]
+    },
+    "Job": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Job",
+      "type": "object",
+      "description": "Represents a job posting on the w3Develops job board.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "description": "The title of the job position." },
+        "title_lowercase": { "type": "string", "description": "Lowercase version of the title for searching." },
+        "companyName": { "type": "string", "description": "The name of the company hiring." },
+        "location": { "type": "string", "description": "The location of the job (e.g., 'Remote', 'New York, NY')." },
+        "description": { "type": "string", "description": "A detailed description of the job role, responsibilities, and qualifications." },
+        "applyUrl": { "type": "string", "format": "uri", "description": "The URL to apply for the job." },
+        "postedById": { "type": "string", "description": "The ID of the user who posted the job." },
+        "postedByUsername": { "type": "string", "description": "The username of the user who posted the job." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the job was posted." }
+      },
+      "required": [
+        "id",
+        "title",
+        "title_lowercase",
+        "companyName",
+        "location",
+        "description",
+        "applyUrl",
+        "postedById",
+        "postedByUsername",
+        "createdAt"
+      ]
     }
   },
   "auth": {
@@ -972,6 +1002,10 @@
     "/competitions/{competitionId}/entries/{entryId}": {
       "schema": { "$ref": "#/entities/CompetitionEntry" },
       "description": "Stores user entries for a specific competition."
+    },
+    "/jobs/{jobId}": {
+      "schema": { "$ref": "#/entities/Job" },
+      "description": "Stores job postings for the job board."
     },
     "/feedback/{feedbackId}": {
       "schema": {
