@@ -235,10 +235,9 @@ service cloud.firestore {
                       && get(/databases/$(database)/documents/competitions/$(competitionId)).data.endDate > request.time
                       && request.resource.data.username is string
                       && request.resource.data.projectUrl is string
-                      && request.resource.data.voteCount == 0;
-        allow update: if request.auth != null 
-                      && resource.data.userId == request.auth.uid
-                      && get(/databases/$(database)/documents/competitions/$(competitionId)).data.endDate > request.time;
+                      && request.resource.data.voterIds == [];
+        allow update: if (request.auth != null && resource.data.userId == request.auth.uid && get(/databases/$(database)/documents/competitions/$(competitionId)).data.endDate > request.time) ||
+                      (request.auth != null && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['voterIds']) && isAddingSelfToList(request.resource.data.voterIds, resource.data.get('voterIds', [])));
         allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
       }
     }

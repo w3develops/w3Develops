@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -646,7 +647,11 @@
         "soloProjectId": { "type": "string" },
         "description": { "type": "string" },
         "submittedAt": { "type": "string", "format": "date-time" },
-        "voteCount": { "type": "number" }
+        "voterIds": {
+          "type": "array",
+          "description": "A list of user IDs who have voted for this entry.",
+          "items": { "type": "string" }
+        }
       },
       "required": ["id", "competitionId", "userId", "username", "projectUrl", "submittedAt"]
     },
