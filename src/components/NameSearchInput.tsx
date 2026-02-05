@@ -1,21 +1,22 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useFirestore, useCollection } from '@/firebase';
 import { collection, query, where, orderBy, limit, Query } from 'firebase/firestore';
 import { Input } from '@/components/ui/input';
-import { StudyGroup, GroupProject, BookClub } from '@/lib/types';
+import { StudyGroup, GroupProject, BookClub, Meetup } from '@/lib/types';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 
 interface NameSearchInputProps {
   value: string;
   onChange: (value: string) => void;
   onSelect: (value: string) => void;
-  collectionPath: 'studyGroups' | 'groupProjects' | 'bookClubs';
+  collectionPath: 'studyGroups' | 'groupProjects' | 'bookClubs' | 'meetups';
   placeholder: string;
 }
 
-type SearchResult = Pick<StudyGroup, 'id' | 'name'> | Pick<GroupProject, 'id' | 'name'> | Pick<BookClub, 'id' | 'name'>;
+type SearchResult = Pick<StudyGroup, 'id' | 'name'> | Pick<GroupProject, 'id' | 'name'> | Pick<BookClub, 'id' | 'name'> | Pick<Meetup, 'id' | 'name'>;
 
 export default function NameSearchInput({ value, onChange, onSelect, collectionPath, placeholder }: NameSearchInputProps) {
   const firestore = useFirestore();
