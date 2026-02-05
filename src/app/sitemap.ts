@@ -24,7 +24,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/feedback',
     '/groupprojects',
     '/groupprojects/create',
-    '/hackathon',
     '/hackathons',
     '/hackerspaces',
     '/job-board',
