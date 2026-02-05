@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
-import { collection, serverTimestamp, addDoc, doc } from 'firebase/firestore';
+import { collection, serverTimestamp, addDoc, doc, DocumentReference } from 'firebase/firestore';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { UserProfile } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -29,7 +29,12 @@ export default function CreateJobPage() {
   const [description, setDescription] = useState('');
   const [applyUrl, setApplyUrl] = useState('');
 
-  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(user ? doc(firestore, 'users', user.uid) : null);
+  const userDocRef = useMemo(() => {
+    if (!user) return null;
+    return doc(firestore, 'users', user.uid) as DocumentReference<UserProfile>;
+  }, [user, firestore]);
+
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
 
   useEffect(() => {
