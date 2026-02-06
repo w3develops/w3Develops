@@ -21,6 +21,7 @@ import { JoinBookClubModal } from '@/components/modals/JoinBookClubModal';
 import { useToast } from '@/components/ui/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import ActivityFeed from '@/components/ActivityFeed';
 
 function AccountPageSkeleton() {
   return (
@@ -35,6 +36,15 @@ function AccountPageSkeleton() {
             <div className="h-10 w-32 bg-muted rounded-md"></div>
             <div className="h-10 w-32 bg-muted rounded-md"></div>
           </div>
+        </div>
+      </div>
+      <div className="rounded-lg border bg-card p-6 space-y-4">
+        <div className="h-6 w-48 bg-muted rounded"></div>
+        <div className="h-4 w-64 bg-muted rounded"></div>
+        <div className="space-y-4 pt-4">
+            <div className="h-16 bg-muted/50 rounded-lg"></div>
+            <div className="h-16 bg-muted/50 rounded-lg"></div>
+            <div className="h-16 bg-muted/50 rounded-lg"></div>
         </div>
       </div>
        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -596,6 +606,8 @@ export default function AccountPage() {
           </div>
         </div>
 
+        <ActivityFeed userProfile={userProfile} />
+
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
            <Card>
             <CardHeader>
@@ -809,3 +821,5 @@ export default function AccountPage() {
     </div>
   );
 }
+
+    
