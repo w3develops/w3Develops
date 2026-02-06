@@ -717,6 +717,31 @@
       },
       "required": ["id", "userId", "username", "name", "projectUrl", "createdAt"]
     },
+    "SharedNote": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SharedNote",
+      "type": "object",
+      "description": "A collaborative, real-time note for a session.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "lastUpdatedBy": {
+          "type": "string",
+          "description": "UID of the user who last updated the note."
+        },
+        "lastUpdatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
     "MentorshipRequest": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "MentorshipRequest",
@@ -1041,6 +1066,10 @@
       "schema": { "$ref": "#/entities/CheckIn" },
       "description": "Stores check-ins for a specific mentorship."
     },
+    "/mentorships/{mentorshipId}/notes/{noteId}": {
+        "schema": { "$ref": "#/entities/SharedNote" },
+        "description": "Stores shared notes for a specific mentorship."
+    },
     "/tutorRequests/{requestId}": {
       "schema": {
         "$ref": "#/entities/TutorRequest"
@@ -1058,6 +1087,10 @@
     "/tutorships/{tutorshipId}/checkIns/{checkInId}": {
       "schema": { "$ref": "#/entities/CheckIn" },
       "description": "Stores check-ins for a specific tutorship."
+    },
+    "/tutorships/{tutorshipId}/notes/{noteId}": {
+        "schema": { "$ref": "#/entities/SharedNote" },
+        "description": "Stores shared notes for a specific tutorship."
     },
     "/pairRequests/{requestId}": {
       "schema": {
@@ -1082,6 +1115,10 @@
         "$ref": "#/entities/CheckIn"
       },
       "description": "Stores check-ins for a specific pair programming session."
+    },
+    "/pairings/{pairingId}/notes/{noteId}": {
+        "schema": { "$ref": "#/entities/SharedNote" },
+        "description": "Stores shared notes for a specific pair programming session."
     }
   }
 }

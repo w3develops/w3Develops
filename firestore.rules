@@ -146,6 +146,10 @@ service cloud.firestore {
                       && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
         allow delete: if false;
       }
+      
+      match /notes/{noteId} {
+        allow read, write: if isMentorshipMember(mentorshipId);
+      }
     }
     
      match /tutorRequests/{requestId} {
@@ -183,6 +187,10 @@ service cloud.firestore {
                       && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
         allow delete: if false;
       }
+      
+       match /notes/{noteId} {
+        allow read, write: if isTutorshipMember(tutorshipId);
+      }
     }
     
     match /pairRequests/{requestId} {
@@ -219,6 +227,10 @@ service cloud.firestore {
                       && request.resource.data.content is string
                       && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
         allow delete: if false;
+      }
+      
+       match /notes/{noteId} {
+        allow read, write: if isPairingMember(pairingId);
       }
     }
 
