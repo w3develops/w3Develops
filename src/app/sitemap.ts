@@ -7,6 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes = [
     '',
     '/account',
+    '/account/my-tasks',
     '/account/notifications',
     '/book-clubs',
     '/book-clubs/create',

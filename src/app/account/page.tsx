@@ -11,7 +11,7 @@ import { UserProfile, StudyGroup, GroupProject, SoloProject, BookClub, Mentorshi
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Github, Linkedin, Twitter, PlusCircle, Star, GraduationCap, BrainCircuit, GitBranch } from 'lucide-react';
+import { Github, Linkedin, Twitter, PlusCircle, Star, GraduationCap, BrainCircuit, GitBranch, CheckSquare } from 'lucide-react';
 import { JoinCohortModal } from '@/components/modals/JoinCohortModal';
 import { JoinGroupModal } from '@/components/modals/JoinGroupModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -608,6 +608,18 @@ export default function AccountPage() {
 
         <ActivityFeed userProfile={userProfile} />
 
+        <Card>
+          <CardHeader>
+              <CardTitle className="flex items-center gap-2"><CheckSquare />My Tasks</CardTitle>
+              <CardDescription>View all your tasks from all your groups and projects in one place.</CardDescription>
+          </CardHeader>
+          <CardContent>
+              <Button asChild>
+                  <Link href="/account/my-tasks">View My Tasks</Link>
+              </Button>
+          </CardContent>
+        </Card>
+
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
            <Card>
             <CardHeader>
@@ -821,5 +833,3 @@ export default function AccountPage() {
     </div>
   );
 }
-
-    
