@@ -1,8 +1,7 @@
 
-
 'use client';
 
-import { Suspense, useMemo } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, where, orderBy, limit, Query, DocumentData } from 'firebase/firestore';
@@ -15,6 +14,7 @@ import { Users, CalendarDays } from 'lucide-react';
 import { topics, ONE_WEEK_IN_MS } from '@/lib/constants';
 import { formatTimestamp } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 function SearchResultsSkeleton() {
   return (
@@ -40,27 +40,12 @@ function SearchResultsSkeleton() {
   )
 }
 
-// Helper to merge and deduplicate results
-function mergeResults<T extends { id: string }>(...arrays: (T[] | null | undefined)[]): T[] {
-  const map = new Map<string, T>();
-  for (const arr of arrays) {
-    if (arr) {
-      for (const item of arr) {
-        if (!map.has(item.id)) {
-          map.set(item.id, item);
-        }
-      }
-    }
-  }
-  return Array.from(map.values());
-}
-
-
 function SearchResults() {
   const searchParams = useSearchParams();
   const q = searchParams.get('q');
   const firestore = useFirestore();
 
+  const [topicFilter, setTopicFilter] = useState('');
   const lowerQ = useMemo(() => q?.toLowerCase(), [q]);
 
   const usersQuery = useMemo(() => {
@@ -74,7 +59,6 @@ function SearchResults() {
     ) as Query<UserProfile>;
   }, [lowerQ, firestore]);
   
-  // --- Groups Queries ---
   const groupsByNameQuery = useMemo(() => {
     if (!lowerQ) return null;
     return query(
@@ -82,23 +66,10 @@ function SearchResults() {
         orderBy('name_lowercase'),
         where('name_lowercase', '>=', lowerQ),
         where('name_lowercase', '<=', lowerQ + '\uf8ff'),
-        limit(10)
+        limit(20)
     ) as Query<StudyGroup>;
   }, [lowerQ, firestore]);
-
-  const groupsByTopicQuery = useMemo(() => {
-    if (!q) return null;
-    const matchingTopic = topics.find(topic => topic.toLowerCase() === q.toLowerCase());
-    if (!matchingTopic) return null;
-
-    return query(
-        collection(firestore, 'studyGroups'), 
-        where('topic', '==', matchingTopic),
-        limit(10)
-    ) as Query<StudyGroup>;
-  }, [q, firestore]);
   
-  // --- Book Clubs Queries ---
   const bookClubsByNameQuery = useMemo(() => {
     if (!lowerQ) return null;
     return query(
@@ -106,24 +77,10 @@ function SearchResults() {
         orderBy('name_lowercase'),
         where('name_lowercase', '>=', lowerQ),
         where('name_lowercase', '<=', lowerQ + '\uf8ff'),
-        limit(10)
+        limit(20)
     ) as Query<BookClub>;
     }, [lowerQ, firestore]);
 
-  const bookClubsByTopicQuery = useMemo(() => {
-    if (!q) return null;
-    const matchingTopic = topics.find(topic => topic.toLowerCase() === q.toLowerCase());
-    if (!matchingTopic) return null;
-
-    return query(
-        collection(firestore, 'bookClubs'),
-        where('topic', '==', matchingTopic),
-        limit(10)
-    ) as Query<BookClub>;
-  }, [q, firestore]);
-
-
-  // --- GroupProjects Queries ---
   const groupProjectsByNameQuery = useMemo(() => {
     if (!lowerQ) return null;
     return query(
@@ -131,37 +88,36 @@ function SearchResults() {
         orderBy('name_lowercase'),
         where('name_lowercase', '>=', lowerQ),
         where('name_lowercase', '<=', lowerQ + '\uf8ff'),
-        limit(10)
+        limit(20)
     ) as Query<GroupProject>;
   }, [lowerQ, firestore]);
 
-  const groupProjectsByTopicQuery = useMemo(() => {
-    if (!q) return null;
-    const matchingTopic = topics.find(topic => topic.toLowerCase() === q.toLowerCase());
-    if (!matchingTopic) return null;
-    
-    return query(
-        collection(firestore, 'groupProjects'),
-        where('topic', '==', matchingTopic),
-        limit(10)
-    ) as Query<GroupProject>;
-  }, [q, firestore]);
-
 
   const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
-  const { data: groupsByName, isLoading: groupsByNameLoading } = useCollection<StudyGroup>(groupsByNameQuery);
-  const { data: groupsByTopic, isLoading: groupsByTopicLoading } = useCollection<StudyGroup>(groupsByTopicQuery);
-  const { data: bookClubsByName, isLoading: bookClubsByNameLoading } = useCollection<BookClub>(bookClubsByNameQuery);
-  const { data: bookClubsByTopic, isLoading: bookClubsByTopicLoading } = useCollection<BookClub>(bookClubsByTopicQuery);
-  const { data: groupProjectsByName, isLoading: groupProjectsByNameLoading } = useCollection<GroupProject>(groupProjectsByNameQuery);
-  const { data: groupProjectsByTopic, isLoading: groupProjectsByTopicLoading } = useCollection<GroupProject>(groupProjectsByTopicQuery);
+  const { data: groups, isLoading: groupsLoading } = useCollection<StudyGroup>(groupsByNameQuery);
+  const { data: bookClubs, isLoading: bookClubsLoading } = useCollection<BookClub>(bookClubsByNameQuery);
+  const { data: groupProjects, isLoading: groupProjectsLoading } = useCollection<GroupProject>(groupProjectsByNameQuery);
 
-  const mergedGroups = useMemo(() => mergeResults(groupsByName, groupsByTopic), [groupsByName, groupsByTopic]);
-  const mergedBookClubs = useMemo(() => mergeResults(bookClubsByName, bookClubsByTopic), [bookClubsByName, bookClubsByTopic]);
-  const mergedGroupProjects = useMemo(() => mergeResults(groupProjectsByName, groupProjectsByTopic), [groupProjectsByName, groupProjectsByTopic]);
+  const filteredGroups = useMemo(() => {
+    if (!groups) return [];
+    if (!topicFilter) return groups;
+    return groups.filter(group => group.topic === topicFilter);
+  }, [groups, topicFilter]);
 
-  const isLoading = usersLoading || groupsByNameLoading || groupsByTopicLoading || bookClubsByNameLoading || bookClubsByTopicLoading || groupProjectsByNameLoading || groupProjectsByTopicLoading;
-  const noResults = !isLoading && !users?.length && !mergedGroups.length && !mergedGroupProjects.length && !mergedBookClubs.length;
+  const filteredBookClubs = useMemo(() => {
+    if (!bookClubs) return [];
+    if (!topicFilter) return bookClubs;
+    return bookClubs.filter(club => club.topic === topicFilter);
+  }, [bookClubs, topicFilter]);
+
+  const filteredGroupProjects = useMemo(() => {
+    if (!groupProjects) return [];
+    if (!topicFilter) return groupProjects;
+    return groupProjects.filter(project => project.topic === topicFilter);
+  }, [groupProjects, topicFilter]);
+
+  const isLoading = usersLoading || groupsLoading || bookClubsLoading || groupProjectsLoading;
+  const noResults = !isLoading && !users?.length && !filteredGroups.length && !filteredGroupProjects.length && !filteredBookClubs.length;
 
   if (!q) {
     return <div className="text-center text-muted-foreground">Please enter a search term to begin.</div>;
@@ -175,18 +131,32 @@ function SearchResults() {
     <div className="space-y-8">
       <h1 className="text-3xl font-headline">Search Results for &quot;{q}&quot;</h1>
       
+      <div className="w-full md:w-1/3">
+        <Select value={topicFilter} onValueChange={(value) => setTopicFilter(value === 'all-topics' ? '' : value)}>
+            <SelectTrigger>
+                <SelectValue placeholder="Filter by topic..." />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="all-topics">All Topics</SelectItem>
+                {topics.map(topic => (
+                    <SelectItem key={topic} value={topic}>{topic}</SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+      </div>
+
       {noResults ? (
         <div className="text-center py-12">
             <h3 className="text-xl font-semibold">No Results Found</h3>
-            <p className="text-muted-foreground mt-2">We couldn't find any users, groups, or projects matching your search.</p>
+            <p className="text-muted-foreground mt-2">We couldn't find anything matching your search and filter criteria.</p>
         </div>
       ) : (
         <Tabs defaultValue="users" className="w-full">
             <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
                 <TabsTrigger value="users">Users ({users?.length || 0})</TabsTrigger>
-                <TabsTrigger value="studyGroups">Study Groups ({mergedGroups.length})</TabsTrigger>
-                <TabsTrigger value="bookClubs">Book Clubs ({mergedBookClubs.length})</TabsTrigger>
-                <TabsTrigger value="groupProjects">Group Projects ({mergedGroupProjects.length})</TabsTrigger>
+                <TabsTrigger value="studyGroups">Study Groups ({filteredGroups.length})</TabsTrigger>
+                <TabsTrigger value="bookClubs">Book Clubs ({filteredBookClubs.length})</TabsTrigger>
+                <TabsTrigger value="groupProjects">Group Projects ({filteredGroupProjects.length})</TabsTrigger>
             </TabsList>
             
             <TabsContent value="users" className="pt-6">
@@ -215,9 +185,9 @@ function SearchResults() {
             </TabsContent>
 
             <TabsContent value="studyGroups" className="pt-6">
-                {mergedGroups.length > 0 ? (
+                {filteredGroups.length > 0 ? (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {mergedGroups.map(group => {
+                        {filteredGroups.map(group => {
                         const isNew = group.createdAt && (Date.now() - (group.createdAt as any).toMillis()) < ONE_WEEK_IN_MS;
                         return (
                             <Link href={`/studygroups/${group.id}`} key={group.id}>
@@ -248,9 +218,9 @@ function SearchResults() {
             </TabsContent>
             
             <TabsContent value="bookClubs" className="pt-6">
-                {mergedBookClubs.length > 0 ? (
+                {filteredBookClubs.length > 0 ? (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {mergedBookClubs.map(club => {
+                        {filteredBookClubs.map(club => {
                         const isNew = club.createdAt && (Date.now() - (club.createdAt as any).toMillis()) < ONE_WEEK_IN_MS;
                         return (
                             <Link href={`/book-clubs/${club.id}`} key={club.id}>
@@ -281,9 +251,9 @@ function SearchResults() {
             </TabsContent>
             
             <TabsContent value="groupProjects" className="pt-6">
-                {mergedGroupProjects.length > 0 ? (
+                {filteredGroupProjects.length > 0 ? (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {mergedGroupProjects.map(groupProject => {
+                        {filteredGroupProjects.map(groupProject => {
                         const isNew = groupProject.createdAt && (Date.now() - (groupProject.createdAt as any).toMillis()) < ONE_WEEK_IN_MS;
                         return (
                         <Link href={`/groupprojects/${groupProject.id}`} key={groupProject.id}>
