@@ -58,24 +58,24 @@ export default function SubmitCompetitionEntryForm({ user, competitionId, userSo
         voterIds: [],
     };
 
-    try {
-      const entriesCollection = collection(firestore, 'competitions', competitionId, 'entries');
-      await addDoc(entriesCollection, entryData);
-      
-      toast({ title: 'Entry Submitted!', description: 'Your entry has been successfully submitted to the competition.' });
-      onSuccess();
-
-    } catch (error: any) {
-        const permissionError = new FirestorePermissionError({
-            path: collection(firestore, 'competitions', competitionId, 'entries').path,
-            operation: 'create',
-            requestResourceData: entryData,
+    const entriesCollection = collection(firestore, 'competitions', competitionId, 'entries');
+    addDoc(entriesCollection, entryData)
+        .then(() => {
+            toast({ title: 'Entry Submitted!', description: 'Your entry has been successfully submitted to the competition.' });
+            onSuccess();
+        })
+        .catch(async (error) => {
+            const permissionError = new FirestorePermissionError({
+                path: entriesCollection.path,
+                operation: 'create',
+                requestResourceData: entryData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            toast({ variant: 'destructive', title: 'Submission Failed', description: "Could not submit your entry due to a permission error." });
+        })
+        .finally(() => {
+            setIsSubmitting(false);
         });
-        errorEmitter.emit('permission-error', permissionError);
-        toast({ variant: 'destructive', title: 'Submission Failed', description: "Could not submit your entry due to a permission error." });
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   return (

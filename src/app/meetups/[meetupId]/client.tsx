@@ -43,18 +43,22 @@ function MeetupUpdates({ meetupId, creatorId }: { meetupId: string, creatorId: s
         content,
         createdAt: serverTimestamp(),
     };
-    try {
-        const newDoc = await addDoc(updatesCollectionRef, updateData);
-        await updateDoc(newDoc, { id: newDoc.id });
-        setContent('');
-        toast({ title: 'Update Posted' });
-    } catch (error) {
-        const permissionError = new FirestorePermissionError({ path: updatesCollectionRef.path, operation: 'create', requestResourceData: updateData });
-        errorEmitter.emit('permission-error', permissionError);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not post update due to a permission issue.' });
-    } finally {
-        setIsSubmitting(false);
-    }
+    addDoc(updatesCollectionRef, updateData)
+        .then((newDoc) => {
+            return updateDoc(newDoc, { id: newDoc.id });
+        })
+        .then(() => {
+            setContent('');
+            toast({ title: 'Update Posted' });
+        })
+        .catch(async (error) => {
+            const permissionError = new FirestorePermissionError({ path: updatesCollectionRef.path, operation: 'create', requestResourceData: updateData });
+            errorEmitter.emit('permission-error', permissionError);
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not post update due to a permission issue.' });
+        })
+        .finally(() => {
+            setIsSubmitting(false);
+        });
   };
 
   return (

@@ -67,23 +67,24 @@ export default function CreateCompetitionPage() {
         createdAt: serverTimestamp(),
     };
     
-    try {
-        const competitionsCollection = collection(firestore, 'competitions');
-        const newDocRef = await addDoc(competitionsCollection, competitionData);
-
-        toast({ title: "Success!", description: "Your new competition has been created." });
-        router.push(`/competitions/${newDocRef.id}`);
-    } catch (error: any) {
-        const permissionError = new FirestorePermissionError({
-            path: collection(firestore, 'competitions').path,
-            operation: 'create',
-            requestResourceData: competitionData,
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', permissionError);
-        toast({ variant: "destructive", title: "Could Not Create Competition", description: "A permission error occurred." });
-    } finally {
-        setIsSubmitting(false);
-    }
+    const competitionsCollection = collection(firestore, 'competitions');
+    addDoc(competitionsCollection, competitionData)
+        .then((newDocRef) => {
+            toast({ title: "Success!", description: "Your new competition has been created." });
+            router.push(`/competitions/${newDocRef.id}`);
+        })
+        .catch(async (error) => {
+            const permissionError = new FirestorePermissionError({
+                path: competitionsCollection.path,
+                operation: 'create',
+                requestResourceData: competitionData,
+            } satisfies SecurityRuleContext);
+            errorEmitter.emit('permission-error', permissionError);
+            toast({ variant: "destructive", title: "Could Not Create Competition", description: "A permission error occurred." });
+        })
+        .finally(() => {
+            setIsSubmitting(false);
+        });
   };
 
   if (isUserLoading || !user) {

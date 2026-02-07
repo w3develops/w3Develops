@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -69,23 +68,24 @@ export default function CreateJobPage() {
         createdAt: serverTimestamp(),
     };
     
-    try {
-        const jobsCollection = collection(firestore, 'jobs');
-        const newDocRef = await addDoc(jobsCollection, jobData);
-
-        toast({ title: "Success!", description: "Your job posting has been created." });
-        router.push(`/job-board/${newDocRef.id}`);
-    } catch (error: any) {
-        const permissionError = new FirestorePermissionError({
-            path: collection(firestore, 'jobs').path,
-            operation: 'create',
-            requestResourceData: jobData,
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', permissionError);
-        toast({ variant: "destructive", title: "Could Not Post Job", description: "A permission error occurred." });
-    } finally {
-        setIsSubmitting(false);
-    }
+    const jobsCollection = collection(firestore, 'jobs');
+    addDoc(jobsCollection, jobData)
+        .then((newDocRef) => {
+            toast({ title: "Success!", description: "Your job posting has been created." });
+            router.push(`/job-board/${newDocRef.id}`);
+        })
+        .catch(async (error) => {
+            const permissionError = new FirestorePermissionError({
+                path: jobsCollection.path,
+                operation: 'create',
+                requestResourceData: jobData,
+            } satisfies SecurityRuleContext);
+            errorEmitter.emit('permission-error', permissionError);
+            toast({ variant: "destructive", title: "Could Not Post Job", description: "A permission error occurred." });
+        })
+        .finally(() => {
+            setIsSubmitting(false);
+        });
   };
 
   if (isUserLoading || isProfileLoading || !user) {
