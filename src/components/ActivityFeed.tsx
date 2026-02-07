@@ -10,14 +10,16 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import Link from 'next/link';
 import { MessageSquare, CheckSquare } from 'lucide-react';
 
-type ActivityItem = (CheckIn | Task) & {
-    parent: {
-        id: string;
-        name: string;
-        path: string;
-    };
-    activityType: 'check-in' | 'task';
-};
+type ActivityItem =
+  | (CheckIn & {
+      parent: { id: string; name: string; path: string; };
+      activityType: 'check-in';
+    })
+  | (Task & {
+      parent: { id: string; name: string; path: string; };
+      activityType: 'task';
+    });
+
 
 interface ActivityFeedProps {
     userProfile: UserProfile;
@@ -40,6 +42,8 @@ const ActivityItemCard = ({ item }: { item: ActivityItem }) => {
     const title = item.activityType === 'check-in' 
         ? `New check-in in ` 
         : `New task added to `;
+    
+    const content = item.activityType === 'check-in' ? item.content : item.description;
 
     return (
         <div className="flex items-start gap-4 p-3 hover:bg-accent/50 rounded-lg">
@@ -50,7 +54,7 @@ const ActivityItemCard = ({ item }: { item: ActivityItem }) => {
                     <Link href={item.parent.path} className="font-semibold hover:underline">{item.parent.name}</Link>
                 </p>
                 <blockquote className="mt-1 border-l-2 pl-3 text-sm text-muted-foreground italic">
-                    &quot;{item.description}&quot;
+                    &quot;{content}&quot;
                 </blockquote>
                  <p className="text-xs text-muted-foreground mt-1">{ago}</p>
             </div>
@@ -125,14 +129,25 @@ export default function ActivityFeed({ userProfile }: ActivityFeedProps) {
                                 limit(5)
                             );
                             const itemsSnap = await getDocs(q);
-                            itemsSnap.forEach(itemDoc => {
-                                allItems.push({
-                                    ...(itemDoc.data() as CheckIn | Task),
-                                    id: itemDoc.id,
-                                    parent: parentDocs[id],
-                                    activityType: sub === 'checkIns' ? 'check-in' : 'task',
+                            if (sub === 'checkIns') {
+                                itemsSnap.forEach(itemDoc => {
+                                    allItems.push({
+                                        ...(itemDoc.data() as CheckIn),
+                                        id: itemDoc.id,
+                                        parent: parentDocs[id],
+                                        activityType: 'check-in',
+                                    });
                                 });
-                            });
+                            } else { // tasks
+                                itemsSnap.forEach(itemDoc => {
+                                    allItems.push({
+                                        ...(itemDoc.data() as Task),
+                                        id: itemDoc.id,
+                                        parent: parentDocs[id],
+                                        activityType: 'task',
+                                    });
+                                });
+                            }
                          }
                     }
                 }
