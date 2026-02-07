@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { formatTimestamp } from '@/lib/utils';
 import TaskList from '@/components/TaskList';
 import CheckInSystem from '@/components/CheckInSystem';
+import SharedNoteEditor from '@/components/SharedNoteEditor';
 
 function PartnerProfile({ userId }: { userId: string }) {
     const firestore = useFirestore();
@@ -146,6 +147,12 @@ export default function PairingDashboardPage({ params }: { params: { pairingId: 
         </Card>
         
         {partnerId && <PartnerProfile userId={partnerId} />}
+
+        <Card>
+            <CardContent className="p-6">
+                <SharedNoteEditor collectionPath="pairings" sessionId={pairingId} />
+            </CardContent>
+        </Card>
 
         <TaskList 
             groupOrCohortId={pairingId}

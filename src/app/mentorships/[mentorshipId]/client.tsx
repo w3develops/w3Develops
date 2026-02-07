@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { formatTimestamp } from '@/lib/utils';
 import TaskList from '@/components/TaskList';
 import CheckInSystem from '@/components/CheckInSystem';
+import SharedNoteEditor from '@/components/SharedNoteEditor';
 
 function PartnerProfile({ userId, role }: { userId: string, role: 'Mentor' | 'Mentee' }) {
     const firestore = useFirestore();
@@ -149,6 +150,12 @@ export default function MentorshipDashboardPage({ params }: { params: { mentorsh
         </Card>
         
         {partnerId && partnerRole && <PartnerProfile userId={partnerId} role={partnerRole} />}
+
+        <Card>
+            <CardContent className="p-6">
+                <SharedNoteEditor collectionPath="mentorships" sessionId={mentorshipId} />
+            </CardContent>
+        </Card>
 
         <TaskList 
             groupOrCohortId={mentorshipId}
