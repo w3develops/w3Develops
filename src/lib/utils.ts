@@ -2,6 +2,8 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { Timestamp, FieldValue } from "firebase/firestore";
+import { UserProfile, UserStatus } from "./types";
+import { ONE_WEEK_IN_MS } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -48,4 +50,22 @@ export function timeAgo(timestamp: Timestamp | FieldValue | undefined | null): s
   }
   
   return formatTimestamp(timestamp);
+}
+
+export function getDerivedUserStatus(member: UserProfile): UserStatus {
+    if (!member.lastCheckInAt) {
+        return member.status || 'inactive';
+    }
+    const lastCheckInTime = (member.lastCheckInAt as Timestamp)?.toMillis();
+
+    if (!lastCheckInTime) {
+        return member.status || 'inactive';
+    }
+    
+    const oneWeekAgo = Date.now() - ONE_WEEK_IN_MS;
+    const twoWeeksAgo = Date.now() - 2 * ONE_WEEK_IN_MS;
+
+    if (lastCheckInTime < twoWeeksAgo) return 'inactive';
+    if (lastCheckInTime < oneWeekAgo) return 'paused';
+    return member.status || 'active';
 }

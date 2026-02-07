@@ -40,7 +40,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/newsletter',
     '/notifications',
     '/pair-programming',
-    '/pairings',
     '/podcast',
     '/privacy',
     '/profile/edit',
@@ -54,7 +53,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/support',
     '/terms',
     '/tutor',
-    '/tutorships',
     '/warrant-canary',
   ];
 
