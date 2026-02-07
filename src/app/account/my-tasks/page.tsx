@@ -125,19 +125,28 @@ export default function MyTasksPage() {
         }
     }, [user, isUserLoading, router]);
 
+    const studyGroupIds = useMemo(() => {
+        if (!userProfile) return [];
+        return Array.from(new Set([...(userProfile.createdStudyGroupIds || []), ...(userProfile.joinedStudyGroupIds || [])]));
+    }, [userProfile]);
+    
+    const groupProjectIds = useMemo(() => {
+        if (!userProfile) return [];
+        return Array.from(new Set([...(userProfile.createdGroupProjectIds || []), ...(userProfile.joinedGroupProjectIds || [])]));
+    }, [userProfile]);
+
+    const bookClubIds = useMemo(() => {
+        if (!userProfile) return [];
+        return Array.from(new Set([...(userProfile.createdBookClubIds || []), ...(userProfile.joinedBookClubIds || [])]));
+    }, [userProfile]);
+    
+    const mentorshipIds = useMemo(() => userProfile?.mentorshipIds || [], [userProfile]);
+    const tutorshipIds = useMemo(() => userProfile?.tutorshipIds || [], [userProfile]);
+    const pairingIds = useMemo(() => userProfile?.pairingIds || [], [userProfile]);
+
     if (isUserLoading || isProfileLoading || !userProfile) {
         return <LoadingSkeleton />;
     }
-
-    const allGroupIds = (collectionKey: keyof UserProfile, joinKey: keyof UserProfile) => 
-        Array.from(new Set([...(userProfile[collectionKey] as string[] || []), ...(userProfile[joinKey] as string[] || [])]));
-
-    const studyGroupIds = allGroupIds('createdStudyGroupIds', 'joinedStudyGroupIds');
-    const groupProjectIds = allGroupIds('createdGroupProjectIds', 'joinedGroupProjectIds');
-    const bookClubIds = allGroupIds('createdBookClubIds', 'joinedBookClubIds');
-    const mentorshipIds = userProfile.mentorshipIds || [];
-    const tutorshipIds = userProfile.tutorshipIds || [];
-    const pairingIds = userProfile.pairingIds || [];
 
     const tabsData = [
         { value: 'studyGroups', title: 'Study Groups', ids: studyGroupIds, path: 'studyGroups' },

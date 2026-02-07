@@ -149,17 +149,17 @@ function MentorshipManagement({ user, userProfile }: { user: any, userProfile: U
         }
     };
     
-    const { data: mentors } = useCollection<UserProfile>(
-        userProfile.mentorIds && userProfile.mentorIds.length > 0 
-        ? query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.mentorIds.slice(0, 10))) 
-        : null
-    );
+    const mentorsQuery = useMemo(() => {
+        if (!userProfile.mentorIds || userProfile.mentorIds.length === 0) return null;
+        return query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.mentorIds.slice(0, 10)));
+    }, [firestore, userProfile.mentorIds]);
+    const { data: mentors } = useCollection<UserProfile>(mentorsQuery);
 
-    const { data: mentees } = useCollection<UserProfile>(
-        userProfile.menteeIds && userProfile.menteeIds.length > 0
-        ? query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.menteeIds.slice(0, 10)))
-        : null
-    );
+    const menteesQuery = useMemo(() => {
+        if (!userProfile.menteeIds || userProfile.menteeIds.length === 0) return null;
+        return query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.menteeIds.slice(0, 10)));
+    }, [firestore, userProfile.menteeIds]);
+    const { data: mentees } = useCollection<UserProfile>(menteesQuery);
 
     return (
         <Card>
@@ -304,17 +304,17 @@ function TutorshipManagement({ user, userProfile }: { user: any, userProfile: Us
         }
     };
     
-    const { data: tutors } = useCollection<UserProfile>(
-        userProfile.tutorIds && userProfile.tutorIds.length > 0 
-        ? query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.tutorIds.slice(0, 10))) 
-        : null
-    );
+    const tutorsQuery = useMemo(() => {
+        if (!userProfile.tutorIds || userProfile.tutorIds.length === 0) return null;
+        return query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.tutorIds.slice(0, 10)));
+    }, [firestore, userProfile.tutorIds]);
+    const { data: tutors } = useCollection<UserProfile>(tutorsQuery);
 
-    const { data: students } = useCollection<UserProfile>(
-        userProfile.studentIds && userProfile.studentIds.length > 0
-        ? query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.studentIds.slice(0, 10)))
-        : null
-    );
+    const studentsQuery = useMemo(() => {
+        if (!userProfile.studentIds || userProfile.studentIds.length === 0) return null;
+        return query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.studentIds.slice(0, 10)));
+    }, [firestore, userProfile.studentIds]);
+    const { data: students } = useCollection<UserProfile>(studentsQuery);
 
     return (
         <Card>
@@ -439,11 +439,11 @@ function PairingManagement({ user, userProfile }: { user: any, userProfile: User
         }
     };
     
-    const { data: partners } = useCollection<UserProfile>(
-        userProfile.pairPartnerIds && userProfile.pairPartnerIds.length > 0 
-        ? query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.pairPartnerIds.slice(0, 10))) 
-        : null
-    );
+    const partnersQuery = useMemo(() => {
+        if (!userProfile.pairPartnerIds || userProfile.pairPartnerIds.length === 0) return null;
+        return query(collection(firestore, 'users'), where(documentId(), 'in', userProfile.pairPartnerIds.slice(0, 10)));
+    }, [firestore, userProfile.pairPartnerIds]);
+    const { data: partners } = useCollection<UserProfile>(partnersQuery);
 
     return (
         <Card>
