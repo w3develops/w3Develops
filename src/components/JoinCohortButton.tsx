@@ -11,6 +11,8 @@ import { PlusCircle } from 'lucide-react';
 import { GroupProject } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { ONE_WEEK_IN_MS } from '@/lib/constants';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function JoinCohortButton({ groupProject, onJoinSuccess }: { groupProject: GroupProject, onJoinSuccess?: (id: string) => void }) {
     const { user } = useUser();
@@ -56,48 +58,56 @@ export default function JoinCohortButton({ groupProject, onJoinSuccess }: { grou
 
         setIsJoining(true);
         
-        try {
-            const groupProjectRef = doc(firestore, 'groupProjects', groupProject.id);
-            const userProfileRef = doc(firestore, 'users', user.uid);
-            const batch = writeBatch(firestore);
+        const groupProjectRef = doc(firestore, 'groupProjects', groupProject.id);
+        const userProfileRef = doc(firestore, 'users', user.uid);
+        const batch = writeBatch(firestore);
 
-            batch.update(groupProjectRef, { memberIds: arrayUnion(user.uid) });
-            batch.update(userProfileRef, { joinedGroupProjectIds: arrayUnion(groupProject.id) });
+        batch.update(groupProjectRef, { memberIds: arrayUnion(user.uid) });
+        batch.update(userProfileRef, { joinedGroupProjectIds: arrayUnion(groupProject.id) });
 
 
-            if (groupProject.memberIds.length + 1 === 25) {
-                const message = `Your group project "${groupProject.name}" is now full!`;
-                const link = `/groupprojects/${groupProject.id}`;
-                const allMemberIds = [...groupProject.memberIds, user.uid];
-                
-                allMemberIds.forEach(memberId => {
-                    const notificationRef = doc(collection(firestore, 'users', memberId, 'notifications'));
-                    batch.set(notificationRef, {
-                        id: notificationRef.id,
-                        message,
-                        link,
-                        isRead: false,
-                        createdAt: serverTimestamp(),
-                    });
+        if (groupProject.memberIds.length + 1 === 25) {
+            const message = `Your group project "${groupProject.name}" is now full!`;
+            const link = `/groupprojects/${groupProject.id}`;
+            const allMemberIds = [...groupProject.memberIds, user.uid];
+            
+            allMemberIds.forEach(memberId => {
+                const notificationRef = doc(collection(firestore, 'users', memberId, 'notifications'));
+                batch.set(notificationRef, {
+                    id: notificationRef.id,
+                    message,
+                    link,
+                    isRead: false,
+                    createdAt: serverTimestamp(),
                 });
-                toast({ title: 'Project Full!', description: `Notifications sent to all members.`});
-            }
-            
-            await batch.commit();
-
-            toast({ title: 'Success!', description: `You've joined the project: ${groupProject.name}`});
-            
-            if (onJoinSuccess) {
-                onJoinSuccess(groupProject.id);
-            } else {
-                router.push(`/groupprojects/${groupProject.id}`);
-            }
-
-        } catch (error: any) {
-             toast({ variant: 'destructive', title: 'Could Not Join', description: error.message || "An unexpected error occurred." });
-        } finally {
-            setIsJoining(false);
+            });
         }
+        
+        batch.commit()
+            .then(() => {
+                if (groupProject.memberIds.length + 1 === 25) {
+                    toast({ title: 'Project Full!', description: `Notifications sent to all members.`});
+                }
+                toast({ title: 'Success!', description: `You've joined the project: ${groupProject.name}`});
+                
+                if (onJoinSuccess) {
+                    onJoinSuccess(groupProject.id);
+                } else {
+                    router.push(`/groupprojects/${groupProject.id}`);
+                }
+            })
+            .catch(error => {
+                const permissionError = new FirestorePermissionError({
+                    path: `batch write to join group project ${groupProject.id}`,
+                    operation: 'update',
+                    requestResourceData: { groupProjectId: groupProject.id, userId: user.uid }
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                toast({ variant: 'destructive', title: 'Could Not Join', description: "A permission error occurred." });
+            })
+            .finally(() => {
+                setIsJoining(false);
+            });
     };
 
     if (!isNew && !isMember) {

@@ -6,6 +6,8 @@ import { arrayUnion, arrayRemove, doc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { UserProfile } from '@/lib/types';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 interface FollowButtonProps {
     targetUserId: string;
@@ -28,32 +30,39 @@ export default function FollowButton({ targetUserId, targetUserFollowers }: Foll
         setIsSubmitting(true);
         const currentUserRef = doc(firestore, 'users', user.uid);
         const targetUserRef = doc(firestore, 'users', targetUserId);
+        const batch = writeBatch(firestore);
+        
+        let batchUpdateData = {};
 
-        try {
-            const batch = writeBatch(firestore);
-
-            if (isFollowing) {
-                // Unfollow action
-                batch.update(currentUserRef, { following: arrayRemove(targetUserId) });
-                batch.update(targetUserRef, { followers: arrayRemove(user.uid) });
-            } else {
-                // Follow action
-                batch.update(currentUserRef, { following: arrayUnion(targetUserId) });
-                batch.update(targetUserRef, { followers: arrayUnion(user.uid) });
-            }
-
-            await batch.commit();
-
-        } catch (error: any) {
-            console.error("Follow/Unfollow Error: ", error);
-            toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: 'Could not complete action. Please try again.'
-            });
-        } finally {
-            setIsSubmitting(false);
+        if (isFollowing) {
+            // Unfollow action
+            batch.update(currentUserRef, { following: arrayRemove(targetUserId) });
+            batch.update(targetUserRef, { followers: arrayRemove(user.uid) });
+            batchUpdateData = { following: { action: 'remove', id: targetUserId }, followers: {action: 'remove', id: user.uid }};
+        } else {
+            // Follow action
+            batch.update(currentUserRef, { following: arrayUnion(targetUserId) });
+            batch.update(targetUserRef, { followers: arrayUnion(user.uid) });
+            batchUpdateData = { following: { action: 'add', id: targetUserId }, followers: {action: 'add', id: user.uid }};
         }
+
+        batch.commit()
+            .catch(error => {
+                const permissionError = new FirestorePermissionError({
+                    path: 'batch write for follow/unfollow',
+                    operation: 'update',
+                    requestResourceData: batchUpdateData
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                toast({
+                    variant: 'destructive',
+                    title: 'Error',
+                    description: 'Could not complete action due to a permission issue.'
+                });
+            })
+            .finally(() => {
+                setIsSubmitting(false);
+            });
     };
 
     return (

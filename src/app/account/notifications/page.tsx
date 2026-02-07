@@ -12,6 +12,8 @@ import { useRouter } from 'next/navigation';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 function NotificationItem({ notification, onToggleRead }: { notification: Notification, onToggleRead: (id: string, currentState: boolean) => void }) {
     return (
@@ -54,16 +56,22 @@ export default function NotificationsPage() {
     const handleToggleRead = async (notificationId: string, currentState: boolean) => {
         if (!user) return;
         const notificationRef = doc(firestore, 'users', user.uid, 'notifications', notificationId);
-        try {
-            await updateDoc(notificationRef, { isRead: !currentState });
-        } catch (error) {
-            console.error("Error updating notification status: ", error);
-            toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: 'Could not update notification status.'
+        const updateData = { isRead: !currentState };
+
+        updateDoc(notificationRef, updateData)
+            .catch(async (error) => {
+                const permissionError = new FirestorePermissionError({
+                    path: notificationRef.path,
+                    operation: 'update',
+                    requestResourceData: updateData,
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                toast({
+                    variant: 'destructive',
+                    title: 'Error',
+                    description: 'Could not update notification status due to a permission issue.'
+                });
             });
-        }
     };
 
 

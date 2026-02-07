@@ -11,6 +11,8 @@ import { PlusCircle } from 'lucide-react';
 import { BookClub } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { ONE_WEEK_IN_MS } from '@/lib/constants';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function JoinBookClubButton({ club, onJoinSuccess }: { club: BookClub, onJoinSuccess?: (id: string) => void }) {
     const { user } = useUser();
@@ -56,47 +58,55 @@ export default function JoinBookClubButton({ club, onJoinSuccess }: { club: Book
 
         setIsJoining(true);
 
-        try {
-            const clubRef = doc(firestore, 'bookClubs', club.id);
-            const userProfileRef = doc(firestore, 'users', user.uid);
-            const batch = writeBatch(firestore);
-            
-            batch.update(clubRef, { memberIds: arrayUnion(user.uid) });
-            batch.update(userProfileRef, { joinedBookClubIds: arrayUnion(club.id) });
+        const clubRef = doc(firestore, 'bookClubs', club.id);
+        const userProfileRef = doc(firestore, 'users', user.uid);
+        const batch = writeBatch(firestore);
+        
+        batch.update(clubRef, { memberIds: arrayUnion(user.uid) });
+        batch.update(userProfileRef, { joinedBookClubIds: arrayUnion(club.id) });
 
-            if (club.memberIds.length + 1 === 25) {
-                const message = `Your book club "${club.name}" is now full!`;
-                const link = `/book-clubs/${club.id}`;
-                const allMemberIds = [...club.memberIds, user.uid];
+        if (club.memberIds.length + 1 === 25) {
+            const message = `Your book club "${club.name}" is now full!`;
+            const link = `/book-clubs/${club.id}`;
+            const allMemberIds = [...club.memberIds, user.uid];
 
-                allMemberIds.forEach(memberId => {
-                    const notificationRef = doc(collection(firestore, 'users', memberId, 'notifications'));
-                    batch.set(notificationRef, {
-                        id: notificationRef.id,
-                        message,
-                        link,
-                        isRead: false,
-                        createdAt: serverTimestamp(),
-                    });
+            allMemberIds.forEach(memberId => {
+                const notificationRef = doc(collection(firestore, 'users', memberId, 'notifications'));
+                batch.set(notificationRef, {
+                    id: notificationRef.id,
+                    message,
+                    link,
+                    isRead: false,
+                    createdAt: serverTimestamp(),
                 });
-                toast({ title: 'Club Full!', description: `Notifications sent to all members.`});
-            }
-
-            await batch.commit();
-
-            toast({ title: 'Success!', description: `You've joined the club: ${club.name}` });
-
-            if (onJoinSuccess) {
-                onJoinSuccess(club.id);
-            } else {
-                router.push(`/book-clubs/${club.id}`);
-            }
-
-        } catch (error: any) {
-            toast({ variant: 'destructive', title: 'Could Not Join', description: error.message || "An unexpected error occurred." });
-        } finally {
-            setIsJoining(false);
+            });
         }
+
+        batch.commit()
+            .then(() => {
+                if (club.memberIds.length + 1 === 25) {
+                    toast({ title: 'Club Full!', description: `Notifications sent to all members.`});
+                }
+                toast({ title: 'Success!', description: `You've joined the club: ${club.name}` });
+
+                if (onJoinSuccess) {
+                    onJoinSuccess(club.id);
+                } else {
+                    router.push(`/book-clubs/${club.id}`);
+                }
+            })
+            .catch(error => {
+                const permissionError = new FirestorePermissionError({
+                    path: `batch write to join book club ${club.id}`,
+                    operation: 'update',
+                    requestResourceData: { clubId: club.id, userId: user.uid }
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                toast({ variant: 'destructive', title: 'Could Not Join', description: "A permission error occurred." });
+            })
+            .finally(() => {
+                setIsJoining(false);
+            });
     };
     
     if (!isNew && !isMember) {

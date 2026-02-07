@@ -11,6 +11,8 @@ import { PlusCircle } from 'lucide-react';
 import { StudyGroup } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { ONE_WEEK_IN_MS } from '@/lib/constants';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function JoinGroupButton({ group, onJoinSuccess }: { group: StudyGroup, onJoinSuccess?: (id: string) => void }) {
     const { user } = useUser();
@@ -56,47 +58,55 @@ export default function JoinGroupButton({ group, onJoinSuccess }: { group: Study
 
         setIsJoining(true);
 
-        try {
-            const groupRef = doc(firestore, 'studyGroups', group.id);
-            const userProfileRef = doc(firestore, 'users', user.uid);
-            const batch = writeBatch(firestore);
-            
-            batch.update(groupRef, { memberIds: arrayUnion(user.uid) });
-            batch.update(userProfileRef, { joinedStudyGroupIds: arrayUnion(group.id) });
+        const groupRef = doc(firestore, 'studyGroups', group.id);
+        const userProfileRef = doc(firestore, 'users', user.uid);
+        const batch = writeBatch(firestore);
+        
+        batch.update(groupRef, { memberIds: arrayUnion(user.uid) });
+        batch.update(userProfileRef, { joinedStudyGroupIds: arrayUnion(group.id) });
 
-            if (group.memberIds.length + 1 === 25) {
-                const message = `Your study group "${group.name}" is now full!`;
-                const link = `/studygroups/${group.id}`;
-                const allMemberIds = [...group.memberIds, user.uid];
+        if (group.memberIds.length + 1 === 25) {
+            const message = `Your study group "${group.name}" is now full!`;
+            const link = `/studygroups/${group.id}`;
+            const allMemberIds = [...group.memberIds, user.uid];
 
-                allMemberIds.forEach(memberId => {
-                    const notificationRef = doc(collection(firestore, 'users', memberId, 'notifications'));
-                    batch.set(notificationRef, {
-                        id: notificationRef.id,
-                        message,
-                        link,
-                        isRead: false,
-                        createdAt: serverTimestamp(),
-                    });
+            allMemberIds.forEach(memberId => {
+                const notificationRef = doc(collection(firestore, 'users', memberId, 'notifications'));
+                batch.set(notificationRef, {
+                    id: notificationRef.id,
+                    message,
+                    link,
+                    isRead: false,
+                    createdAt: serverTimestamp(),
                 });
-                toast({ title: 'Group Full!', description: `Notifications sent to all members.`});
-            }
-
-            await batch.commit();
-
-            toast({ title: 'Success!', description: `You've joined the group: ${group.name}` });
-
-            if (onJoinSuccess) {
-                onJoinSuccess(group.id);
-            } else {
-                router.push(`/studygroups/${group.id}`);
-            }
-
-        } catch (error: any) {
-            toast({ variant: 'destructive', title: 'Could Not Join', description: error.message || "An unexpected error occurred." });
-        } finally {
-            setIsJoining(false);
+            });
         }
+
+        batch.commit()
+            .then(() => {
+                if (group.memberIds.length + 1 === 25) {
+                    toast({ title: 'Group Full!', description: `Notifications sent to all members.`});
+                }
+                toast({ title: 'Success!', description: `You've joined the group: ${group.name}` });
+
+                if (onJoinSuccess) {
+                    onJoinSuccess(group.id);
+                } else {
+                    router.push(`/studygroups/${group.id}`);
+                }
+            })
+            .catch(error => {
+                const permissionError = new FirestorePermissionError({
+                    path: `batch write to join group ${group.id}`,
+                    operation: 'update',
+                    requestResourceData: { groupId: group.id, userId: user.uid }
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                toast({ variant: 'destructive', title: 'Could Not Join', description: "A permission error occurred." });
+            })
+            .finally(() => {
+                setIsJoining(false);
+            });
     };
     
     if (!isNew && !isMember) {

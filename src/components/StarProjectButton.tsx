@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -9,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Star } from 'lucide-react';
 import { UserProfile } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 interface StarProjectButtonProps {
     projectId: string;
@@ -30,25 +31,30 @@ export default function StarProjectButton({ projectId, userProfile }: StarProjec
     const handleStarToggle = async () => {
         setIsSubmitting(true);
         const currentUserRef = doc(firestore, 'users', user.uid);
+        const updateData = { 
+            starredSoloProjectIds: isStarred ? arrayRemove(projectId) : arrayUnion(projectId) 
+        };
 
-        try {
-            if (isStarred) {
-                await updateDoc(currentUserRef, { starredSoloProjectIds: arrayRemove(projectId) });
-                toast({ title: "Project Unstarred" });
-            } else {
-                await updateDoc(currentUserRef, { starredSoloProjectIds: arrayUnion(projectId) });
-                toast({ title: "Project Starred!" });
-            }
-        } catch (error: any) {
-            console.error("Star/Unstar Error: ", error);
-            toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: 'Could not complete action. Please try again.'
+        updateDoc(currentUserRef, updateData)
+            .then(() => {
+                toast({ title: isStarred ? "Project Unstarred" : "Project Starred!" });
+            })
+            .catch(error => {
+                 const permissionError = new FirestorePermissionError({
+                    path: currentUserRef.path,
+                    operation: 'update',
+                    requestResourceData: updateData
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                toast({
+                    variant: 'destructive',
+                    title: 'Error',
+                    description: 'Could not complete action due to a permission issue.'
+                });
+            })
+            .finally(() => {
+                setIsSubmitting(false);
             });
-        } finally {
-            setIsSubmitting(false);
-        }
     };
 
     return (

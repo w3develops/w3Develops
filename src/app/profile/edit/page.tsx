@@ -15,6 +15,8 @@ import { Badge } from '@/components/ui/badge';
 import { X, Lock } from 'lucide-react';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Switch } from '@/components/ui/switch';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 // Helper function to ensure a URL is absolute
 const ensureAbsoluteUrl = (url: string) => {
@@ -113,19 +115,27 @@ export default function EditProfilePage() {
       pairProgrammingSkills,
     };
 
-    try {
-      await updateDoc(userDocRef, updatedProfileData);
-      toast({ title: 'Profile Updated', description: 'Your profile has been successfully updated.' });
-      router.push('/account');
-    } catch (error: any) {
+    updateDoc(userDocRef, updatedProfileData)
+      .then(() => {
+        toast({ title: 'Profile Updated', description: 'Your profile has been successfully updated.' });
+        router.push('/account');
+      })
+      .catch((error) => {
+        const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'update',
+            requestResourceData: updatedProfileData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
         toast({
             variant: "destructive",
             title: "Update Failed",
-            description: error.message || "Could not update your profile. Please try again.",
+            description: "Could not update your profile due to a permission issue.",
         });
-    } finally {
+      })
+      .finally(() => {
         setIsSubmitting(false);
-    }
+      });
   };
 
   if (isUserLoading || isProfileLoading || !user) {
