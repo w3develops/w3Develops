@@ -7,44 +7,257 @@ service cloud.firestore {
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
-
-    function isAddingToList(list, newList) {
-      return newList.size() == list.size() + 1 && newList.hasAll(list);
+    
+    function isGroupMember(groupId) {
+      return request.auth != null && get(/databases/$(database)/documents/studyGroups/$(groupId)).data.memberIds.hasAny([request.auth.uid]);
+    }
+    
+    function isBookClubMember(bookClubId) {
+      return request.auth != null && get(/databases/$(database)/documents/bookClubs/$(bookClubId)).data.memberIds.hasAny([request.auth.uid]);
     }
 
-    function isRemovingFromList(list, newList) {
-      return newList.size() == list.size() - 1 && list.hasAll(newList);
+    function isGroupProjectMember(groupProjectId) {
+       return request.auth != null && get(/databases/$(database)/documents/groupProjects/$(groupProjectId)).data.memberIds.hasAny([request.auth.uid]);
+    }
+    
+    function isMeetupCreator(meetupId) {
+      return request.auth != null && get(/databases/$(database)/documents/meetups/$(meetupId)).data.creatorId == request.auth.uid;
+    }
+    
+    function isMeetupAttendee(meetupId) {
+       return request.auth != null && get(/databases/$(database)/documents/meetups/$(meetupId)).data.attendeeIds.hasAny([request.auth.uid]);
+    }
+
+    function isMentorshipMember(mentorshipId) {
+      return request.auth != null && get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data.memberIds.hasAny([request.auth.uid]);
+    }
+    
+    function isTutorshipMember(tutorshipId) {
+      return request.auth != null && get(/databases/$(database)/documents/tutorships/$(tutorshipId)).data.memberIds.hasAny([request.auth.uid]);
+    }
+
+    function isPairingMember(pairingId) {
+      return request.auth != null && get(/databases/$(database)/documents/pairings/$(pairingId)).data.memberIds.hasAny([request.auth.uid]);
+    }
+
+    function isAddingSelfToList(listAfter, listBefore) {
+      return request.auth != null
+             && listAfter.size() == listBefore.size() + 1
+             && listAfter.hasAll(listBefore)
+             && listAfter.hasAny([request.auth.uid])
+             && !listBefore.hasAny([request.auth.uid]);
+    }
+    
+    function isBeingAddedToList(userId, listAfter, listBefore) {
+      return listAfter.size() == listBefore.size() + 1
+             && listAfter.hasAll(listBefore)
+             && listAfter.hasAny([userId]);
+    }
+
+    function isRemovingSelfFromList(listAfter, listBefore) {
+      return request.auth != null
+             && listBefore.size() == listAfter.size() + 1
+             && listBefore.hasAll(listAfter)
+             && listBefore.hasAny([request.auth.uid])
+             && !listAfter.hasAny([request.auth.uid]);
+    }
+    
+    function isMentorshipUpdate(userId) {
+        let isAddingMentor = isBeingAddedToList(userId, request.resource.data.get('mentorIds', []), resource.data.get('mentorIds', []));
+        let isAddingMentee = isBeingAddedToList(userId, request.resource.data.get('menteeIds', []), resource.data.get('menteeIds', []));                     
+        let isAddingMentorshipId = isAddingSelfToList(request.resource.data.get('mentorshipIds', []), resource.data.get('mentorshipIds', []));
+        let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
+        
+        return (isAddingMentor && changedKeys.hasAll(['mentorIds', 'mentorshipIds']) && changedKeys.size() == 2 && isAddingMentorshipId) ||
+               (isAddingMentee && changedKeys.hasAll(['menteeIds', 'mentorshipIds']) && changedKeys.size() == 2 && isAddingMentorshipId);
+    }
+    
+    function isTutorshipUpdate(userId) {
+        let isAddingTutor = isBeingAddedToList(userId, request.resource.data.get('tutorIds', []), resource.data.get('tutorIds', []));
+        let isAddingStudent = isBeingAddedToList(userId, request.resource.data.get('studentIds', []), resource.data.get('studentIds', []));
+        let isAddingTutorshipId = isAddingSelfToList(request.resource.data.get('tutorshipIds', []), resource.data.get('tutorshipIds', []));
+        let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
+
+        return (isAddingTutor && changedKeys.hasAll(['tutorIds', 'tutorshipIds']) && changedKeys.size() == 2 && isAddingTutorshipId) ||
+               (isAddingStudent && changedKeys.hasAll(['studentIds', 'tutorshipIds']) && changedKeys.size() == 2 && isAddingTutorshipId);
+    }
+    
+    function isPairingUpdate(userId) {
+        let isAddingPartner = isBeingAddedToList(userId, request.resource.data.get('pairPartnerIds', []), resource.data.get('pairPartnerIds', []));
+        let isAddingPairingId = isAddingSelfToList(request.resource.data.get('pairingIds', []), resource.data.get('pairingIds', []));
+        let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
+
+        return isAddingPartner && changedKeys.hasAll(['pairPartnerIds', 'pairingIds']) && changedKeys.size() == 2 && isAddingPairingId;
     }
 
     match /users/{userId} {
-      allow read: if request.auth != null;
-
-      allow create: if request.auth.uid == userId;
-
+      allow read: if true;
+      allow create: if isOwner(userId);
       allow delete: if isOwner(userId);
-
-      allow update: if isOwner(userId) && (
+      allow update: if
+        isOwner(userId) ||
         (
-          request.resource.data.keys().hasOnly([
-            'bio', 'skills', 'socialLinks', 'followInfoPrivate', 'profilePictureUrl', 'isSubscribedToNewsletter', 'lastLoginAt', 'lastLogoutAt'
-          ])
-        ) ||
-        (isAddingToList(resource.data.createdStudyGroupIds, request.resource.data.createdStudyGroupIds)) ||
-        (isAddingToList(resource.data.joinedStudyGroupIds, request.resource.data.joinedStudyGroupIds)) ||
-        (isAddingToList(resource.data.createdCohortIds, request.resource.data.createdCohortIds)) ||
-        (isAddingToList(resource.data.joinedCohortIds, request.resource.data.joinedCohortIds)) ||
-        (isAddingToList(resource.data.following, request.resource.data.following)) ||
-        (isRemovingFromList(resource.data.following, request.resource.data.following)) ||
-        (isAddingToList(resource.data.followers, request.resource.data.followers)) ||
-        (isRemovingFromList(resource.data.followers, request.resource.data.followers))
-      );
+          request.resource.data.diff(resource.data).affectedKeys().size() == 1 &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
+          (isAddingSelfToList(request.resource.data.followers, resource.data.get('followers', [])) ||
+            isRemovingSelfFromList(request.resource.data.followers, resource.data.get('followers', [])))
+        ) || isMentorshipUpdate(userId) || isTutorshipUpdate(userId) || isPairingUpdate(userId);
     }
 
     match /usernames/{username} {
       allow get: if true;
-      allow list: if request.auth != null;
+      allow list: if false;
       allow create: if request.auth.uid == request.resource.data.uid;
       allow update, delete: if false;
+    }
+    
+    match /mentorshipRequests/{requestId} {
+        allow read: if request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid;
+        allow create: if request.auth.uid == request.resource.data.fromUid
+                      && request.resource.data.status == 'pending'
+                      && request.resource.data.fromUid != request.resource.data.toUid;
+        allow update: if request.auth.uid == resource.data.toUid;
+    }
+
+    match /mentorships/{mentorshipId} {
+      allow read: if isMentorshipMember(mentorshipId);
+      allow create: if request.auth != null && request.resource.data.memberIds.hasAny([request.auth.uid]);
+      allow update: if request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
+      allow delete: if false;
+
+      match /tasks/{taskId} {
+        allow read: if isMentorshipMember(mentorshipId);
+        allow create: if isMentorshipMember(mentorshipId) 
+                      && request.resource.data.creatorId == request.auth.uid
+                      && request.resource.data.isCompleted == false;
+        allow update: if isMentorshipMember(mentorshipId);
+        allow delete: if isMentorshipMember(mentorshipId) && resource.data.creatorId == request.auth.uid;
+      }
+      
+      match /checkIns/{checkInId} {
+        allow read: if isMentorshipMember(mentorshipId);
+        allow create: if isMentorshipMember(mentorshipId) 
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
+                      && request.resource.data.type in ['daily', 'weekly'];
+        allow update: if isOwner(request.resource.data.userId)
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
+        allow delete: if false;
+      }
+      
+      match /notes/{noteId} {
+        allow read, write: if isMentorshipMember(mentorshipId);
+      }
+    }
+    
+     match /tutorRequests/{requestId} {
+        allow read: if request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid;
+        allow create: if request.auth.uid == request.resource.data.fromUid
+                      && request.resource.data.status == 'pending'
+                      && request.resource.data.fromUid != request.resource.data.toUid;
+        allow update: if request.auth.uid == resource.data.toUid;
+    }
+
+    match /tutorships/{tutorshipId} {
+      allow read: if isTutorshipMember(tutorshipId);
+      allow create: if request.auth != null && request.resource.data.memberIds.hasAny([request.auth.uid]);
+      allow update: if request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
+      allow delete: if false;
+
+      match /tasks/{taskId} {
+        allow read: if isTutorshipMember(tutorshipId);
+        allow create: if isTutorshipMember(tutorshipId) 
+                      && request.resource.data.creatorId == request.auth.uid
+                      && request.resource.data.isCompleted == false;
+        allow update: if isTutorshipMember(tutorshipId);
+        allow delete: if isTutorshipMember(tutorshipId) && resource.data.creatorId == request.auth.uid;
+      }
+      
+      match /checkIns/{checkInId} {
+        allow read: if isTutorshipMember(tutorshipId);
+        allow create: if isTutorshipMember(tutorshipId) 
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
+                      && request.resource.data.type in ['daily', 'weekly'];
+        allow update: if isOwner(request.resource.data.userId)
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
+        allow delete: if false;
+      }
+      
+       match /notes/{noteId} {
+        allow read, write: if isTutorshipMember(tutorshipId);
+      }
+    }
+    
+    match /pairRequests/{requestId} {
+        allow read: if request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid;
+        allow create: if request.auth.uid == request.resource.data.fromUid
+                      && request.resource.data.status == 'pending'
+                      && request.resource.data.fromUid != request.resource.data.toUid;
+        allow update: if request.auth.uid == resource.data.toUid;
+    }
+
+    match /pairings/{pairingId} {
+      allow read: if isPairingMember(pairingId);
+      allow create: if request.auth != null && request.resource.data.memberIds.hasAny([request.auth.uid]);
+      allow update: if request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
+      allow delete: if false;
+
+      match /tasks/{taskId} {
+        allow read: if isPairingMember(pairingId);
+        allow create: if isPairingMember(pairingId) 
+                      && request.resource.data.creatorId == request.auth.uid
+                      && request.resource.data.isCompleted == false;
+        allow update: if isPairingMember(pairingId);
+        allow delete: if isPairingMember(pairingId) && resource.data.creatorId == request.auth.uid;
+      }
+      
+      match /checkIns/{checkInId} {
+        allow read: if isPairingMember(pairingId);
+        allow create: if isPairingMember(pairingId) 
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
+                      && request.resource.data.type in ['daily', 'weekly'];
+        allow update: if isOwner(request.resource.data.userId)
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
+        allow delete: if false;
+      }
+      
+       match /notes/{noteId} {
+        allow read, write: if isPairingMember(pairingId);
+      }
+    }
+
+    match /competitions/{competitionId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.creatorId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.creatorId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.creatorId == request.auth.uid;
+
+      match /entries/{entryId} {
+        allow read: if true;
+        allow create: if request.auth != null 
+                      && request.resource.data.userId == request.auth.uid
+                      && get(/databases/$(database)/documents/competitions/$(competitionId)).data.endDate > request.time
+                      && request.resource.data.username is string
+                      && request.resource.data.projectUrl is string
+                      && request.resource.data.voterIds == [];
+        allow update: if (request.auth != null && resource.data.userId == request.auth.uid && get(/databases/$(database)/documents/competitions/$(competitionId)).data.endDate > request.time) ||
+                      (request.auth != null && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['voterIds']) && isAddingSelfToList(request.resource.data.voterIds, resource.data.get('voterIds', [])));
+        allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      }
+    }
+
+    match /jobs/{jobId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.postedById == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.postedById == request.auth.uid;
     }
 
     match /studyGroups/{groupId} {
@@ -54,27 +267,165 @@ service cloud.firestore {
                     && request.resource.data.name is string
                     && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 75
                     && request.resource.data.memberIds == [request.auth.uid]
-                    && request.resource.data.createdAt == request.time;
+                    && request.resource.data.commitmentDays is list
+                    && request.resource.data.commitmentDays.size() > 0;
       allow update: if request.auth != null
                     && resource.data.memberIds.size() < 25
                     && request.time - resource.data.createdAt < duration.value(7, 'd')
-                    && isAddingToList(resource.data.memberIds, request.resource.data.memberIds)
-                    && request.resource.data.memberIds[request.resource.data.memberIds.size() - 1] == request.auth.uid;
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])
+                    && request.resource.data.memberIds.size() == resource.data.memberIds.size() + 1
+                    && request.resource.data.memberIds.hasAll(resource.data.memberIds)
+                    && request.resource.data.memberIds.hasAny([request.auth.uid]);
+    
+      match /tasks/{taskId} {
+        allow read: if true;
+        allow create: if isGroupMember(groupId) 
+                      && request.resource.data.creatorId == request.auth.uid
+                      && request.resource.data.isCompleted == false;
+        allow update: if isGroupMember(groupId);
+        allow delete: if isGroupMember(groupId) && resource.data.creatorId == request.auth.uid;
+      }
+      
+      match /checkIns/{checkInId} {
+        allow read: if true;
+        allow create: if isGroupMember(groupId) 
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
+                      && request.resource.data.type in ['daily', 'weekly'];
+        allow update: if isOwner(request.resource.data.userId)
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
+        allow delete: if false;
+      }
+    }
+    
+    match /bookClubs/{bookClubId} {
+      allow read: if true;
+      allow create: if request.auth != null
+                    && request.resource.data.creatorId == request.auth.uid
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 75
+                    && request.resource.data.topic is string
+                    && request.resource.data.commitmentHours is string
+                    && request.resource.data.commitmentDays is list
+                    && request.resource.data.commitmentDays.size() > 0
+                    && request.resource.data.memberIds == [request.auth.uid];
+      allow update: if request.auth != null
+                    && resource.data.memberIds.size() < 25
+                    && request.time - resource.data.createdAt < duration.value(7, 'd')
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])
+                    && request.resource.data.memberIds.size() == resource.data.memberIds.size() + 1
+                    && request.resource.data.memberIds.hasAll(resource.data.memberIds)
+                    && request.resource.data.memberIds.hasAny([request.auth.uid]);
+    
+      match /tasks/{taskId} {
+        allow read: if true;
+        allow create: if isBookClubMember(bookClubId) 
+                      && request.resource.data.creatorId == request.auth.uid
+                      && request.resource.data.isCompleted == false;
+        allow update: if isBookClubMember(bookClubId);
+        allow delete: if isBookClubMember(bookClubId) && resource.data.creatorId == request.auth.uid;
+      }
+      
+      match /checkIns/{checkInId} {
+        allow read: if true;
+        allow create: if isBookClubMember(bookClubId) 
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
+                      && request.resource.data.type in ['daily', 'weekly'];
+        allow update: if isOwner(request.resource.data.userId)
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
+        allow delete: if false;
+      }
     }
 
-    match /cohorts/{cohortId} {
+    match /groupProjects/{groupProjectId} {
       allow read: if true;
       allow create: if request.auth != null
                     && request.resource.data.creatorId == request.auth.uid
                     && request.resource.data.name is string
                     && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 75
                     && request.resource.data.memberIds == [request.auth.uid]
-                    && request.resource.data.createdAt == request.time;
+                    && request.resource.data.commitmentDays is list
+                    && request.resource.data.commitmentDays.size() > 0;
       allow update: if request.auth != null
                     && resource.data.memberIds.size() < 25
                     && request.time - resource.data.createdAt < duration.value(7, 'd')
-                    && isAddingToList(resource.data.memberIds, request.resource.data.memberIds)
-                    && request.resource.data.memberIds[request.resource.data.memberIds.size() - 1] == request.auth.uid;
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])
+                    && request.resource.data.memberIds.size() == resource.data.memberIds.size() + 1
+                    && request.resource.data.memberIds.hasAll(resource.data.memberIds)
+                    && request.resource.data.memberIds.hasAny([request.auth.uid]);
+
+      match /tasks/{taskId} {
+        allow read: if true;
+        allow create: if isGroupProjectMember(groupProjectId)
+                      && request.resource.data.creatorId == request.auth.uid
+                      && request.resource.data.isCompleted == false;
+        allow update: if isGroupProjectMember(groupProjectId);
+        allow delete: if isGroupProjectMember(groupProjectId) && resource.data.creatorId == request.auth.uid;
+      }
+
+      match /checkIns/{checkInId} {
+        allow read: if true;
+        allow create: if isGroupProjectMember(groupProjectId)
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
+                      && request.resource.data.type in ['daily', 'weekly'];
+        allow update: if isOwner(request.resource.data.userId)
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
+        allow delete: if false;
+      }
+    }
+    
+    match /meetups/{meetupId} {
+      allow read: if true;
+      allow create: if request.auth != null 
+                    && request.resource.data.creatorId == request.auth.uid
+                    && request.resource.data.attendeeIds == [request.auth.uid];
+      allow update: if isMeetupCreator(meetupId) || 
+                    (request.auth != null && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['attendeeIds']) && isAddingSelfToList(request.resource.data.attendeeIds, resource.data.attendeeIds));
+      allow delete: if isMeetupCreator(meetupId);
+
+      match /updates/{updateId} {
+        allow read: if true;
+        allow create: if isMeetupCreator(meetupId) && request.resource.data.creatorId == request.auth.uid;
+        allow update, delete: if false;
+      }
+
+      match /tasks/{taskId} {
+        allow read: if isMeetupAttendee(meetupId);
+        allow create: if isMeetupAttendee(meetupId) && request.resource.data.creatorId == request.auth.uid && request.resource.data.isCompleted == false;
+        allow update: if isMeetupAttendee(meetupId);
+        allow delete: if (isMeetupAttendee(meetupId) && resource.data.creatorId == request.auth.uid) || isMeetupCreator(meetupId);
+      }
+      
+      match /checkIns/{checkInId} {
+        allow read: if true;
+        allow create: if isMeetupAttendee(meetupId) 
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
+                      && request.resource.data.type in ['daily', 'weekly'];
+        allow update: if isOwner(request.resource.data.userId)
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000;
+        allow delete: if false;
+      }
+    }
+    
+    match /soloProjects/{soloProjectId} {
+      allow read: if true;
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+                    && request.resource.data.projectUrl is string && request.resource.data.projectUrl.size() > 0
+                    && request.resource.data.description is string && request.resource.data.description.size() <= 2000;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     match /users/{userId}/notifications/{notificationId} {
@@ -88,6 +439,17 @@ service cloud.firestore {
                     && request.resource.data.feedback is string
                     && request.resource.data.feedback.size() > 0
                     && request.resource.data.feedback.size() <= 2000;
+    }
+
+    match /supportRequests/{supportRequestId} {
+      allow read: if false; // Should only be readable by admins, which is handled server-side
+      allow create: if request.auth != null
+                     && request.resource.data.userId == request.auth.uid
+                     && request.resource.data.subject is string
+                     && request.resource.data.subject.size() > 0 && request.resource.data.subject.size() <= 100
+                     && request.resource.data.description is string
+                     && request.resource.data.description.size() > 0 && request.resource.data.description.size() <= 2000
+                     && request.resource.data.status == 'open';
     }
   }
 }
