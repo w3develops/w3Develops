@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useFirestore } from '@/firebase';
-import { UserProfile, CheckIn, Task, StudyGroup, GroupProject, BookClub } from '@/lib/types';
+import { UserProfile, CheckIn, Task } from '@/lib/types';
 import { collection, query, where, orderBy, limit, getDocs, doc, documentId, Timestamp } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { timeAgo } from '@/lib/utils';
@@ -10,15 +10,17 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import Link from 'next/link';
 import { MessageSquare, CheckSquare } from 'lucide-react';
 
-type ActivityItem =
-  | (CheckIn & {
-      parent: { id: string; name: string; path: string; };
-      activityType: 'check-in';
-    })
-  | (Task & {
-      parent: { id: string; name: string; path: string; };
-      activityType: 'task';
-    });
+type CheckInActivity = CheckIn & {
+  parent: { id: string; name: string; path: string };
+  activityType: 'check-in';
+};
+
+type TaskActivity = Task & {
+  parent: { id: string; name: string; path: string };
+  activityType: 'task';
+};
+
+type ActivityItem = CheckInActivity | TaskActivity;
 
 
 interface ActivityFeedProps {
@@ -94,20 +96,20 @@ export default function ActivityFeed({ userProfile }: ActivityFeedProps) {
 
             setIsLoading(true);
             let allItems: ActivityItem[] = [];
-            const parentDocs: { [key: string]: { name: string, path: string } } = {};
+            const parentDocs: { [key: string]: { id: string, name: string, path: string } } = {};
             
             try {
                 // 1. Fetch all parent documents to get their names
                 const groupTypes = Object.keys(collectionMap) as (keyof typeof collectionMap)[];
                 for (const type of groupTypes) {
                     const ids = [
-                        ...(userProfile[`created${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof UserProfile] as string[] || []),
-                        ...(userProfile[`joined${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof UserProfile] as string[] || [])
+                        ...((userProfile[`created${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof UserProfile] as string[]) || []),
+                        ...((userProfile[`joined${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof UserProfile] as string[]) || [])
                     ];
                     if (ids.length > 0) {
                         const docsSnap = await getDocs(query(collection(firestore, collectionMap[type]), where(documentId(), 'in', ids.slice(0,30))));
                         docsSnap.forEach(d => {
-                            parentDocs[d.id] = { name: d.data().name, path: `/${collectionMap[type]}/${d.id}` };
+                            parentDocs[d.id] = { id: d.id, name: d.data().name, path: `/${collectionMap[type]}/${d.id}` };
                         });
                     }
                 }
