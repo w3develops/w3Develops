@@ -17,7 +17,7 @@
 	<img alt="Contribute with w3Develops on Patreon" src="https://img.shields.io/badge/Patreon-contribute-yellow.svg">
   </a>  
   <a href="#backers">
-    <img alt="Backers on Open Collective" src="https://opencollective.com/w3develops-94/backers/badge.svg">
+    <img alt="Backers on Open Collective" src="https://opencollective.com/w3develops/backers/badge.svg">
   </a>
   <a href="#sponsors">
     <img alt="Sponsors on Open Collective" src="https://opencollective.com/w3develops-94/sponsors/badge.svg">
