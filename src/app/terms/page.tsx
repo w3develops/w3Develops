@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Scale, messageSquare, Zap, Gavel, FileCode, DoorOpen, Terminal } from 'lucide-react';
+import { Scale, Zap, Gavel, FileCode, DoorOpen, Terminal } from 'lucide-react';
 
 export default function TermsPage() {
     return (
