@@ -1,103 +1,123 @@
-
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Scale, messageSquare, Zap, Gavel, FileCode, DoorOpen, Terminal } from 'lucide-react';
 
 export default function TermsPage() {
     return (
-        <div className="max-w-3xl mx-auto p-4 md:p-10">
+        <div className="max-w-4xl mx-auto p-4 md:p-10 space-y-8">
+            <header className="text-center space-y-4">
+                <Scale className="h-12 w-12 mx-auto text-primary" />
+                <h1 className="text-4xl font-headline font-bold">Terms of Use</h1>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                    Our attempt at a "Cory Doctorow-approved" terms of service built on agency, transparency, and the rejection of enshittification.
+                </p>
+                <p className="text-sm text-muted-foreground italic font-mono uppercase tracking-widest">
+                    Last Hardened: February 7, 2026
+                </p>
+            </header>
+
+            <Card className="border-2 border-primary/20">
+                <CardHeader className="bg-primary/5">
+                    <CardTitle className="flex items-center gap-2">
+                        <Zap className="h-5 w-5 text-primary" />
+                        The Golden Rule
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-4">
+                    <div className="p-3 bg-muted rounded-md border-l-4 border-primary">
+                        <p className="text-sm font-bold uppercase">TL;DR:</p>
+                        <p className="text-sm">We provide the tools, you provide the talent. Don't be a jerk, and we won't treat you like a product.</p>
+                    </div>
+                    <p>
+                        These Terms are not a trap. They are a mutual agreement between peers. By using w3Develops, you agree to respect the community and the platform, and we agree to respect your rights as an individual.
+                    </p>
+                </CardContent>
+            </Card>
+
             <Card>
                 <CardHeader>
-                    <CardTitle>Terms of Use for w3Develops</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                        <Terminal className="h-5 w-5 text-primary" />
+                        1. The Right to Interoperate
+                    </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                    <p className="text-sm text-muted-foreground">Effective Date: November 28, 2025</p>
+                <CardContent className="space-y-4">
+                    <div className="p-3 bg-muted rounded-md border-l-4 border-primary">
+                        <p className="text-sm font-bold uppercase">TL;DR:</p>
+                        <p className="text-sm">You have the right to build tools that interact with your data. We won't sue you for being creative with how you use the site.</p>
+                    </div>
+                    <p>
+                        We reject the use of the DMCA or "Computer Fraud and Abuse" laws to prevent **Adversarial Interoperability**. You have the right to build alternative clients, bots, or scrapers to interact with your own data or public community data, provided they do not disrupt the service for others. We will never use legal threats to stop you from building tools that help you leave or improve your experience.
+                    </p>
+                </CardContent>
+            </Card>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">1. Acceptance of Terms</h3>
-                        <p>Welcome to w3Develops ("Company", "we", "us", or "our"). By accessing or using our website located at w3develops.org (the "Site"), joining our study groups, participating in our competitions, or utilizing our educational resources (collectively, the "Services"), you agree to be bound by these Terms of Use ("Terms"). If you disagree with any part of these Terms, you may not access the Service.</p>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <FileCode className="h-5 w-5 text-primary" />
+                        2. User Content & Ownership
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="p-3 bg-muted rounded-md border-l-4 border-primary">
+                        <p className="text-sm font-bold uppercase">TL;DR:</p>
+                        <p className="text-sm">Your code is yours. We only ask for the minimum permission needed to show it to the community.</p>
                     </div>
+                    <p>
+                        You retain full ownership of the code, text, and projects you submit. When you post content, you grant us a non-exclusive license to display it on the platform. We encourage you to use **Open Source** or **Creative Commons** licenses for your work, ensuring that the community can learn from and build upon your contributions.
+                    </p>
+                </CardContent>
+            </Card>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">2. Description of Service</h3>
-                        <p>w3Develops provides free coding education resources, community study groups, programming competitions, and career development support. We reserve the right to modify, suspend, or discontinue any part of the Service at any time without notice or liability.</p>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Gavel className="h-5 w-5 text-primary" />
+                        3. No Forced Arbitration
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="p-3 bg-muted rounded-md border-l-4 border-primary">
+                        <p className="text-sm font-bold uppercase">TL;DR:</p>
+                        <p className="text-sm">If we have a legal dispute, you keep your right to go to a real court. No secret private "arbitration" here.</p>
                     </div>
+                    <p>
+                        Many platforms use "Forced Arbitration" to strip users of their day in court. We find this practice abhorrent. If a legal dispute arises that cannot be settled through a simple conversation, you retain the right to resolve it in a court of law or participate in a class-action lawsuit.
+                    </p>
+                </CardContent>
+            </Card>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">3. User Accounts</h3>
-                        <p>To access certain features (like study groups or competitions), you may be required to register for an account. You agree to:</p>
-                        <ul className="list-disc pl-6 text-muted-foreground">
-                            <li>Provide accurate, current, and complete information.</li>
-                            <li>Maintain the security of your password and identification.</li>
-                            <li>Accept all responsibility for any and all activities that occur under your account.</li>
-                        </ul>
-                        <p>We reserve the right to disable any user account at any time in our sole discretion for any or no reason, including if, in our opinion, you have failed to comply with any provision of these Terms.</p>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <DoorOpen className="h-5 w-5 text-primary" />
+                        4. Freedom to Leave
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="p-3 bg-muted rounded-md border-l-4 border-primary">
+                        <p className="text-sm font-bold uppercase">TL;DR:</p>
+                        <p className="text-sm">We won't hold your data hostage. You can export your info and delete your account at any time.</p>
                     </div>
+                    <p>
+                        Platform lock-in is a form of digital serfdom. We commit to **Data Portability**. You can export your data and delete your account whenever you choose. We will not create "roach motels" where it's easy to check in but impossible to leave.
+                    </p>
+                </CardContent>
+            </Card>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">4. Community Code of Conduct</h3>
-                        <p>Our community is built on collaboration and respect. By using our Services, you agree NOT to:</p>
-                        <ul className="list-disc pl-6 text-muted-foreground">
-                            <li>Harass, threaten, or intimidate other users.</li>
-                            <li>Post content that is hateful, violent, discriminatory, or sexually explicit.</li>
-                            <li>Disrupt study groups with spam, solicitations, or irrelevant content.</li>
-                            <li>Cheat, manipulate, or exploit bugs during coding competitions.</li>
-                            <li>Infringe upon the intellectual property rights of others.</li>
-                        </ul>
-                        <p>Violation of these rules will result in immediate termination of your account and ban from our community.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">5. User-Generated Content</h3>
-                        <p>You retain ownership of the code, text, and projects you submit to the Service ("User Content"). However, by submitting User Content, you grant w3Develops a worldwide, non-exclusive, royalty-free, perpetual, and transferable license to use, reproduce, distribute, display, and perform your User Content in connection with the Service (e.g., showcasing competition winners, displaying portfolio projects).</p>
-                        <p>You represent and warrant that you own or have the necessary rights to post your User Content and that it does not violate the rights of any third party.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">6. Intellectual Property Rights</h3>
-                        <p>The Service and its original content (excluding User Content), features, and functionality are and will remain the exclusive property of w3Develops and its licensors. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of w3Develops.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">7. Competitions and Prizes</h3>
-                        <p>If you participate in our competitions:</p>
-                        <ul className="list-disc pl-6 text-muted-foreground">
-                            <li>You must abide by the specific rules posted for each contest.</li>
-                            <li>We reserve the right to disqualify any participant for cheating or unsportsmanlike conduct.</li>
-                            <li>Prizes are awarded at our sole discretion and are subject to availability. We are not responsible for lost or undelivered prizes.</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">8. Third-Party Links</h3>
-                        <p>Our Service may contain links to third-party web sites or services that are not owned or controlled by w3Develops. We have no control over, and assume no responsibility for, the content, privacy policies, or practices of any third-party web sites or services.</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">9. Disclaimer of Warranties</h3>
-                        <p>The Service is provided on an "AS IS" and "AS AVAILABLE" basis. w3Develops makes no representations or warranties of any kind, express or implied, regarding the operation of the Service or the information, content, or materials included therein. You expressly agree that your use of the Service is at your sole risk.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">10. Limitation of Liability</h3>
-                        <p>In no event shall w3Develops, its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">11. Governing Law</h3>
-                        <p>These Terms shall be governed and construed in accordance with the laws of the jurisdiction in which w3Develops is established, without regard to its conflict of law provisions.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">12. Changes to Terms</h3>
-                        <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. By continuing to access or use our Service after those revisions become effective, you agree to be bound by the revised terms.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">13. Contact Us</h3>
-                        <p>If you have any questions about these Terms, please contact us at:</p>
-                        <p>Email: <a href="mailto:contact@w3develops.org" className="text-primary underline">contact@w3develops.org</a></p>
-                    </div>
+            <Card className="bg-primary/5">
+                <CardHeader>
+                    <CardTitle>5. Community Integrity</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <p>
+                        The only way this works is if we treat each other with respect. Harassment, spam, and malicious disruption are the only things that will get you shown the door.
+                    </p>
+                    <p className="font-semibold text-center py-4">
+                        Questions or concerns? reach out: legal@w3develops.org
+                    </p>
                 </CardContent>
             </Card>
         </div>
