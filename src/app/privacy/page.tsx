@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -11,7 +10,7 @@ export default function PrivacyPage() {
                 <ShieldCheck className="h-12 w-12 mx-auto text-primary" />
                 <h1 className="text-4xl font-headline font-bold">Privacy Policy</h1>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
-                    A "Cory Doctorow-approved" policy built on agency, transparency, and the rejection of surveillance capitalism.
+                    Our attempt at a "Cory Doctorow-approved" policy built on agency, transparency, and the rejection of surveillance capitalism.
                 </p>
                 <p className="text-sm text-muted-foreground italic font-mono uppercase tracking-widest">
                     Last Hardened: February 7, 2026
