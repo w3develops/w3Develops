@@ -1,4 +1,3 @@
-
 import { MetadataRoute } from 'next';
 
 const URL = 'https://w3develops.org';
@@ -17,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/competitions/create',
     '/cookies',
     '/contribute',
+    '/contribute/guide',
     '/contribute/security',
     '/contribute/security/hall-of-fame',
     '/donate',

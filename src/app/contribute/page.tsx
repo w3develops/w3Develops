@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Heart, Pencil, Languages, Search, Braces, Shield } from 'lucide-react';
+import { ArrowRight, Heart, Pencil, Languages, Search, Braces, Shield, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 
 const contributionOptions = [
@@ -10,25 +10,25 @@ const contributionOptions = [
         icon: <Pencil className="h-6 w-6 text-yellow-400" />,
         title: 'Help Others',
         description: 'Help by answering coding questions on our community forum.',
-        link: '#'
+        link: '/chat'
     },
     {
         icon: <Search className="h-6 w-6 text-yellow-400" />,
         title: 'Feedback',
         description: 'Give feedback on coding projects built by campers.',
-        link: '#'
+        link: '/feedback'
     },
     {
         icon: <Languages className="h-6 w-6 text-yellow-400" />,
         title: 'Translations',
         description: "Help us translate w3Develops.org's resources.",
-        link: '#'
+        link: '/chat'
     },
     {
         icon: <Braces className="h-6 w-6 text-yellow-400" />,
         title: 'Write Code',
         description: 'Contribute with code to our open-source codebases.',
-        link: '#'
+        link: '/contribute/guide'
     }
 ]
 
@@ -37,7 +37,7 @@ export default function ContributeIntroPage() {
         <div className="container mx-auto px-4 py-16 md:py-24">
             <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="space-y-6">
-                    <h1 className="text-4xl md:text-5xl font-bold font-sans">
+                    <h1 className="text-4xl md:text-5xl font-bold font-sans text-white">
                         Contribute to w3Develops
                     </h1>
                     <p className="text-lg text-gray-300">
@@ -45,7 +45,7 @@ export default function ContributeIntroPage() {
                     </p>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                         <Button asChild size="lg" className="bg-[#f1be32] text-black hover:bg-yellow-400 font-bold gap-2">
-                           <Link href="#">Get Started <ArrowRight className="h-5 w-5" /></Link>
+                           <Link href="/contribute/guide">Get Started <ArrowRight className="h-5 w-5" /></Link>
                         </Button>
                         <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-gray-700 hover:text-white font-bold gap-2 bg-transparent">
                              <Link href="/donate">Donate to our charity <Heart className="h-5 w-5" /></Link>
@@ -66,7 +66,13 @@ export default function ContributeIntroPage() {
             </div>
 
             <div className="mt-24 md:mt-32">
-                <h2 className="text-3xl font-bold font-sans mb-8">Get Involved:</h2>
+                <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+                    <h2 className="text-3xl font-bold font-sans text-white">Get Involved:</h2>
+                    <Button asChild variant="link" className="text-primary hover:text-primary/80 gap-2 p-0 h-auto">
+                        <Link href="/contribute/guide"><BookOpen className="h-4 w-4" /> View Full Contributor Guide</Link>
+                    </Button>
+                </div>
+                
                 <div className="grid md:grid-cols-2 gap-8">
                    {contributionOptions.map((option) => (
                        <div key={option.title} className="bg-[#2a2a40] p-6 rounded-md border border-gray-700">
