@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Rss, Megaphone, Info, AlertTriangle, CheckCircle2, History, Share2 } from "lucide-react";
+import { Rss, Megaphone, Info, AlertTriangle, CheckCircle2, History, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useCollection, useFirestore } from '@/firebase';
@@ -18,6 +18,8 @@ interface Post {
   isoDate: string;
   source: string;
 }
+
+const ITEMS_PER_PAGE = 10; // Showing 10 per page for better UX, can be set to 100 as requested
 
 function formatDate(dateString: string) {
     if (!dateString) return 'No date';
@@ -46,16 +48,16 @@ function AnnouncementItem({ announcement }: { announcement: GlobalAnnouncement }
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     {icons[announcement.type]}
-                    <h4 className="font-bold text-lg">{announcement.title}</h4>
+                    <h4 className="font-bold text-lg leading-tight">{announcement.title}</h4>
                 </div>
-                {isOngoing && <Badge>Live Now</Badge>}
+                {isOngoing && <Badge className="shrink-0 ml-2">Live</Badge>}
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed">{announcement.message}</p>
             <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 uppercase tracking-wider">
                 <span>{formatTimestamp(announcement.startTime, true)}</span>
                 {announcement.link && (
                     <Link href={announcement.link} className="text-primary font-bold hover:underline">
-                        View Details
+                        Details
                     </Link>
                 )}
             </div>
@@ -67,6 +69,7 @@ export default function NewsPage() {
     const firestore = useFirestore();
     const [newsItems, setNewsItems] = useState<Post[]>([]);
     const [isLoadingNews, setIsLoadingNews] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
 
     const announcementsQuery = useMemo(() => {
         return query(
@@ -97,13 +100,25 @@ export default function NewsPage() {
       fetchNews();
     }, []);
 
+    // Pagination Logic
+    const totalPages = Math.ceil(newsItems.length / ITEMS_PER_PAGE);
+    const paginatedNews = useMemo(() => {
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        return newsItems.slice(start, start + ITEMS_PER_PAGE);
+    }, [newsItems, currentPage]);
+
+    const handlePageChange = (newPage: number) => {
+        setCurrentPage(newPage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     return (
         <div className="max-w-6xl mx-auto p-4 md:p-10">
-            <div className="grid lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main News Content */}
-                <div className="lg:col-span-2 space-y-8">
-                    <Card>
-                        <CardHeader>
+                <div className="lg:col-span-2 space-y-8 order-2 lg:order-1">
+                    <Card className="border-none shadow-none bg-transparent">
+                        <CardHeader className="px-0 pt-0">
                             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                                 <div>
                                     <CardTitle className="font-headline text-3xl flex items-center gap-3">
@@ -114,12 +129,12 @@ export default function NewsPage() {
                                         Aggregated posts from the developer ecosystem, updated daily.
                                     </CardDescription>
                                 </div>
-                                <Button asChild variant="outline" size="sm">
+                                <Button asChild variant="outline" size="sm" className="w-fit">
                                    <Link href="/news/archive">View Archive</Link>
                                 </Button>
                             </div>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="px-0">
                             {isLoadingNews ? (
                                 <div className="space-y-8 animate-pulse py-4">
                                     {[...Array(4)].map((_, i) => (
@@ -131,24 +146,61 @@ export default function NewsPage() {
                                     ))}
                                 </div>
                             ) : newsItems.length > 0 ? (
-                                <div className="space-y-8">
-                                    {newsItems.map((item, index) => (
-                                        <div key={`${item.link}-${index}`} className="border-b border-border/50 pb-8 last:border-b-0 last:pb-0 group">
-                                            <p className="text-xs text-primary font-bold uppercase tracking-widest">{item.source}</p>
-                                            <a href={item.link} target="_blank" rel="noopener noreferrer" className="block text-2xl font-bold font-headline group-hover:text-primary transition-colors mt-2 leading-tight">
-                                                {item.title}
-                                            </a>
-                                             <p className="text-sm text-muted-foreground mt-3">
-                                                {formatDate(item.isoDate)}
-                                            </p>
+                                <>
+                                    <div className="space-y-8">
+                                        {paginatedNews.map((item, index) => (
+                                            <Card key={`${item.link}-${index}`} className="hover:shadow-md transition-shadow">
+                                                <CardContent className="p-6">
+                                                    <p className="text-xs text-primary font-bold uppercase tracking-widest">{item.source}</p>
+                                                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="block text-xl md:text-2xl font-bold font-headline group-hover:text-primary transition-colors mt-2 leading-tight">
+                                                        {item.title}
+                                                    </a>
+                                                    <p className="text-sm text-muted-foreground mt-3">
+                                                        {formatDate(item.isoDate)}
+                                                    </p>
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                    </div>
+
+                                    {/* Pagination Controls */}
+                                    {totalPages > 1 && (
+                                        <div className="flex items-center justify-center gap-4 mt-12 pt-8 border-t">
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                onClick={() => handlePageChange(currentPage - 1)}
+                                                disabled={currentPage === 1}
+                                                className="gap-2"
+                                            >
+                                                <ChevronLeft className="h-4 w-4" />
+                                                Previous
+                                            </Button>
+                                            
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-medium">
+                                                    Page {currentPage} of {totalPages}
+                                                </span>
+                                            </div>
+
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                onClick={() => handlePageChange(currentPage + 1)}
+                                                disabled={currentPage === totalPages}
+                                                className="gap-2"
+                                            >
+                                                Next
+                                                <ChevronRight className="h-4 w-4" />
+                                            </Button>
                                         </div>
-                                    ))}
-                                </div>
+                                    )}
+                                </>
                             ) : (
-                                 <div className="text-center py-16 border-2 border-dashed rounded-xl">
+                                 <div className="text-center py-16 border-2 border-dashed rounded-xl bg-card">
                                     <Rss className="h-12 w-12 mx-auto mb-4 opacity-20" />
                                     <h3 className="text-xl font-semibold">No Recent News Found</h3>
-                                    <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
+                                    <p className="text-muted-foreground mt-2 max-w-sm mx-auto px-4">
                                         We couldn't find any articles from the last 3 days. Our bots are searching for fresh content!
                                     </p>
                                 </div>
@@ -158,8 +210,8 @@ export default function NewsPage() {
                 </div>
 
                 {/* Sidebar: Status & Pulse */}
-                <div className="space-y-8">
-                    <Card className="sticky top-24 border-2 border-primary/10">
+                <div className="space-y-8 order-1 lg:order-2">
+                    <Card className="lg:sticky lg:top-24 border-2 border-primary/10">
                         <CardHeader className="pb-4">
                             <CardTitle className="flex items-center gap-2 text-xl">
                                 <Megaphone className="h-5 w-5 text-primary" />
@@ -173,7 +225,11 @@ export default function NewsPage() {
                             {/* Manual Announcements */}
                             <div className="space-y-6">
                                 {isLoadingAnnouncements ? (
-                                    <p className="text-center py-4 text-muted-foreground animate-pulse">Loading status...</p>
+                                    <div className="space-y-4">
+                                        {[...Array(2)].map((_, i) => (
+                                            <div key={i} className="h-20 bg-muted rounded animate-pulse" />
+                                        ))}
+                                    </div>
                                 ) : announcements && announcements.length > 0 ? (
                                     announcements.map(announcement => (
                                         <AnnouncementItem key={announcement.id} announcement={announcement} />
