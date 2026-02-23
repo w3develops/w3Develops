@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Rss, Megaphone, Info, AlertTriangle, CheckCircle2, History, Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Rss, Megaphone, Info, AlertTriangle, CheckCircle2, History, Share2, ChevronLeft, ChevronRight, MessageSquare, Twitter, Globe, Github } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, orderBy, limit, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { GlobalAnnouncement } from '@/lib/types';
 import { formatTimestamp } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,7 @@ interface Post {
   source: string;
 }
 
-const ITEMS_PER_PAGE = 10; // Showing 10 per page for better UX, can be set to 100 as requested
+const ITEMS_PER_PAGE = 50;
 
 function formatDate(dateString: string) {
     if (!dateString) return 'No date';
@@ -113,162 +113,173 @@ export default function NewsPage() {
     };
 
     return (
-        <div className="max-w-6xl mx-auto p-4 md:p-10">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Main News Content */}
-                <div className="lg:col-span-2 space-y-8 order-2 lg:order-1">
-                    <Card className="border-none shadow-none bg-transparent">
-                        <CardHeader className="px-0 pt-0">
-                            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                                <div>
-                                    <CardTitle className="font-headline text-3xl flex items-center gap-3">
-                                        <Rss className="h-8 w-8 text-primary" />
-                                        Latest News
-                                    </CardTitle>
-                                    <CardDescription>
-                                        Aggregated posts from the developer ecosystem, updated daily.
-                                    </CardDescription>
-                                </div>
-                                <Button asChild variant="outline" size="sm" className="w-fit">
-                                   <Link href="/news/archive">View Archive</Link>
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="px-0">
-                            {isLoadingNews ? (
-                                <div className="space-y-8 animate-pulse py-4">
-                                    {[...Array(4)].map((_, i) => (
-                                        <div key={i} className="space-y-3">
-                                            <div className="h-4 bg-muted rounded w-24"></div>
-                                            <div className="h-6 bg-muted rounded w-3/4"></div>
-                                            <div className="h-4 bg-muted rounded w-32"></div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : newsItems.length > 0 ? (
-                                <>
-                                    <div className="space-y-8">
-                                        {paginatedNews.map((item, index) => (
-                                            <Card key={`${item.link}-${index}`} className="hover:shadow-md transition-shadow">
-                                                <CardContent className="p-6">
-                                                    <p className="text-xs text-primary font-bold uppercase tracking-widest">{item.source}</p>
-                                                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="block text-xl md:text-2xl font-bold font-headline group-hover:text-primary transition-colors mt-2 leading-tight">
-                                                        {item.title}
-                                                    </a>
-                                                    <p className="text-sm text-muted-foreground mt-3">
-                                                        {formatDate(item.isoDate)}
-                                                    </p>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                    </div>
-
-                                    {/* Pagination Controls */}
-                                    {totalPages > 1 && (
-                                        <div className="flex items-center justify-center gap-4 mt-12 pt-8 border-t">
-                                            <Button 
-                                                variant="outline" 
-                                                size="sm" 
-                                                onClick={() => handlePageChange(currentPage - 1)}
-                                                disabled={currentPage === 1}
-                                                className="gap-2"
-                                            >
-                                                <ChevronLeft className="h-4 w-4" />
-                                                Previous
-                                            </Button>
-                                            
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-sm font-medium">
-                                                    Page {currentPage} of {totalPages}
-                                                </span>
-                                            </div>
-
-                                            <Button 
-                                                variant="outline" 
-                                                size="sm" 
-                                                onClick={() => handlePageChange(currentPage + 1)}
-                                                disabled={currentPage === totalPages}
-                                                className="gap-2"
-                                            >
-                                                Next
-                                                <ChevronRight className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                 <div className="text-center py-16 border-2 border-dashed rounded-xl bg-card">
-                                    <Rss className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                                    <h3 className="text-xl font-semibold">No Recent News Found</h3>
-                                    <p className="text-muted-foreground mt-2 max-w-sm mx-auto px-4">
-                                        We couldn't find any articles from the last 3 days. Our bots are searching for fresh content!
-                                    </p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Sidebar: Status & Pulse */}
-                <div className="space-y-8 order-1 lg:order-2">
-                    <Card className="lg:sticky lg:top-24 border-2 border-primary/10">
-                        <CardHeader className="pb-4">
-                            <CardTitle className="flex items-center gap-2 text-xl">
-                                <Megaphone className="h-5 w-5 text-primary" />
-                                Community Status
-                            </CardTitle>
-                            <CardDescription>
-                                Official updates from w3Develops HQ.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-8">
-                            {/* Manual Announcements */}
-                            <div className="space-y-6">
-                                {isLoadingAnnouncements ? (
-                                    <div className="space-y-4">
-                                        {[...Array(2)].map((_, i) => (
-                                            <div key={i} className="h-20 bg-muted rounded animate-pulse" />
-                                        ))}
-                                    </div>
-                                ) : announcements && announcements.length > 0 ? (
-                                    announcements.map(announcement => (
-                                        <AnnouncementItem key={announcement.id} announcement={announcement} />
-                                    ))
-                                ) : (
-                                    <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
-                                        <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                        <p className="text-sm">No recent announcements.</p>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Automated Pulse */}
-                            <div className="pt-6 border-t border-border/50">
-                                <GlobalPulse />
-                            </div>
-                            
-                            {/* Social Connect */}
-                            <div className="pt-6 border-t border-border/50">
-                                <h4 className="text-sm font-semibold mb-4 flex items-center gap-2">
-                                    <Share2 className="h-4 w-4 text-primary" />
-                                    Stay Connected
-                                </h4>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <Button asChild variant="secondary" size="sm" className="w-full font-bold">
-                                        <Link href="/chat">Discord</Link>
-                                    </Button>
-                                    <Button asChild variant="secondary" size="sm" className="w-full font-bold">
-                                        <Link href="https://x.com/w3develops" target="_blank">Twitter / X</Link>
-                                    </Button>
-                                    <Button asChild variant="outline" size="sm" className="col-span-2 font-bold">
-                                        <Link href="/newsletter">Community Newsletter</Link>
-                                    </Button>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+        <div className="max-w-5xl mx-auto p-4 md:p-10 space-y-12">
+            {/* Header */}
+            <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                    <div>
+                        <h1 className="text-4xl font-headline font-bold flex items-center gap-3">
+                            <Rss className="h-10 w-10 text-primary" />
+                            Latest News
+                        </h1>
+                        <p className="text-muted-foreground mt-2 text-lg">
+                            Stay up to date with the developer ecosystem.
+                        </p>
+                    </div>
+                    <Button asChild variant="outline">
+                        <Link href="/news/archive">View Archive</Link>
+                    </Button>
                 </div>
             </div>
+
+            {/* News Feed */}
+            <section className="space-y-8">
+                {isLoadingNews ? (
+                    <div className="space-y-8 animate-pulse">
+                        {[...Array(5)].map((_, i) => (
+                            <div key={i} className="h-32 bg-muted rounded-xl"></div>
+                        ))}
+                    </div>
+                ) : newsItems.length > 0 ? (
+                    <>
+                        <div className="space-y-6">
+                            {paginatedNews.map((item, index) => (
+                                <Card key={`${item.link}-${index}`} className="hover:shadow-md transition-all border-l-4 border-l-primary">
+                                    <CardContent className="p-6">
+                                        <div className="flex justify-between items-start gap-4">
+                                            <div className="space-y-2">
+                                                <p className="text-xs text-primary font-bold uppercase tracking-widest">{item.source}</p>
+                                                <a href={item.link} target="_blank" rel="noopener noreferrer" className="block text-xl md:text-2xl font-bold font-headline hover:text-primary transition-colors leading-tight">
+                                                    {item.title}
+                                                </a>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {formatDate(item.isoDate)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-center gap-4 pt-8 border-t">
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="gap-2"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                    Previous
+                                </Button>
+                                <span className="text-sm font-medium">
+                                    Page {currentPage} of {totalPages}
+                                </span>
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                    className="gap-2"
+                                >
+                                    Next
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    <div className="text-center py-16 border-2 border-dashed rounded-xl">
+                        <Rss className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                        <h3 className="text-xl font-semibold">No Recent News Found</h3>
+                        <p className="text-muted-foreground mt-2">Check back soon for fresh content!</p>
+                    </div>
+                )}
+            </section>
+
+            {/* Bottom Status & Community Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-12 border-t">
+                {/* Community Status */}
+                <Card className="border-2 border-primary/10">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Megaphone className="h-5 w-5 text-primary" />
+                            Community Status
+                        </CardTitle>
+                        <CardDescription>Official announcements from w3Develops.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {isLoadingAnnouncements ? (
+                            <div className="space-y-4">
+                                {[...Array(2)].map((_, i) => <div key={i} className="h-20 bg-muted rounded animate-pulse" />)}
+                            </div>
+                        ) : announcements && announcements.length > 0 ? (
+                            announcements.map(announcement => (
+                                <AnnouncementItem key={announcement.id} announcement={announcement} />
+                            ))
+                        ) : (
+                            <p className="text-sm text-center text-muted-foreground py-4">No recent announcements.</p>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Community Pulse */}
+                <Card className="border-2 border-primary/10">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <History className="h-5 w-5 text-primary" />
+                            Global Pulse
+                        </CardTitle>
+                        <CardDescription>Live activity from the w3Develops website.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <GlobalPulse />
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Social Media Section */}
+            <section className="space-y-6">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold font-headline">Community Social Activity</h2>
+                    <p className="text-muted-foreground">Join the conversation on our official social channels.</p>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {[
+                        { name: 'Discord', icon: <MessageSquare className="h-5 w-5" />, color: 'bg-[#5865F2]', link: '/chat' },
+                        { name: 'Twitter / X', icon: <Twitter className="h-5 w-5" />, color: 'bg-black', link: 'https://x.com/w3develops' },
+                        { name: 'GitHub', icon: <Github className="h-5 w-5" />, color: 'bg-[#24292e]', link: 'https://github.com/w3develops' },
+                        { name: 'Mastodon', icon: <Globe className="h-5 w-5" />, color: 'bg-[#2b90d9]', link: 'https://mastodon.social/@w3develops' },
+                        { name: 'Bluesky', icon: <Globe className="h-5 w-5" />, color: 'bg-[#0085ff]', link: 'https://bsky.app/profile/w3develops.bsky.social' },
+                    ].map((platform) => (
+                        <a 
+                            key={platform.name} 
+                            href={platform.link} 
+                            target={platform.link.startsWith('http') ? "_blank" : undefined}
+                            rel="noopener noreferrer"
+                            className="group"
+                        >
+                            <Card className="overflow-hidden hover:scale-105 transition-transform">
+                                <div className={`h-1 ${platform.color}`}></div>
+                                <CardContent className="p-4 flex flex-col items-center gap-2">
+                                    {platform.icon}
+                                    <span className="text-sm font-bold group-hover:text-primary transition-colors">{platform.name}</span>
+                                </CardContent>
+                            </Card>
+                        </a>
+                    ))}
+                </div>
+                <Card className="bg-secondary/30">
+                    <CardContent className="p-6 text-center">
+                        <p className="text-sm italic text-muted-foreground">
+                            "The best way to stay informed is to join our live community spaces. See you there!"
+                        </p>
+                    </CardContent>
+                </Card>
+            </section>
         </div>
     );
 }
