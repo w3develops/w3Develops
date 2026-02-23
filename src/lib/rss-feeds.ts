@@ -3,6 +3,8 @@ export const rssFeeds = [
     // Official w3Develops Feeds
     'https://mastodon.social/@w3develops.rss',
     'https://www.youtube.com/feeds/videos.xml?channel_id=UC-lHJKasjXW6LpTHLxec8ww',
+    'https://medium.com/feed/w3develops',
+    'https://www.reddit.com/r/w3Develops/.rss',
     
     // Tech & Community Feeds
     'https://www.theblock.co/rss.xml?feed=news.xml',
