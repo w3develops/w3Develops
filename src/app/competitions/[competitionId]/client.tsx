@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Calendar, Clock, Trophy, User, PlusCircle, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
-import { formatTimestamp } from '@/lib/utils';
+import { formatTimestamp, convertUTCToLocal } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -89,7 +89,10 @@ export default function CompetitionDashboardPage({ params }: { params: { competi
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
   const competitionDocRef = useMemo(() => doc(firestore, 'competitions', competitionId) as DocumentReference<Competition>, [competitionId, firestore]);
+  const userDocRef = useMemo(() => user ? doc(firestore, 'users', user.uid) as DocumentReference<UserProfile> : null, [user, firestore]);
+
   const { data: competition, isLoading, error } = useDoc<Competition>(competitionDocRef);
+  const { data: currentUserProfile } = useDoc<UserProfile>(userDocRef);
 
   const entriesCollectionRef = useMemo(() => collection(firestore, 'competitions', competitionId, 'entries'), [competitionId, firestore]);
   const entriesQuery = useMemo(() => query(entriesCollectionRef, orderBy('submittedAt', 'desc')), [entriesCollectionRef]);
@@ -132,9 +135,17 @@ export default function CompetitionDashboardPage({ params }: { params: { competi
             <CardDescription className="pt-2">{competition.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-           <div className="grid md:grid-cols-2 gap-x-6 gap-y-4">
+           <div className="grid md:grid-cols-2 gap-x-6 gap-y-4 text-sm md:text-base">
                 <div className="flex items-start gap-3"><Calendar className="w-5 h-5 mt-1 flex-shrink-0" /><p><span className="font-semibold">Starts:</span> {formatTimestamp(competition.startDate, true)}</p></div>
                 <div className="flex items-start gap-3"><Clock className="w-5 h-5 mt-1 flex-shrink-0" /><p><span className="font-semibold">Ends:</span> {formatTimestamp(competition.endDate, true)}</p></div>
+                {competition.startTimeUTC && (
+                    <div className="flex items-start gap-3 text-primary">
+                        <Clock className="w-5 h-5 mt-1 flex-shrink-0" />
+                        <div>
+                            <p><span className="font-semibold">Local Launch:</span> {currentUserProfile ? convertUTCToLocal(competition.startTimeUTC, currentUserProfile.utcOffset) : `${competition.startTimeUTC} UTC`}</p>
+                        </div>
+                    </div>
+                )}
                 <div className="flex items-start gap-3"><Trophy className="w-5 h-5 mt-1 flex-shrink-0" /><p><span className="font-semibold">Prize:</span> {competition.prize}</p></div>
                 {creator && <div className="flex items-start gap-3"><User className="w-5 h-5 mt-1 flex-shrink-0" /><p><span className="font-semibold">Hosted by:</span> <Link href={`/users/${creator.id}`} className="font-semibold hover:underline">{creator.username}</Link></p></div>}
            </div>

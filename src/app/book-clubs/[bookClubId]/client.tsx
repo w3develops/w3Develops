@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useDoc, useFirestore, useUser } from '@/firebase';
@@ -8,9 +7,9 @@ import { BookClub, UserProfile, UserStatus } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Users, CalendarDays, ArrowLeft, MoreVertical } from 'lucide-react';
+import { Users, CalendarDays, ArrowLeft, MoreVertical, Clock } from 'lucide-react';
 import Link from 'next/link';
-import { formatTimestamp } from '@/lib/utils';
+import { formatTimestamp, convertUTCToLocal } from '@/lib/utils';
 import { ONE_WEEK_IN_MS } from '@/lib/constants';
 import { useToast } from '@/components/ui/use-toast';
 import TaskList from '@/components/TaskList';
@@ -23,6 +22,7 @@ import MemberList from '@/components/MemberList';
 
 export default function BookClubDashboardPage({ params }: { params: { bookClubId: string } }) {
   const { bookClubId } = params;
+  const { user } = useUser();
   const firestore = useFirestore();
 
   const clubDocRef = useMemo(() => {
@@ -30,7 +30,13 @@ export default function BookClubDashboardPage({ params }: { params: { bookClubId
     return doc(firestore, 'bookClubs', bookClubId) as DocumentReference<BookClub>;
   }, [bookClubId, firestore]);
 
+  const userDocRef = useMemo(() => {
+    if (!user) return null;
+    return doc(firestore, 'users', user.uid) as DocumentReference<UserProfile>;
+  }, [user, firestore]);
+
   const { data: club, isLoading: isClubLoading, error: clubError } = useDoc<BookClub>(clubDocRef);
+  const { data: currentUserProfile } = useDoc<UserProfile>(userDocRef);
 
 
   if (isClubLoading) {
@@ -77,6 +83,17 @@ export default function BookClubDashboardPage({ params }: { params: { bookClubId
                     {club.commitmentDays && club.commitmentDays.length > 0 ? ` on ${club.commitmentDays.join(', ')}` : ''}
                 </Badge>
             )}
+            {club.startTimeUTC && (
+                <div className="flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full text-sm font-semibold border border-primary/20">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <span>
+                        {currentUserProfile 
+                            ? convertUTCToLocal(club.startTimeUTC, currentUserProfile.utcOffset)
+                            : `${club.startTimeUTC} UTC`
+                        }
+                    </span>
+                </div>
+             )}
            </div>
            <div className="flex items-center text-sm text-muted-foreground">
                 <CalendarDays className="w-4 h-4 mr-2" />

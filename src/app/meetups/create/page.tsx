@@ -1,23 +1,24 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useDoc } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { collection, serverTimestamp, doc, writeBatch, arrayUnion, Timestamp } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, writeBatch, arrayUnion, Timestamp, DocumentReference } from 'firebase/firestore';
 import { topics, timezones } from '@/lib/constants';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose, DrawerFooter, DrawerDescription } from '@/components/ui/drawer';
 import { ChevronDown } from 'lucide-react';
 import NameSearchInput from '@/components/NameSearchInput';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { UserProfile } from '@/lib/types';
+import { normalizeToUTC } from '@/lib/utils';
 
 export default function CreateMeetupPage() {
   const { user, isUserLoading } = useUser();
@@ -25,6 +26,9 @@ export default function CreateMeetupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const userDocRef = useMemo(() => user ? doc(firestore, 'users', user.uid) as DocumentReference<UserProfile> : null, [user, firestore]);
+  const { data: profile } = useDoc<UserProfile>(userDocRef);
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -46,7 +50,7 @@ export default function CreateMeetupPage() {
 
   const handleCreateMeetup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !firestore) {
+    if (!user || !firestore || !profile) {
         toast({ variant: "destructive", title: "Not Authenticated" });
         return;
     }
@@ -72,6 +76,7 @@ export default function CreateMeetupPage() {
     try {
       const dateTimeString = `${date}T${time}`;
       const dateTime = new Date(dateTimeString);
+      const startTimeUTC = normalizeToUTC(time, profile.utcOffset);
 
       const batch = writeBatch(firestore);
       const newMeetupRef = doc(collection(firestore, 'meetups'));
@@ -84,6 +89,7 @@ export default function CreateMeetupPage() {
         creatorId: user.uid,
         attendeeIds: [user.uid],
         dateTime: Timestamp.fromDate(dateTime),
+        startTimeUTC: startTimeUTC,
         timezone,
         locationType,
         locationAddress: (locationType === 'In-Person' || locationType === 'Hybrid') ? locationAddress : '',
@@ -159,7 +165,7 @@ export default function CreateMeetupPage() {
             )}
              <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2"><Label htmlFor="date">Date</Label><Input id="date" type="date" value={date} onChange={e => setDate(e.target.value)} required /></div>
-                <div className="grid gap-2"><Label htmlFor="time">Time</Label><Input id="time" type="time" value={time} onChange={e => setTime(e.target.value)} required /></div>
+                <div className="grid gap-2"><Label htmlFor="time">Time (Your Local Time)</Label><Input id="time" type="time" value={time} onChange={e => setTime(e.target.value)} required /></div>
             </div>
              <div className="grid gap-2">
                 <Label htmlFor="timezone">Time Zone</Label>

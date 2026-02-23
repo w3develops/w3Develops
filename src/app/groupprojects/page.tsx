@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -8,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { GroupProject } from '@/lib/types';
-import { Github, Users, Search, CalendarDays, PlusCircle } from 'lucide-react';
+import { Github, Users, Search, CalendarDays, PlusCircle, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { formatTimestamp } from '@/lib/utils';
@@ -163,6 +162,7 @@ export default function GroupProjectsPage() {
                         <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden">{groupProject.description}</p>
                          <div className="flex flex-col text-sm text-muted-foreground gap-2">
                           <div className="flex items-center"><Users className="w-4 h-4 mr-2" /> {groupProject.memberIds.length} / 25 Members</div>
+                          {groupProject.startTimeUTC && <div className="flex items-center gap-2"><Clock className="h-4 w-4" /> {groupProject.startTimeUTC} UTC</div>}
                           <Badge variant="outline" className="w-fit">{groupProject.commitment}</Badge>
                           <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(groupProject.createdAt)}</div>
                         </div>
@@ -208,6 +208,7 @@ export default function GroupProjectsPage() {
                           <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden">{groupProject.description}</p>
                           <div className="flex flex-col text-sm text-muted-foreground gap-2">
                                   <div className="flex items-center"><Users className="w-4 h-4 mr-2" /> {groupProject.memberIds.length} / 25 Members</div>
+                                  {groupProject.startTimeUTC && <div className="flex items-center gap-2"><Clock className="h-4 w-4" /> {groupProject.startTimeUTC} UTC</div>}
                                   <Badge variant="outline" className="w-fit">{groupProject.commitment}</Badge>
                                   <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(groupProject.createdAt)}</div>
                           </div>

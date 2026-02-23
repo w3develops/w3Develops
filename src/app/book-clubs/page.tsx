@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -9,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { BookClub } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
-import { Users, Search, CalendarDays, PlusCircle } from 'lucide-react';
+import { Users, Search, CalendarDays, PlusCircle, Clock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { formatTimestamp } from '@/lib/utils';
 import { ONE_WEEK_IN_MS } from '@/lib/constants';
@@ -159,6 +158,7 @@ export default function BookClubsPage() {
                       <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden">{club.description}</p>
                       <div className="flex flex-col text-sm text-muted-foreground gap-2">
                           <div className="flex items-center"><Users className="w-4 h-4 mr-2" /> {club.memberIds.length} / 25 Members</div>
+                          {club.startTimeUTC && <div className="flex items-center gap-2"><Clock className="h-4 w-4" /> {club.startTimeUTC} UTC</div>}
                           {club.commitmentHours && <Badge variant="outline" className="w-fit">{club.commitmentHours}hr/day</Badge>}
                           <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(club.createdAt)}</div>
                       </div>
@@ -194,6 +194,7 @@ export default function BookClubsPage() {
                     <p className="text-sm text-muted-foreground h-10 overflow-hidden flex-grow">{club.description}</p>
                     <div className="flex flex-col text-sm text-muted-foreground gap-2">
                       <div className="flex items-center"><Users className="w-4 h-4 mr-2" /> {club.memberIds.length} / 25 Members</div>
+                      {club.startTimeUTC && <div className="flex items-center gap-2"><Clock className="h-4 w-4" /> {club.startTimeUTC} UTC</div>}
                       {club.commitmentHours && <Badge variant="outline" className="w-fit">{club.commitmentHours}hr/day</Badge>}
                       <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(club.createdAt)}</div>
                     </div>

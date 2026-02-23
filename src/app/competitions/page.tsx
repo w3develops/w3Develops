@@ -40,13 +40,15 @@ function CompetitionCard({ competition }: { competition: Competition }) {
                         <Trophy className="h-4 w-4 text-primary" />
                         <span>Prize: {competition.prize || 'Bragging rights'}</span>
                     </div>
+                    {competition.startTimeUTC && (
+                        <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            <span>Starts: {competition.startTimeUTC} UTC</span>
+                        </div>
+                    )}
                     <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
-                        <span>Starts: {formatTimestamp(competition.startDate)}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        <span>Ends: {formatTimestamp(competition.endDate)}</span>
+                        <span>Date: {formatTimestamp(competition.startDate)}</span>
                     </div>
                 </div>
                 <Button asChild className="mt-4 w-full">
@@ -109,7 +111,7 @@ export default function CompetitionsPage() {
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div>
                 <h1 className="text-3xl font-headline">Competitions</h1>
-                <p className="text-muted-foreground">Test your skills in our community coding challenges.</p>
+                <p className="text-muted-foreground">Test your skills in our community coding challenges. Times shown in UTC.</p>
               </div>
               {user && (
                 <Button asChild>

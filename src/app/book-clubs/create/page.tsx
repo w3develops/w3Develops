@@ -1,23 +1,24 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useDoc } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { collection, serverTimestamp, query, where, getDocs, doc, writeBatch, arrayUnion, Timestamp } from 'firebase/firestore';
+import { collection, serverTimestamp, query, where, getDocs, doc, writeBatch, arrayUnion, Timestamp, DocumentReference } from 'firebase/firestore';
 import { topics, ONE_WEEK_IN_MS } from '@/lib/constants';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose, DrawerFooter, DrawerDescription } from '@/components/ui/drawer';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Clock } from 'lucide-react';
 import NameSearchInput from '@/components/NameSearchInput';
 import { Checkbox } from '@/components/ui/checkbox';
+import { UserProfile } from '@/lib/types';
+import { normalizeToUTC } from '@/lib/utils';
 
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -28,6 +29,9 @@ export default function CreateBookClubPage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const userDocRef = useMemo(() => user ? doc(firestore, 'users', user.uid) as DocumentReference<UserProfile> : null, [user, firestore]);
+  const { data: profile } = useDoc<UserProfile>(userDocRef);
+
   const [name, setName] = useState('');
   const [topic, setTopic] = useState('');
   const [customTopic, setCustomTopic] = useState('');
@@ -35,6 +39,7 @@ export default function CreateBookClubPage() {
   const [commitmentHourOption, setCommitmentHourOption] = useState('2');
   const [customCommitmentHours, setCustomCommitmentHours] = useState('');
   const [commitmentDays, setCommitmentDays] = useState<string[]>([]);
+  const [localStartTime, setLocalTime] = useState('18:00');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
@@ -45,22 +50,23 @@ export default function CreateBookClubPage() {
 
   const handleCreateClub = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !firestore) {
-        toast({ variant: "destructive", title: "Not Authenticated", description: "You must be logged in to create a club." });
-        router.push('/login');
+    if (!user || !firestore || !profile) {
+        toast({ variant: "destructive", title: "Not Authenticated" });
         return;
     }
     const finalTopic = topic === 'Other' ? customTopic : topic;
     const finalCommitmentHours = commitmentHourOption === 'custom' ? customCommitmentHours : commitmentHourOption;
 
-    if (!name || !finalTopic || !finalCommitmentHours || commitmentDays.length === 0) {
-      toast({ variant: "destructive", title: "Missing Fields", description: "Please fill out all required fields, including commitment hours and days." });
+    if (!name || !finalTopic || !finalCommitmentHours || commitmentDays.length === 0 || !localStartTime) {
+      toast({ variant: "destructive", title: "Missing Fields", description: "Please fill out all required fields." });
       return;
     }
     
     setIsSubmitting(true);
     
     try {
+        const startTimeUTC = normalizeToUTC(localStartTime, profile.utcOffset);
+
         const batch = writeBatch(firestore);
         const newClubRef = doc(collection(firestore, 'bookClubs'));
 
@@ -70,6 +76,7 @@ export default function CreateBookClubPage() {
             topic: finalTopic,
             commitmentHours: finalCommitmentHours,
             commitmentDays: commitmentDays,
+            startTimeUTC: startTimeUTC,
             description: description || `A new book club for ${finalTopic}`,
             creatorId: user.uid,
             memberIds: [user.uid],
@@ -176,6 +183,12 @@ export default function CreateBookClubPage() {
             )}
 
             <div className="grid gap-2">
+                <Label htmlFor="startTime" className="flex items-center gap-2"><Clock className="h-4 w-4" /> Preferred Meeting Time (In your local time)</Label>
+                <Input id="startTime" type="time" value={localStartTime} onChange={e => setLocalTime(e.target.value)} required />
+                <p className="text-[10px] text-muted-foreground">Times are stored in UTC to help global members find suitable slots.</p>
+            </div>
+
+            <div className="grid gap-2">
                 <Label>Time Commitment (Hours per day)</Label>
                 <RadioGroup value={commitmentHourOption} onValueChange={setCommitmentHourOption}>
                     <div className="flex items-center space-x-2"><RadioGroupItem value="1" id="h1" /><Label htmlFor="h1">1 hour</Label></div>
@@ -213,5 +226,3 @@ export default function CreateBookClubPage() {
     </div>
   );
 }
-
-    

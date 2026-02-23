@@ -1,23 +1,24 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useDoc } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { collection, serverTimestamp, query, where, getDocs, doc, writeBatch, arrayUnion, Timestamp } from 'firebase/firestore';
+import { collection, serverTimestamp, query, where, getDocs, doc, writeBatch, arrayUnion, Timestamp, DocumentReference } from 'firebase/firestore';
 import { topics, ONE_WEEK_IN_MS } from '@/lib/constants';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose, DrawerFooter, DrawerDescription } from '@/components/ui/drawer';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Clock } from 'lucide-react';
 import NameSearchInput from '@/components/NameSearchInput';
 import { Checkbox } from '@/components/ui/checkbox';
+import { UserProfile } from '@/lib/types';
+import { normalizeToUTC } from '@/lib/utils';
 
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -28,6 +29,9 @@ export default function CreateGroupProjectPage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const userDocRef = useMemo(() => user ? doc(firestore, 'users', user.uid) as DocumentReference<UserProfile> : null, [user, firestore]);
+  const { data: profile } = useDoc<UserProfile>(userDocRef);
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
@@ -36,6 +40,7 @@ export default function CreateGroupProjectPage() {
   const [commitmentOption, setCommitmentOption] = useState('4');
   const [customCommitment, setCustomCommitment] = useState('');
   const [commitmentDays, setCommitmentDays] = useState<string[]>([]);
+  const [localStartTime, setLocalTime] = useState('18:00');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
 
@@ -55,16 +60,15 @@ export default function CreateGroupProjectPage() {
 
   const handleCreateGroupProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !firestore) {
-        toast({ variant: "destructive", title: "Not Authenticated", description: "You must be logged in to create a group project." });
-        router.push('/login');
+    if (!user || !firestore || !profile) {
+        toast({ variant: "destructive", title: "Not Authenticated" });
         return;
     }
     
     const finalTopic = topic === 'Other' ? customTopic : topic;
     const finalCommitment = commitmentOption === 'custom' ? `${customCommitment}hr/day` : `${commitmentOption}hr/day`;
 
-    if (!name || !finalTopic || !finalCommitment || commitmentDays.length === 0) {
+    if (!name || !finalTopic || !finalCommitment || commitmentDays.length === 0 || !localStartTime) {
       toast({ variant: "destructive", title: "Missing Fields", description: "Please fill out all required fields." });
       return;
     }
@@ -72,30 +76,7 @@ export default function CreateGroupProjectPage() {
     setIsSubmitting(true);
     
     try {
-      const oneWeekAgoTimestamp = Date.now() - ONE_WEEK_IN_MS;
-      const q = query(
-        collection(firestore, 'groupProjects'),
-        where('topic', '==', finalTopic),
-        where('commitment', '==', finalCommitment)
-      );
-
-      const existingSnapshot = await getDocs(q);
-      
-      const suitableGroupProjects = existingSnapshot.docs.filter(doc => {
-        const data = doc.data();
-        const createdAt = (data.createdAt as Timestamp).toMillis();
-        return data.memberIds.length < 25 && createdAt > oneWeekAgoTimestamp;
-      });
-
-      if (suitableGroupProjects.length > 0) {
-          toast({
-              variant: "destructive",
-              title: "Similar Project Exists",
-              description: "A similar group project that is not full was found. Please join that one instead from the explore page!",
-          });
-          router.push('/groupprojects');
-          return;
-      }
+      const startTimeUTC = normalizeToUTC(localStartTime, profile.utcOffset);
 
       const batch = writeBatch(firestore);
       const newGroupProjectRef = doc(collection(firestore, 'groupProjects'));
@@ -106,6 +87,7 @@ export default function CreateGroupProjectPage() {
         topic: finalTopic,
         commitment: finalCommitment,
         commitmentDays: commitmentDays,
+        startTimeUTC: startTimeUTC,
         githubUrl: githubUrl,
         description: description || `A new group project for ${finalTopic}`,
         creatorId: user.uid,
@@ -203,6 +185,12 @@ export default function CreateGroupProjectPage() {
                 <Input id="customTopic" placeholder="Enter your custom topic" value={customTopic} onChange={(e) => setCustomTopic(e.target.value)} required maxLength={50} />
               </div>
             )}
+
+            <div className="grid gap-2">
+                <Label htmlFor="startTime" className="flex items-center gap-2"><Clock className="h-4 w-4" /> Preferred Meeting Time (In your local time)</Label>
+                <Input id="startTime" type="time" value={localStartTime} onChange={e => setLocalTime(e.target.value)} required />
+                <p className="text-[10px] text-muted-foreground">This helps members coordinate across time zones. We will convert it automatically for others.</p>
+            </div>
             
             <div className="grid gap-2">
                 <Label>Time Commitment (Hours per day)</Label>
