@@ -456,5 +456,11 @@ service cloud.firestore {
                      && request.resource.data.description.size() > 0 && request.resource.data.description.size() <= 2000
                      && request.resource.data.status == 'open';
     }
+
+    match /careerApplications/{applicationId} {
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
   }
 }

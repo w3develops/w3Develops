@@ -1,3 +1,4 @@
+
 import { MetadataRoute } from 'next';
 
 const URL = 'https://w3develops.org';
@@ -11,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/book-clubs',
     '/book-clubs/create',
     '/bug-bounties',
+    '/careers',
     '/chat',
     '/competitions',
     '/competitions/create',

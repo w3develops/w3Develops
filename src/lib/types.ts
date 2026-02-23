@@ -297,3 +297,18 @@ export interface Job {
   postedByUsername: string;
   createdAt: Timestamp;
 }
+
+export interface CareerApplication {
+  id: string;
+  userId: string;
+  username: string;
+  roleId: string;
+  roleTitle: string;
+  fullName: string;
+  email: string;
+  resumeUrl: string;
+  portfolioUrl?: string;
+  coverLetter: string;
+  status: 'pending' | 'reviewed' | 'rejected' | 'accepted';
+  createdAt: Timestamp;
+}

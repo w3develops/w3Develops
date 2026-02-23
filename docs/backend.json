@@ -952,6 +952,27 @@
         "postedByUsername",
         "createdAt"
       ]
+    },
+    "CareerApplication": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CareerApplication",
+      "type": "object",
+      "description": "Represents a user's application for an internal position at w3Develops.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "roleId": { "type": "string" },
+        "roleTitle": { "type": "string" },
+        "fullName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "resumeUrl": { "type": "string", "format": "uri" },
+        "portfolioUrl": { "type": "string", "format": "uri" },
+        "coverLetter": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "reviewed", "rejected", "accepted"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "roleId", "roleTitle", "fullName", "email", "createdAt", "status"]
     }
   },
   "auth": {
@@ -1141,6 +1162,10 @@
     "/pairings/{pairingId}/notes/{noteId}": {
         "schema": { "$ref": "#/entities/SharedNote" },
         "description": "Stores shared notes for a specific pair programming session."
+    },
+    "/careerApplications/{applicationId}": {
+      "schema": { "$ref": "#/entities/CareerApplication" },
+      "description": "Stores user applications for internal positions at w3Develops."
     }
   }
 }

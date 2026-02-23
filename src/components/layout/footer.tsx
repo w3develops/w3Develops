@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Github, Youtube, Facebook, Instagram, Linkedin, Rss, Twitter, Podcast } from 'lucide-react';
@@ -102,6 +103,7 @@ export default function Footer() {
               <Link href="/feedback" className="text-primary hover:text-primary/80">Feedback</Link>
               <Link href="/support" className="text-primary hover:text-primary/80">Support</Link>
               <Link href="/contribute" className="text-primary hover:text-primary/80">Contribute</Link>
+              <Link href="/careers" className="text-primary hover:text-primary/80">Careers</Link>
               <Link href="/faq" className="text-primary hover:text-primary/80">FAQ</Link>
             </div>
           </div>
@@ -127,6 +129,7 @@ export default function Footer() {
               <Link href="/feedback" className="text-primary hover:text-primary/80">Feedback</Link>
               <Link href="/support" className="text-primary hover:text-primary/80">Support</Link>
               <Link href="/contribute" className="text-primary hover:text-primary/80">Contribute</Link>
+              <Link href="/careers" className="text-primary hover:text-primary/80">Careers</Link>
               <Link href="/faq" className="text-primary hover:text-primary/80">FAQ</Link>
             </div>
           </div>
