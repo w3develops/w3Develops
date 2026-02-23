@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +21,8 @@ import {
     Users,
     Github,
     Flag,
-    Lightbulb
+    Lightbulb,
+    Palette
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -166,12 +168,13 @@ export default function ContributorGuidePage() {
                                     </ul>
                                 </div>
                                 <div className="space-y-2">
-                                    <h4 className="font-bold text-white flex items-center gap-2"><GitPullRequest className="h-4 w-4" /> Commit Rules</h4>
-                                    <ul className="text-sm text-gray-400 space-y-1">
-                                        <li>Use descriptive commit messages.</li>
-                                        <li>Atomic commits (one fix/feature per commit).</li>
-                                        <li>Reference issues: "closes #123".</li>
-                                    </ul>
+                                    <h4 className="font-bold text-white flex items-center gap-2"><Palette className="h-4 w-4" /> Code Style</h4>
+                                    <p className="text-sm text-gray-400">
+                                        We follow strict whitespace and readability rules.
+                                    </p>
+                                    <Link href="https://github.com/w3develops/w3Develops/blob/main/docs/STYLE_GUIDE.md" target="_blank" className="text-primary text-xs underline">
+                                        Read the full Style Guide
+                                    </Link>
                                 </div>
                             </div>
                             <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
