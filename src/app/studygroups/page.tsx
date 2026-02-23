@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { StudyGroup } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
-import { Users, Search, CalendarDays, PlusCircle } from 'lucide-react';
+import { Users, Search, CalendarDays, PlusCircle, Clock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { formatTimestamp } from '@/lib/utils';
 import { ONE_WEEK_IN_MS } from '@/lib/constants';
@@ -103,7 +103,7 @@ export default function GroupsPage() {
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-3xl font-headline">Explore Study Groups</h1>
-            <p className="text-muted-foreground">Find a group to learn and grow with.</p>
+            <p className="text-muted-foreground">Find a group to learn and grow with. Times shown in UTC.</p>
           </div>
           {user && (
             <div className="flex gap-2 flex-shrink-0">
@@ -160,6 +160,7 @@ export default function GroupsPage() {
                       <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden">{group.description}</p>
                       <div className="flex flex-col text-sm text-muted-foreground gap-2">
                           <div className="flex items-center"><Users className="w-4 h-4 mr-2" /> {group.memberIds.length} / 25 Members</div>
+                          <div className="flex items-center gap-2"><Clock className="h-4 w-4" /> {group.startTimeUTC} UTC</div>
                           <Badge variant="outline" className="w-fit">{group.commitment}</Badge>
                           <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(group.createdAt)}</div>
                       </div>
@@ -182,7 +183,7 @@ export default function GroupsPage() {
           {!isLoading && filteredGroups.inProgressGroups && filteredGroups.inProgressGroups.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredGroups.inProgressGroups.map(group => (
-                <Card key={group.id} className="flex flex-col">
+                <Card key={group.id} className="flex flex-col opacity-90">
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <Link href={`/studygroups/${group.id}`} className="hover:underline">
@@ -193,11 +194,14 @@ export default function GroupsPage() {
                     <Badge variant="secondary" className="w-fit">{group.topic}</Badge>
                   </CardHeader>
                    <CardContent className="space-y-4 flex-grow flex flex-col justify-between">
-                    <p className="text-sm text-muted-foreground h-10 overflow-hidden flex-grow">{group.description}</p>
-                    <div className="flex flex-col text-sm text-muted-foreground gap-2">
-                      <div className="flex items-center"><Users className="w-4 h-4 mr-2" /> {group.memberIds.length} / 25 Members</div>
-                      <Badge variant="outline" className="w-fit">{group.commitment}</Badge>
-                      <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(group.createdAt)}</div>
+                    <div>
+                        <p className="text-sm text-muted-foreground h-10 overflow-hidden flex-grow">{group.description}</p>
+                        <div className="flex flex-col text-sm text-muted-foreground gap-2 mt-4">
+                        <div className="flex items-center"><Users className="w-4 h-4 mr-2" /> {group.memberIds.length} / 25 Members</div>
+                        <div className="flex items-center gap-2"><Clock className="h-4 w-4" /> {group.startTimeUTC} UTC</div>
+                        <Badge variant="outline" className="w-fit">{group.commitment}</Badge>
+                        <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(group.createdAt)}</div>
+                        </div>
                     </div>
                     <JoinGroupButton group={group} />
                   </CardContent>

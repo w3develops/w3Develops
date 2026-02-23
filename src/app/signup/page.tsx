@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Link from "next/link";
 import { useAuth, useUser, useFirestore } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
-import { doc, getDoc, writeBatch, serverTimestamp, FieldValue } from 'firebase/firestore';
+import { doc, getDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { UserProfile, UserStatus } from '@/lib/types';
 import { EmailAuthProvider, linkWithCredential, createUserWithEmailAndPassword, User as FirebaseUser, UserCredential } from 'firebase/auth';
@@ -74,6 +75,14 @@ function validateUsername(username: string): string | null {
   return null;
 }
 
+const UTC_CATEGORIES = [
+  { id: 'A', label: 'A: 0 to 4', offsets: [0, 1, 2, 3, 4] },
+  { id: 'B', label: 'B: 5 to 9', offsets: [5, 6, 7, 8, 9] },
+  { id: 'C', label: 'C: 10 to 12', offsets: [10, 11, 12] },
+  { id: 'D', label: 'D: -1 to -4', offsets: [-1, -2, -3, -4] },
+  { id: 'E', label: 'E: -5 to -9 (USA/Canada)', offsets: [-5, -6, -7, -8, -9] },
+  { id: 'F', label: 'F: -10 to -12', offsets: [-10, -11, -12] },
+];
 
 function SignupPageContent() {
   const auth = useAuth();
@@ -88,24 +97,24 @@ function SignupPageContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [utcCategory, setUtcCategory] = useState('');
+  const [specificOffset, setSpecificOffset] = useState('');
+  
   const [usernameError, setUsernameError] = useState<string | null>(null);
-
   const [isUsernameChecking, setIsUsernameChecking] = useState(false);
   const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | null>(null);
-  
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const debouncedUsername = useDebounce(username, 500);
 
   const checkUsername = useCallback(async (usernameToCheck: string) => {
     setIsUsernameChecking(true);
-    
     const validationError = validateUsername(usernameToCheck);
     setUsernameError(validationError);
 
     if (validationError) {
         setIsUsernameChecking(false);
-        setIsUsernameAvailable(null); // Don't check availability if format is invalid
+        setIsUsernameAvailable(null);
         return;
     }
 
@@ -115,29 +124,24 @@ function SignupPageContent() {
         const docSnap = await getDoc(usernameDocRef);
         setIsUsernameAvailable(!docSnap.exists());
     } catch (err) {
-        // Handle potential firestore errors, e.g. permissions
-        setUsernameError("Couldn't check username. Please try again.");
+        setUsernameError("Couldn't check username.");
         setIsUsernameAvailable(null);
     } finally {
         setIsUsernameChecking(false);
     }
   }, [firestore]);
 
-
   useEffect(() => {
     if (debouncedUsername) {
       checkUsername(debouncedUsername);
     } else {
-      // Clear all status when input is empty
       setUsernameError(null);
       setIsUsernameAvailable(null);
       setIsUsernameChecking(false);
     }
   }, [debouncedUsername, checkUsername]);
 
-
   useEffect(() => {
-    // Redirect if user is logged in
     if (!isUserLoading && user) {
       router.push(redirectUrl);
     }
@@ -145,99 +149,57 @@ function SignupPageContent() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !email || !password) {
-      toast({
-        variant: "destructive",
-        title: "Missing fields",
-        description: "Please fill out all fields.",
-      });
+    if (!username || !email || !password || !specificOffset) {
+      toast({ variant: "destructive", title: "Missing fields", description: "Please fill out all fields." });
       return;
     }
     
-    if (usernameError) {
-      toast({
-        variant: "destructive",
-        title: "Invalid Username",
-        description: usernameError,
-      });
-      return;
-    }
-
-    if (isUsernameAvailable === false) {
-        toast({
-            variant: "destructive",
-            title: "Username taken",
-            description: "Please choose another username.",
-        });
-        return;
-    }
-
-    const passwordError = validatePassword(password);
-    if (passwordError) {
-        toast({
-            variant: "destructive",
-            title: "Weak Password",
-            description: passwordError,
-            duration: 7000,
-        });
+    const offsetNum = Number(specificOffset);
+    if (isNaN(offsetNum)) {
+        toast({ variant: "destructive", title: "Invalid Offset", description: "Please select a valid UTC offset." });
         return;
     }
 
     setIsSubmitting(true);
-    let userCredential: UserCredential | null = null;
     
     try {
       const usernameLower = username.toLowerCase();
-      
-      // Final check on the public usernames collection before proceeding
       const usernameDocRef = doc(firestore, 'usernames', usernameLower);
       const usernameDoc = await getDoc(usernameDocRef);
       if (usernameDoc.exists()) {
         setIsUsernameAvailable(false);
-        throw new Error("This username is already in use. Please choose another one.");
+        throw new Error("This username is already in use.");
       }
 
       let finalUser: FirebaseUser;
       const currentUser = auth.currentUser;
 
       if (currentUser && currentUser.isAnonymous) {
-        // Scenario 1: Upgrade anonymous user
         const credential = EmailAuthProvider.credential(email, password);
-        userCredential = await linkWithCredential(currentUser, credential);
+        const userCredential = await linkWithCredential(currentUser, credential);
         finalUser = userCredential.user;
       } else {
-        // Scenario 2: Create a new user from scratch
-        userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         finalUser = userCredential.user;
       }
 
-      // Create user profile documents
       const batch = writeBatch(firestore);
-
       const userDocRef = doc(firestore, "users", finalUser.uid);
       const userData: Partial<UserProfile> = {
         id: finalUser.uid,
         email: finalUser.email!,
         username: username,
         username_lowercase: usernameLower,
+        utcOffset: offsetNum,
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp(),
-        // Initialize empty fields
         profilePictureUrl: '',
         bio: '',
-        socialLinks: {
-          github: '',
-          linkedin: '',
-          twitter: '',
-        },
+        socialLinks: { github: '', linkedin: '', twitter: '' },
         skills: [],
         followers: [],
         following: [],
         followInfoPrivate: false,
-        createdStudyGroupIds: [],
-        joinedStudyGroupIds: [],
-        createdGroupProjectIds: [],
-        joinedGroupProjectIds: [],
         notificationSettings: {
             dailyCodingNewsletter: false,
             dailyJsNewsletter: false,
@@ -248,44 +210,14 @@ function SignupPageContent() {
             surveys: false,
         },
         status: 'inactive' as UserStatus,
-        lastCheckInAt: null,
       };
       
       batch.set(userDocRef, userData, { merge: true }); 
-
-      const newUsernameDocRef = doc(firestore, "usernames", usernameLower);
-      batch.set(newUsernameDocRef, { uid: finalUser.uid });
-
+      batch.set(doc(firestore, "usernames", usernameLower), { uid: finalUser.uid });
       await batch.commit();
         
     } catch (error: any) {
-      let description = "An unknown error occurred during sign up.";
-      if (error.message.includes("username is already in use")) {
-        description = error.message;
-      } else {
-        switch (error.code) {
-          case 'auth/email-already-in-use':
-          case 'auth/credential-already-in-use':
-            description = "This email address is already in use by another account.";
-            break;
-          case 'auth/weak-password':
-            description = "The password is too weak. Please use at least 6 characters.";
-            break;
-          case 'auth/invalid-email':
-            description = "The email address is not valid.";
-            break;
-          case 'permission-denied':
-            description = "You do not have permission for this action. This can happen if security rules and client-side queries are misaligned.";
-            break;
-          default:
-            description = `An unexpected error occurred: ${error.message}`;
-        }
-      }
-      toast({
-        variant: "destructive",
-        title: "Sign up failed",
-        description: description,
-      });
+      toast({ variant: "destructive", title: "Sign up failed", description: error.message });
     } finally {
         setIsSubmitting(false);
     }
@@ -295,7 +227,7 @@ function SignupPageContent() {
     return <LoadingSkeleton />;
   }
 
-  const isSubmitDisabled = isSubmitting || !isUsernameAvailable || !!usernameError;
+  const selectedCategory = UTC_CATEGORIES.find(c => c.id === utcCategory);
 
   return (
     <div className="p-4 md:p-10">
@@ -303,9 +235,7 @@ function SignupPageContent() {
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle className="font-headline text-2xl">Create an Account</CardTitle>
-            <CardDescription>
-              Join our community of developers.
-            </CardDescription>
+            <CardDescription>Join our global community of developers.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSignUp} className="grid gap-4">
@@ -319,68 +249,61 @@ function SignupPageContent() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={isSubmitting}
-                  className={(!!usernameError || isUsernameAvailable === false) ? 'border-destructive' : ''}
                   autoComplete="username"
                 />
                 <div className="h-4">
                   {isUsernameChecking && <p className="text-xs text-muted-foreground">Checking...</p>}
-                  {!isUsernameChecking && usernameError && (
-                    <p className="text-xs text-destructive">{usernameError}</p>
-                  )}
-                  {!isUsernameChecking && !usernameError && isUsernameAvailable === false && (
-                    <p className="text-xs text-destructive">Username is already taken.</p>
-                  )}
-                  {!isUsernameChecking && !usernameError && isUsernameAvailable === true && username.length > 0 && (
-                    <p className="text-xs text-green-600">Username is available!</p>
-                  )}
+                  {!isUsernameChecking && usernameError && <p className="text-xs text-destructive">{usernameError}</p>}
+                  {!isUsernameChecking && !usernameError && isUsernameAvailable === false && <p className="text-xs text-destructive">Taken.</p>}
+                  {!isUsernameChecking && !usernameError && isUsernameAvailable === true && username.length > 0 && <p className="text-xs text-green-600">Available!</p>}
                 </div>
               </div>
+
+              <div className="grid gap-2">
+                <Label>What is the UTC timezone for where you will be coding from?</Label>
+                <p className="text-[10px] text-muted-foreground leading-tight">
+                  (If unsure, <Link href="/time-converter" className="text-primary underline">check our time converter here</Link>) Ex. Florida = -4
+                </p>
+                <Select value={utcCategory} onValueChange={setUtcCategory}>
+                    <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
+                    <SelectContent>
+                        {UTC_CATEGORIES.map(c => <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+                {selectedCategory && (
+                    <Select value={specificOffset} onValueChange={setSpecificOffset}>
+                        <SelectTrigger><SelectValue placeholder="Specific Offset" /></SelectTrigger>
+                        <SelectContent>
+                            {selectedCategory.offsets.map(o => (
+                                <SelectItem key={o} value={o.toString()}>UTC {o >= 0 ? '+' : ''}{o}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                )}
+              </div>
+
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isSubmitting}
-                  autoComplete="email"
-                />
+                <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={isSubmitting} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  required 
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isSubmitting}
-                  autoComplete="new-password"
-                />
-                <p className="text-xs text-muted-foreground">
-                    Must contain an uppercase letter, a lowercase letter, a number, a special character, and be at least 6 characters long.
-                </p>
+                <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} disabled={isSubmitting} />
               </div>
-              <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
+              <Button type="submit" className="w-full" disabled={isSubmitting || !isUsernameAvailable || !specificOffset}>
                 {isSubmitting ? 'Creating Account...' : 'Create Account'}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="text-center text-sm">
             Already have an account?&nbsp;
-            <Link href={`/login?redirect=${encodeURIComponent(redirectUrl)}`} className="underline">
-              Login
-            </Link>
+            <Link href={`/login?redirect=${encodeURIComponent(redirectUrl)}`} className="underline">Login</Link>
           </CardFooter>
         </Card>
       </div>
     </div>
   );
 }
-
 
 export default function SignupPage() {
   return (

@@ -33,6 +33,10 @@
           "type": "string",
           "description": "A short biography or description about the user."
         },
+        "utcOffset": {
+          "type": "number",
+          "description": "The user's numeric UTC offset (e.g., -5, 2)."
+        },
         "socialLinks": {
           "type": "object",
           "description": "An object containing social media links.",
@@ -309,7 +313,8 @@
         "email",
         "username",
         "username_lowercase",
-        "createdAt"
+        "createdAt",
+        "utcOffset"
       ]
     },
     "GlobalAnnouncement": {
@@ -367,6 +372,10 @@
           "type": "string",
           "description": "The primary topic associated with this study group."
         },
+        "startTimeUTC": {
+          "type": "string",
+          "description": "The 24-hour start time in UTC (e.g., '14:00')."
+        },
         "commitment": {
           "type": "string",
           "description": "The expected time commitment for the group."
@@ -392,7 +401,8 @@
         "topic",
         "commitment",
         "commitmentDays",
-        "createdAt"
+        "createdAt",
+        "startTimeUTC"
       ]
     },
     "BookClub": {
@@ -432,6 +442,10 @@
           "type": "string",
           "description": "The book genre or topic of the club."
         },
+        "startTimeUTC": {
+          "type": "string",
+          "description": "The 24-hour start time in UTC (e.g., '14:00')."
+        },
         "commitmentHours": {
           "type": "string",
           "description": "The expected time commitment in hours per day."
@@ -457,7 +471,8 @@
         "topic",
         "commitmentHours",
         "commitmentDays",
-        "createdAt"
+        "createdAt",
+        "startTimeUTC"
       ]
     },
     "GroupProject": {
@@ -498,6 +513,10 @@
           "type": "string",
           "description": "The primary topic associated with this project."
         },
+        "startTimeUTC": {
+          "type": "string",
+          "description": "The 24-hour start time in UTC (e.g., '14:00')."
+        },
         "commitment": {
           "type": "string",
           "description": "The expected time commitment for the project."
@@ -523,7 +542,8 @@
         "topic",
         "commitment",
         "commitmentDays",
-        "createdAt"
+        "createdAt",
+        "startTimeUTC"
       ]
     },
     "Meetup": {
@@ -541,6 +561,10 @@
         "attendeeIds": { "type": "array", "items": { "type": "string" } },
         "dateTime": { "type": "string", "format": "date-time" },
         "timezone": { "type": "string" },
+        "startTimeUTC": {
+          "type": "string",
+          "description": "The 24-hour start time in UTC (e.g., '14:00')."
+        },
         "locationType": { "type": "string", "enum": ["Online", "In-Person", "Hybrid"] },
         "locationAddress": { "type": "string" },
         "virtualLink": { "type": "string", "format": "uri" },
@@ -556,7 +580,8 @@
         "timezone",
         "locationType",
         "attendeeIds",
-        "createdAt"
+        "createdAt",
+        "startTimeUTC"
       ]
     },
     "MeetupUpdate": {
@@ -646,10 +671,14 @@
         "creatorId": { "type": "string" },
         "startDate": { "type": "string", "format": "date-time" },
         "endDate": { "type": "string", "format": "date-time" },
+        "startTimeUTC": {
+          "type": "string",
+          "description": "The 24-hour start time in UTC (e.g., '14:00')."
+        },
         "winnerId": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "name", "name_lowercase", "description", "creatorId", "startDate", "endDate", "createdAt"]
+      "required": ["id", "name", "name_lowercase", "description", "creatorId", "startDate", "endDate", "createdAt", "startTimeUTC"]
     },
     "CompetitionEntry": {
       "$schema": "http://json-schema.org/draft-07/schema#",

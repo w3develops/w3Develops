@@ -26,6 +26,7 @@ export interface UserProfile {
   username_lowercase?: string;
   profilePictureUrl?: string;
   bio?: string;
+  utcOffset: number; // Mandatory for time coordination
   socialLinks?: {
     github?: string;
     linkedin?: string;
@@ -92,6 +93,7 @@ export interface GroupProject {
   memberIds: string[];
   githubUrl?: string;
   topic: string;
+  startTimeUTC: string; // HH:mm format
   commitment: string;
   commitmentDays: string[];
   createdAt: Timestamp;
@@ -105,6 +107,7 @@ export interface StudyGroup {
   description: string;
   memberIds: string[];
   topic: string;
+  startTimeUTC: string; // HH:mm format
   commitment: string;
   commitmentDays: string[];
   createdAt: Timestamp;
@@ -118,6 +121,7 @@ export interface BookClub {
   description: string;
   memberIds: string[];
   topic: string;
+  startTimeUTC: string; // HH:mm format
   commitmentHours: string;
   commitmentDays: string[];
   createdAt: Timestamp;
@@ -133,12 +137,29 @@ export interface Meetup {
     attendeeIds: string[];
     dateTime: Timestamp;
     timezone: string;
+    startTimeUTC: string; // HH:mm format
     locationType: 'Online' | 'In-Person' | 'Hybrid';
     locationAddress?: string;
     virtualLink?: string;
     createdAt: Timestamp;
 }
 
+export interface Competition {
+  id: string;
+  name: string;
+  name_lowercase: string;
+  description: string;
+  rules: string;
+  prize: string;
+  creatorId: string;
+  startDate: Timestamp;
+  endDate: Timestamp;
+  startTimeUTC: string; // HH:mm format
+  winnerId?: string;
+  createdAt: Timestamp;
+}
+
+// ... remaining interfaces stay same
 export interface MeetupUpdate {
     id: string;
     meetupId: string;
@@ -257,32 +278,6 @@ export interface Pairing {
   id: string;
   memberIds: string[];
   createdAt: Timestamp;
-}
-
-export interface Competition {
-  id: string;
-  name: string;
-  name_lowercase: string;
-  description: string;
-  rules: string;
-  prize: string;
-  creatorId: string;
-  startDate: Timestamp;
-  endDate: Timestamp;
-  winnerId?: string;
-  createdAt: Timestamp;
-}
-
-export interface CompetitionEntry {
-  id: string;
-  competitionId: string;
-  userId: string;
-  username: string;
-  projectUrl: string;
-  soloProjectId?: string;
-  description?: string;
-  submittedAt: Timestamp;
-  voterIds: string[];
 }
 
 export interface Job {

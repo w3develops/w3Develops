@@ -69,3 +69,49 @@ export function getDerivedUserStatus(member: UserProfile): UserStatus {
     if (lastCheckInTime < oneWeekAgo) return 'paused';
     return member.status || 'active';
 }
+
+/**
+ * Converts a UTC start time (HH:mm) to the user's local time string based on their numeric offset.
+ * @param startTimeUTC The 24-hour time string in UTC (e.g., "14:00").
+ * @param userOffset The user's UTC offset in hours (e.g., -5, 2.5).
+ * @returns A formatted string like "9:00 AM (Your Local Time)".
+ */
+export function convertUTCToLocal(startTimeUTC: string, userOffset: number): string {
+  if (!startTimeUTC) return 'TBD';
+  
+  const [hours, minutes] = startTimeUTC.split(':').map(Number);
+  
+  // Create a Date object set to today at the UTC time
+  const date = new Date();
+  date.setUTCHours(hours, minutes, 0, 0);
+  
+  // Apply the user's offset (offset is in hours)
+  // userOffset is what the user provides (e.g., Florida = -4)
+  // We need to calculate the actual timestamp
+  const offsetInMs = userOffset * 60 * 60 * 1000;
+  const localTimestamp = date.getTime() + offsetInMs;
+  const localDate = new Date(localTimestamp);
+
+  return localDate.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }) + ' (Local)';
+}
+
+/**
+ * Normalizes a local time choice to UTC based on the creator's offset.
+ */
+export function normalizeToUTC(localTime: string, userOffset: number): string {
+  const [hours, minutes] = localTime.split(':').map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  
+  // Subtract offset to get back to UTC
+  const utcDate = new Date(date.getTime() - (userOffset * 60 * 60 * 1000));
+  
+  const h = utcDate.getUTCHours().toString().padStart(2, '0');
+  const m = utcDate.getUTCMinutes().toString().padStart(2, '0');
+  
+  return `${h}:${m}`;
+}

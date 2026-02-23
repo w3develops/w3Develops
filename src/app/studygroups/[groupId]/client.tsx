@@ -3,13 +3,13 @@
 
 import { useDoc, useFirestore, useUser } from '@/firebase';
 import { useMemo, useState, useEffect } from 'react';
-import { doc, DocumentReference, collection, query, where, Query, getDocs, documentId, updateDoc } from 'firebase/firestore';
-import { StudyGroup, UserProfile, UserStatus } from '@/lib/types';
+import { doc, DocumentReference } from 'firebase/firestore';
+import { StudyGroup, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, CalendarDays, ArrowLeft } from 'lucide-react';
+import { Users, CalendarDays, ArrowLeft, Clock } from 'lucide-react';
 import Link from 'next/link';
-import { formatTimestamp } from '@/lib/utils';
+import { formatTimestamp, convertUTCToLocal } from '@/lib/utils';
 import { ONE_WEEK_IN_MS } from '@/lib/constants';
 import TaskList from '@/components/TaskList';
 import CheckInSystem from '@/components/CheckInSystem';
@@ -18,6 +18,7 @@ import MemberList from '@/components/MemberList';
 
 export default function GroupDashboardPage({ params }: { params: { groupId: string } }) {
   const { groupId } = params;
+  const { user } = useUser();
   const firestore = useFirestore();
 
   const groupDocRef = useMemo(() => {
@@ -25,8 +26,13 @@ export default function GroupDashboardPage({ params }: { params: { groupId: stri
     return doc(firestore, 'studyGroups', groupId) as DocumentReference<StudyGroup>;
   }, [groupId, firestore]);
 
-  const { data: group, isLoading: isGroupLoading, error: groupError } = useDoc<StudyGroup>(groupDocRef);
+  const userDocRef = useMemo(() => {
+    if (!user) return null;
+    return doc(firestore, 'users', user.uid) as DocumentReference<UserProfile>;
+  }, [user, firestore]);
 
+  const { data: group, isLoading: isGroupLoading, error: groupError } = useDoc<StudyGroup>(groupDocRef);
+  const { data: currentUserProfile } = useDoc<UserProfile>(userDocRef);
 
   if (isGroupLoading) {
     return <div className="text-center py-10 p-4 md:p-10">Loading group dashboard...</div>;
@@ -67,6 +73,15 @@ export default function GroupDashboardPage({ params }: { params: { groupId: stri
            <div className="flex flex-wrap gap-4 items-center">
              <Badge variant="secondary" className="text-base">{group.topic}</Badge>
              <Badge variant="outline" className="text-base">{group.commitment}</Badge>
+             <div className="flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full text-sm font-semibold border border-primary/20">
+                <Clock className="h-4 w-4 text-primary" />
+                <span>
+                    {currentUserProfile 
+                        ? convertUTCToLocal(group.startTimeUTC, currentUserProfile.utcOffset)
+                        : `${group.startTimeUTC} UTC`
+                    }
+                </span>
+             </div>
              {group.commitmentDays && group.commitmentDays.length > 0 && (
                 <Badge variant="outline" className="text-base">
                     {group.commitmentDays.join(', ')}
