@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Rss, Megaphone, Info, AlertTriangle, CheckCircle2, History, ChevronLeft, ChevronRight, Twitter, Youtube, ExternalLink, Facebook, Linkedin, Instagram, LayoutGrid } from "lucide-react";
+import { Rss, Megaphone, Info, AlertTriangle, CheckCircle2, History, ChevronLeft, ChevronRight, Twitter, Youtube, ExternalLink, Facebook, Linkedin, Instagram } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useCollection, useFirestore } from '@/firebase';
@@ -138,7 +138,7 @@ export default function NewsPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // Social Feed Logic
+    // Social Feed Matching Logic
     const socialPosts = useMemo(() => {
         const platforms = [
             { 
@@ -146,35 +146,28 @@ export default function NewsPage() {
                 icon: <MastodonIcon className="h-4 w-4" />, 
                 color: 'bg-[#2b90d9]', 
                 profileUrl: 'https://mastodon.social/@w3develops',
-                patterns: ['mastodon.social'] 
+                patterns: ['mastodon.social', 'Mastodon'] 
             },
             { 
                 name: 'YouTube', 
                 icon: <Youtube className="h-4 w-4" />, 
                 color: 'bg-red-600', 
                 profileUrl: 'https://www.youtube.com/w3Develops?sub_confirmation=1',
-                patterns: ['YouTube', 'w3Develops'] 
+                patterns: ['youtube.com', 'YouTube', 'w3Develops'] 
             },
             { 
                 name: 'Reddit', 
                 icon: <RedditIcon className="h-4 w-4" />, 
                 color: 'bg-[#ff4500]', 
                 profileUrl: 'https://www.reddit.com/r/w3Develops/',
-                patterns: ['reddit.com/r/w3Develops'] 
+                patterns: ['reddit.com'] 
             },
             { 
                 name: 'Medium', 
                 icon: <MediumIcon className="h-4 w-4" />, 
                 color: 'bg-black', 
                 profileUrl: 'https://medium.com/w3develops',
-                patterns: ['medium.com/w3develops'] 
-            },
-            { 
-                name: 'X / Twitter', 
-                icon: <Twitter className="h-4 w-4" />, 
-                color: 'bg-black', 
-                profileUrl: 'https://x.com/w3develops',
-                patterns: ['x.com', 'twitter.com'] 
+                patterns: ['medium.com'] 
             },
             { 
                 name: 'Bluesky', 
@@ -182,6 +175,13 @@ export default function NewsPage() {
                 color: 'bg-[#0085ff]', 
                 profileUrl: 'https://bsky.app/profile/w3develops.bsky.social',
                 patterns: ['bsky.app'] 
+            },
+            { 
+                name: 'X / Twitter', 
+                icon: <Twitter className="h-4 w-4" />, 
+                color: 'bg-black', 
+                profileUrl: 'https://x.com/w3develops',
+                patterns: ['x.com', 'twitter.com'] 
             },
             { 
                 name: 'LinkedIn', 
@@ -207,8 +207,12 @@ export default function NewsPage() {
         ];
 
         return platforms.map(platform => {
+            // Find the most recent item that matches this platform's signature
             const latest = newsItems.find(item => 
-                platform.patterns.some(p => item.source.includes(p) || item.link.includes(p))
+                platform.patterns.some(p => 
+                    item.source.toLowerCase().includes(p.toLowerCase()) || 
+                    item.link.toLowerCase().includes(p.toLowerCase())
+                )
             );
             return { ...platform, post: latest };
         });

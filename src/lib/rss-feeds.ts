@@ -1,10 +1,11 @@
 
 export const rssFeeds = [
-    // Official w3Develops Feeds
+    // Official w3Develops Feeds - The "Easy" ones with public RSS
     'https://mastodon.social/@w3develops.rss',
     'https://www.youtube.com/feeds/videos.xml?channel_id=UC-lHJKasjXW6LpTHLxec8ww',
     'https://medium.com/feed/w3develops',
     'https://www.reddit.com/r/w3Develops/.rss',
+    'https://bsky.app/profile/w3develops.bsky.social/rss',
     
     // Tech & Community Feeds
     'https://www.theblock.co/rss.xml?feed=news.xml',

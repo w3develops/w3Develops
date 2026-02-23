@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 import Parser from 'rss-parser';
 import { rssFeeds } from '@/lib/rss-feeds';
 
-// We will use time-based revalidation on the frontend page, but this ensures the API route itself has a cache policy.
-export const revalidate = 43200; // Revalidate every 12 hours
+// Set cache to 24 hours as requested ("once a day")
+export const revalidate = 86400; 
 
 interface Post {
   title: string;
@@ -14,12 +14,13 @@ interface Post {
 }
 
 const parser = new Parser({
-    timeout: 10000, // 10 seconds timeout for each feed
+    timeout: 15000, // 15 seconds timeout for each feed
 });
 
 export async function GET() {
-  const threeDaysAgo = new Date();
-  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+  // Look back 7 days to ensure we catch the latest social posts even if the group hasn't posted today
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
   let allPosts: Post[] = [];
 
@@ -31,21 +32,21 @@ export async function GET() {
           .filter(item => {
             if (!item.isoDate) return false;
             const itemDate = new Date(item.isoDate);
-            return itemDate > threeDaysAgo && item.title && item.link;
+            return itemDate > sevenDaysAgo && item.title && item.link;
           })
           .map(item => ({
             title: item.title!,
             link: item.link!,
             isoDate: item.isoDate!,
+            // Extract a clean source name from the feed title or URL
             source: feed.title || new URL(feedUrl).hostname.replace(/^www\./, ''),
           }));
         return posts;
       }
     } catch (error) {
-      // Log the error but don't let a single failed feed stop the entire process
       console.warn(`Failed to fetch or parse RSS feed: ${feedUrl}`);
     }
-    return []; // Return empty array on failure
+    return [];
   });
 
   const results = await Promise.allSettled(feedPromises);
@@ -55,7 +56,6 @@ export async function GET() {
       allPosts = allPosts.concat(result.value);
     }
   });
-
 
   // Sort all collected posts by date, newest first
   allPosts.sort((a, b) => new Date(b.isoDate).getTime() - new Date(a.isoDate).getTime());
