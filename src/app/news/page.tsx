@@ -22,7 +22,7 @@ interface Post {
 
 const ITEMS_PER_PAGE = 50;
 
-// Corrected SVGs for platforms not in Lucide
+// Reusable SVGs for platforms not in Lucide
 const RedditIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
     <path d="M24 11.5c0-1.65-1.35-3-3-3-.4 0-.78.08-1.13.24-1.64-1.24-3.86-2.03-6.29-2.13l1.08-5.11 3.53.75c.05 1 .9 1.8 1.93 1.8 1.07 0 1.93-.88 1.93-1.97S21.2 0 20.13 0c-.83 0-1.54.54-1.81 1.29l-3.97-.85c-.11-.02-.22.01-.3.09-.09.07-.13.18-.11.29l-1.2 5.62c-2.48.01-4.77.8-6.47 2.06-.35-.16-.73-.24-1.13-.24-1.65 0-3 1.35-3 3 0 1.05.54 1.98 1.35 2.52-.03.16-.05.33-.05.5 0 3.59 4.03 6.5 9 6.5s9-2.91 9-6.5c0-.17-.02-.34-.05-.5.81-.54 1.35-1.47 1.35-2.52zM7.03 13.5c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9.15 4.66c-1.11 1.11-3.2 1.19-4.18 1.19s-3.07-.08-4.18-1.19c-.15-.15-.15-.4 0-.55.15-.15.4-.15.55 0 .82.81 2.51.94 3.63.94s2.81-.13 3.63-.94c.15-.15.4-.15.55 0 .15.15.15.41 0 .55zM14.97 15.5c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
@@ -37,7 +37,7 @@ const MastodonIcon = ({ className }: { className?: string }) => (
 
 const BlueskyIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C3.405 1.447 1.457 1.62 1.457 3.412c0 1.501.97 5.56 1.457 7.027.652 1.965 2.143 2.436 4.003 2.236-1.859.2-3.351-.271-4.003-2.236-.487-1.467-1.457-5.526-1.457-7.027 0-1.792 1.948-1.965 3.745-.592 2.752 1.942 5.711 5.881 6.798 7.995 1.087-2.114 4.046-6.053 6.798-7.995 1.797-1.373 3.745-1.2 3.745.592 0 1.501-.97 5.56-1.456 7.027-.652 1.965-2.144 2.436-4.003 2.236 1.859.2 3.351-.271 4.003-2.236.487-1.467 1.457-5.526 1.457-7.027 0-1.792-1.948-1.965-3.745-.592-2.752 1.942-5.711 5.881-6.798 7.995zM12 13.2c-1.087 2.114-4.046 6.053-6.798 7.995-1.797 1.373-3.745 1.2-3.745-.592 0-1.501.97-5.56 1.457-7.027.652-1.965 2.143-2.436 4.003-2.236-1.859-.2-3.351.271-4.003 2.236-.487 1.467-1.457-5.526-1.457 7.027 0 1.792 1.948 1.965 3.745.592 2.752-1.942 5.711-5.881 6.798-7.995 1.087 2.114 4.046 6.053 6.798 7.995 1.797 1.373 3.745 1.2 3.745-.592 0-1.501-.97-5.56-1.456-7.027-.652-1.965-2.144-2.436-4.003-2.236 1.859-.2 3.351.271 4.003 2.236.487 1.467 1.457-5.526 1.457 7.027 0 1.792-1.948 1.965-3.745.592-2.752-1.942-5.711-5.881-6.798-7.995z"/>
+    <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C3.405 1.447 1.457 1.62 1.457 3.412c0 1.501.97 5.56 1.457 7.027.652 1.965 2.143 2.436 4.003 2.236-1.859.2-3.351-.271-4.003-2.236-.487-1.467-1.457-5.526-1.457-7.027 0-1.792 1.948-1.965 3.745-.592 2.752 1.942 5.711 5.881 6.798 7.995 1.087-2.114 4.046-6.053 6.798-7.995 1.797-1.373 3.745-1.2 3.745.592 0 1.501-.97 5.56-1.456 7.027-.652 1.965-2.144 2.436-4.003 2.236 1.859.2 3.351-.271 4.003-2.236.487-1.467 1.457-5.526 1.457-7.027 0-1.792-1.948-1.965-3.745-.592-2.752 1.942-5.711 5.881-6.798 7.995zM12 13.2c-1.087 2.114-4.046 6.053-6.798 7.995-1.797 1.373-3.745 1.2-3.745-.592 0-1.501.97-5.56 1.457-7.027.652-1.965 2.143-2.436 4.003-2.236-1.859-.2-3.351.271-4.003 2.236-.487 1.467-1.457-5.526-1.457 7.027 0 1.792 1.948 1.965 3.745.592 2.752-1.942 5.711-5.881 6.798-7.995 1.087 2.114 4.046 6.053 6.798 7.995 1.797 1.373 3.745 1.2 3.745-.592 0-1.501-.97-5.56 1.457-7.027.652-1.965-2.144-2.436-4.003-2.236 1.859-.2 3.351.271 4.003 2.236.487 1.467 1.457-5.526 1.457 7.027 0 1.792-1.948 1.965-3.745.592-2.752-1.942-5.711-5.881-6.798-7.995z"/>
   </svg>
 );
 
@@ -132,7 +132,6 @@ export default function NewsPage() {
       fetchNews();
     }, []);
 
-    // Pagination Logic
     const totalPages = Math.ceil(newsItems.length / ITEMS_PER_PAGE);
     const paginatedNews = useMemo(() => {
         const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -144,7 +143,6 @@ export default function NewsPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // Social Feed Matching Logic
     const socialPosts = useMemo(() => {
         const platforms = [
             { 
@@ -213,7 +211,6 @@ export default function NewsPage() {
         ];
 
         return platforms.map(platform => {
-            // Find the most recent item that matches this platform's signature
             const latest = newsItems.find(item => 
                 platform.patterns.some(p => 
                     item.source.toLowerCase().includes(p.toLowerCase()) || 
@@ -226,7 +223,6 @@ export default function NewsPage() {
 
     return (
         <div className="max-w-5xl mx-auto p-4 md:p-10 space-y-12">
-            {/* Header */}
             <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <div>
@@ -244,7 +240,6 @@ export default function NewsPage() {
                 </div>
             </div>
 
-            {/* News Feed */}
             <section className="space-y-8">
                 {isLoadingNews ? (
                     <div className="space-y-8 animate-pulse">
@@ -274,7 +269,6 @@ export default function NewsPage() {
                             ))}
                         </div>
 
-                        {/* Pagination */}
                         {totalPages > 1 && (
                             <div className="flex items-center justify-center gap-4 pt-8 border-t">
                                 <Button 
@@ -312,9 +306,7 @@ export default function NewsPage() {
                 )}
             </section>
 
-            {/* Bottom Status & Community Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-12 border-t">
-                {/* Community Status */}
                 <Card className="border-2 border-primary/10 h-full">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -338,7 +330,6 @@ export default function NewsPage() {
                     </CardContent>
                 </Card>
 
-                {/* Community Pulse */}
                 <Card className="border-2 border-primary/10 h-full">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -353,7 +344,6 @@ export default function NewsPage() {
                 </Card>
             </div>
 
-            {/* Social Pulse Feed Section */}
             <section className="space-y-8 pt-12 border-t">
                 <div className="text-center">
                     <h2 className="text-3xl font-bold font-headline">Latest from our Socials</h2>

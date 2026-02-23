@@ -4,7 +4,7 @@
 import { Github, Youtube, Facebook, Instagram, Linkedin, Twitter, Podcast } from 'lucide-react';
 import Link from 'next/link';
 
-// Corrected SVGs for icons not available in Lucide, ensuring centering and brand accuracy
+// Corrected SVGs for icons ensuring centering and brand accuracy
 const DiscordIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
     <path d="M20.317 4.3698a19.7913 19.7913 0 0 0-4.8851-1.5152.0741.0741 0 0 0-.0785.0371c-.211.3753-.4464.8245-.6667 1.2835-2.083-0.2874-4.2238-0.2874-6.3067 0-.2203-.459-.4557-.9082-.6667-1.2835a.077.077 0 0 0-.0785-.0371 19.7363 19.7363 0 0 0-4.8851 1.5152.069.069 0 0 0-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 0 0 .0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 0 0 .0842-.0276c.4616-.5767.8851-1.1916 1.29-1.854a.0722.0722 0 0 0-.028-.0943c-.5843-.2956-1.1498-.6351-1.6853-1.0176a.0744.0744 0 0 1 .0015-.1186c.1348-.1044.2717-.2088.406-.3154a.0779.0779 0 0 1 .099-.0057c.9737.6159 2.0318 1.1512 3.1373 1.5729a.0759.0759 0 0 0 .0879-.0023c1.1055-.4217 2.1636-.957 3.1373-1.5729a.0779.0779 0 0 1 .099.0057c.1343.1066.2712.211.406.3154a.0744.0744 0 0 1 .0015.1186c-.5355.3825-1.101.722-1.6853 1.0176a.0722.0722 0 0 0-.028.0943c.4048.6624.8283 1.2773 1.29 1.854a.0777.0777 0 0 0 .0842.0276c1.9516-.6067 3.9401-1.5219 5.9929-3.0294a.0824.0824 0 0 0 .0312-.0561c.4182-4.4779-.4337-9.012-.9581-13.6602a.069.069 0 0 0-.0321-.0277zM8.02 15.3312c-.9416 0-1.7041-1.0125-1.7041-2.2625s.7625-2.2625 1.7041-2.2625c.9416 0 1.7041 1.0125 1.7041 2.2625s-.7625 2.2625-1.7041 2.2625zm7.9599 0c-.9416 0-1.7041-1.0125-1.7041-2.2625s.7625-2.2625 1.7041-2.2625c.9416 0 1.7041 1.0125 1.7041 2.2625s-.7625 2.2625-1.7041 2.2625z"/>
@@ -31,29 +31,29 @@ const MastodonIcon = ({ className }: { className?: string }) => (
 
 const BlueskyIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C3.405 1.447 1.457 1.62 1.457 3.412c0 1.501.97 5.56 1.457 7.027.652 1.965 2.143 2.436 4.003 2.236-1.859.2-3.351-.271-4.003-2.236-.487-1.467-1.457-5.526-1.457-7.027 0-1.792 1.948-1.965 3.745-.592 2.752 1.942 5.711 5.881 6.798 7.995 1.087-2.114 4.046-6.053 6.798-7.995 1.797-1.373 3.745-1.2 3.745.592 0 1.501-.97 5.56-1.456 7.027-.652 1.965-2.144 2.436-4.003 2.236 1.859.2 3.351-.271 4.003-2.236.487-1.467 1.457-5.526 1.457-7.027 0-1.792-1.948-1.965-3.745-.592-2.752 1.942-5.711 5.881-6.798 7.995zM12 13.2c-1.087 2.114-4.046 6.053-6.798 7.995-1.797 1.373-3.745 1.2-3.745-.592 0-1.501.97-5.56 1.457-7.027.652-1.965 2.143-2.436 4.003-2.236-1.859-.2-3.351.271-4.003 2.236-.487 1.467-1.457-5.526-1.457 7.027 0 1.792 1.948 1.965 3.745.592 2.752-1.942 5.711-5.881 6.798-7.995 1.087 2.114 4.046 6.053 6.798 7.995 1.797 1.373 3.745 1.2 3.745-.592 0-1.501-.97-5.56-1.456-7.027-.652-1.965-2.144-2.436-4.003-2.236 1.859-.2 3.351.271 4.003 2.236.487 1.467 1.457 5.526 1.457 7.027 0 1.792-1.948 1.965-3.745.592-2.752-1.942-5.711-5.881-6.798-7.995z"/>
+    <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C3.405 1.447 1.457 1.62 1.457 3.412c0 1.501.97 5.56 1.457 7.027.652 1.965 2.143 2.436 4.003 2.236-1.859.2-3.351-.271-4.003-2.236-.487-1.467-1.457-5.526-1.457-7.027 0-1.792 1.948-1.965 3.745-.592 2.752 1.942 5.711 5.881 6.798 7.995 1.087-2.114 4.046-6.053 6.798-7.995 1.797-1.373 3.745-1.2 3.745.592 0 1.501-.97 5.56-1.456 7.027-.652 1.965-2.144 2.436-4.003 2.236 1.859.2 3.351-.271 4.003-2.236.487-1.467 1.457-5.526 1.457-7.027 0-1.792-1.948-1.965-3.745-.592-2.752 1.942 5.711 5.881-6.798 7.995zM12 13.2c-1.087 2.114-4.046 6.053-6.798 7.995-1.797 1.373-3.745 1.2-3.745-.592 0-1.501.97-5.56 1.457-7.027.652-1.965 2.143-2.436 4.003-2.236-1.859-.2-3.351.271-4.003 2.236-.487 1.467-1.457-5.526-1.457 7.027 0 1.792 1.948 1.965 3.745.592 2.752-1.942 5.711-5.881 6.798-7.995 1.087 2.114 4.046 6.053 6.798 7.995 1.797 1.373 3.745 1.2 3.745-.592 0-1.501-.97-5.56 1.457-7.027.652-1.965-2.144-2.436-4.003-2.236 1.859-.2 3.351.271 4.003 2.236.487 1.467 1.457-5.526 1.457-7.027 0 1.792-1.948 1.965-3.745.592-2.752-1.942-5.711-5.881-6.798-7.995z"/>
   </svg>
 );
 
 export default function Footer() {
   const primarySocials = (
     <div className="flex justify-center gap-5">
-      <a href="https://github.com/w3develops/w3develops" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary flex items-center justify-center">
+      <a href="https://github.com/w3develops/w3develops" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary transition-colors">
         <Github className="h-6 w-6" />
       </a>
-      <a href="https://x.com/w3develops" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary flex items-center justify-center">
+      <a href="https://x.com/w3develops" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary transition-colors">
         <Twitter className="h-6 w-6" />
       </a>
-      <a href="https://www.youtube.com/w3Develops?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary flex items-center justify-center">
+      <a href="https://www.youtube.com/w3Develops?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary transition-colors">
         <Youtube className="h-6 w-6" />
       </a>
-      <a href="https://www.facebook.com/groups/w3develops/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary flex items-center justify-center">
+      <a href="https://www.facebook.com/groups/w3develops/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary transition-colors">
         <Facebook className="h-6 w-6" />
       </a>
-      <a href="https://discord.gg/ckQ52gA" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary flex items-center justify-center">
+      <a href="https://discord.gg/ckQ52gA" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary transition-colors">
         <DiscordIcon className="h-6 w-6" />
       </a>
-      <a href="https://mastodon.social/@w3develops" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary flex items-center justify-center">
+      <a href="https://mastodon.social/@w3develops" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary transition-colors">
         <MastodonIcon className="h-6 w-6" />
       </a>
     </div>
@@ -61,22 +61,22 @@ export default function Footer() {
 
   const secondarySocials = (
     <div className="flex justify-center gap-5">
-      <a href="https://bsky.app/profile/w3develops.bsky.social" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary flex items-center justify-center">
+      <a href="https://bsky.app/profile/w3develops.bsky.social" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary transition-colors">
         <BlueskyIcon className="h-6 w-6" />
       </a>
-      <a href="https://www.instagram.com/w3develops/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary flex items-center justify-center">
+      <a href="https://www.instagram.com/w3develops/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary transition-colors">
         <Instagram className="h-6 w-6" />
       </a>
-      <a href="https://medium.com/w3develops" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary flex items-center justify-center">
+      <a href="https://medium.com/w3develops" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary transition-colors">
         <MediumIcon className="h-6 w-6" />
       </a>
-      <a href="https://www.linkedin.com/company/w3develops" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary flex items-center justify-center">
+      <a href="https://www.linkedin.com/company/w3develops" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary transition-colors">
         <Linkedin className="h-6 w-6" />
       </a>
-      <a href="https://www.reddit.com/r/w3Develops/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary flex items-center justify-center">
+      <a href="https://www.reddit.com/r/w3Develops/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary transition-colors">
         <RedditIcon className="h-6 w-6" />
       </a>
-      <a href="https://www.youtube.com/watch?v=VLZhlngst2E&list=PLTwiqKOPckq-z5E-LUpMXpcv_GWXE2k4F" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary flex items-center justify-center">
+      <a href="https://www.youtube.com/watch?v=VLZhlngst2E&list=PLTwiqKOPckq-z5E-LUpMXpcv_GWXE2k4F" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary transition-colors">
         <Podcast className="h-6 w-6" />
       </a>
     </div>
@@ -85,9 +85,13 @@ export default function Footer() {
   return (
     <footer className="bg-[#212529] border-t border-border/5 py-10 mt-auto">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center gap-8">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           
-          <div className="flex flex-col items-center gap-4 text-center">
+          <div className="order-1 lg:order-1 w-full lg:w-auto">
+            {primarySocials}
+          </div>
+
+          <div className="order-2 lg:order-2 flex flex-col items-center gap-4 text-center">
             <p className="text-sm text-muted-foreground">Made with ❤️ for a better web</p>
             <div className="flex justify-center gap-x-6 gap-y-3 text-sm font-medium flex-wrap max-w-2xl">
               <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
@@ -104,8 +108,7 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-x-10 gap-y-6 w-full pt-4">
-            {primarySocials}
+          <div className="order-3 lg:order-3 w-full lg:w-auto">
             {secondarySocials}
           </div>
 
