@@ -6,31 +6,33 @@ import { UserProfile, CheckIn, Task } from '@/lib/types';
 import { collection, query, where, orderBy, limit, getDocs, doc, documentId, Timestamp } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { timeAgo } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import Link from 'next/link';
 import { MessageSquare, CheckSquare } from 'lucide-react';
 
+type ParentInfo = { id: string; name: string; path: string };
+
 type CheckInActivity = CheckIn & {
-  parent: { id: string; name: string; path: string };
+  parent: ParentInfo;
   activityType: 'check-in';
 };
 
 type TaskActivity = Task & {
-  parent: { id: string; name: string; path: string };
+  parent: ParentInfo;
   activityType: 'task';
 };
 
 type ActivityItem = CheckInActivity | TaskActivity;
-
 
 interface ActivityFeedProps {
     userProfile: UserProfile;
 }
 
 const ActivityItemCard = ({ item }: { item: ActivityItem }) => {
-    const [ago, setAgo] = useState(() => timeAgo(item.createdAt));
+    const [ago, setAgo] = useState('');
 
     useEffect(() => {
+        // Deferred until after client-side hydration to avoid mismatches
+        setAgo(timeAgo(item.createdAt));
         const interval = setInterval(() => {
             setAgo(timeAgo(item.createdAt));
         }, 60000); // Update every minute
@@ -58,7 +60,7 @@ const ActivityItemCard = ({ item }: { item: ActivityItem }) => {
                 <blockquote className="mt-1 border-l-2 pl-3 text-sm text-muted-foreground italic">
                     &quot;{content}&quot;
                 </blockquote>
-                 <p className="text-xs text-muted-foreground mt-1">{ago}</p>
+                 {ago && <p className="text-xs text-muted-foreground mt-1">{ago}</p>}
             </div>
         </div>
     )
@@ -96,16 +98,20 @@ export default function ActivityFeed({ userProfile }: ActivityFeedProps) {
 
             setIsLoading(true);
             let allItems: ActivityItem[] = [];
-            const parentDocs: { [key: string]: { id: string, name: string, path: string } } = {};
+            const parentDocs: { [key: string]: ParentInfo } = {};
             
             try {
                 // 1. Fetch all parent documents to get their names
                 const groupTypes = Object.keys(collectionMap) as (keyof typeof collectionMap)[];
                 for (const type of groupTypes) {
+                    const idsKey = `created${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof UserProfile;
+                    const joinedIdsKey = `joined${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof UserProfile;
+                    
                     const ids = [
-                        ...((userProfile[`created${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof UserProfile] as string[]) || []),
-                        ...((userProfile[`joined${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof UserProfile] as string[]) || [])
+                        ...((userProfile[idsKey] as string[]) || []),
+                        ...((userProfile[joinedIdsKey] as string[]) || [])
                     ];
+                    
                     if (ids.length > 0) {
                         const docsSnap = await getDocs(query(collection(firestore, collectionMap[type]), where(documentId(), 'in', ids.slice(0,30))));
                         docsSnap.forEach(d => {
@@ -117,45 +123,47 @@ export default function ActivityFeed({ userProfile }: ActivityFeedProps) {
                 // 2. Fetch recent check-ins and tasks for each group
                 const threeDaysAgo = Timestamp.fromMillis(Date.now() - 3 * 24 * 60 * 60 * 1000);
 
-                for (const type of groupTypes) {
-                    const ids = Object.keys(parentDocs).filter(id => parentDocs[id].path.startsWith(`/${collectionMap[type]}`));
-                    if (ids.length === 0) continue;
-
-                    for (const id of ids) {
-                         const subcollections = ['checkIns', 'tasks'];
-                         for (const sub of subcollections) {
-                            const q = query(
-                                collection(firestore, collectionMap[type], id, sub),
-                                where('createdAt', '>=', threeDaysAgo),
-                                orderBy('createdAt', 'desc'),
-                                limit(5)
-                            );
-                            const itemsSnap = await getDocs(q);
+                for (const parentId in parentDocs) {
+                    const parent = parentDocs[parentId];
+                    const collectionName = parent.path.split('/')[1];
+                    
+                    const subcollections = ['checkIns', 'tasks'] as const;
+                    for (const sub of subcollections) {
+                        const q = query(
+                            collection(firestore, collectionName, parentId, sub),
+                            where('createdAt', '>=', threeDaysAgo),
+                            orderBy('createdAt', 'desc'),
+                            limit(5)
+                        );
+                        const itemsSnap = await getDocs(q);
+                        
+                        itemsSnap.forEach(itemDoc => {
+                            const data = itemDoc.data();
                             if (sub === 'checkIns') {
-                                itemsSnap.forEach(itemDoc => {
-                                    allItems.push({
-                                        ...(itemDoc.data() as CheckIn),
-                                        id: itemDoc.id,
-                                        parent: parentDocs[id],
-                                        activityType: 'check-in',
-                                    });
-                                });
-                            } else { // tasks
-                                itemsSnap.forEach(itemDoc => {
-                                    allItems.push({
-                                        ...(itemDoc.data() as Task),
-                                        id: itemDoc.id,
-                                        parent: parentDocs[id],
-                                        activityType: 'task',
-                                    });
-                                });
+                                allItems.push({
+                                    ...(data as CheckIn),
+                                    id: itemDoc.id,
+                                    parent: parent,
+                                    activityType: 'check-in',
+                                } as CheckInActivity);
+                            } else {
+                                allItems.push({
+                                    ...(data as Task),
+                                    id: itemDoc.id,
+                                    parent: parent,
+                                    activityType: 'task',
+                                } as TaskActivity);
                             }
-                         }
+                        });
                     }
                 }
                 
                 // 3. Sort all items by date
-                allItems.sort((a, b) => (b.createdAt as Timestamp).toMillis() - (a.createdAt as Timestamp).toMillis());
+                allItems.sort((a, b) => {
+                    const aTime = (a.createdAt as Timestamp).toMillis();
+                    const bTime = (b.createdAt as Timestamp).toMillis();
+                    return bTime - aTime;
+                });
                 
                 setActivity(allItems);
 
