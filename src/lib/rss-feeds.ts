@@ -1,5 +1,10 @@
 
 export const rssFeeds = [
+    // Official w3Develops Feeds
+    'https://mastodon.social/@w3develops.rss',
+    'https://www.youtube.com/feeds/videos.xml?channel_id=UC-lHJKasjXW6LpTHLxec8ww',
+    
+    // Tech & Community Feeds
     'https://www.theblock.co/rss.xml?feed=news.xml',
     'https://www.coindesk.com/arc/outboundfeeds/rss',
     'https://www.wired.com/feed/category/business/latest/rss',

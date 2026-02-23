@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Rss, Megaphone, Info, AlertTriangle, CheckCircle2, History, Share2, ChevronLeft, ChevronRight, MessageSquare, Twitter, Globe, Github } from "lucide-react";
+import { Rss, Megaphone, Info, AlertTriangle, CheckCircle2, History, Share2, ChevronLeft, ChevronRight, MessageSquare, Twitter, Globe, Github, Youtube, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useCollection, useFirestore } from '@/firebase';
@@ -111,6 +112,23 @@ export default function NewsPage() {
         setCurrentPage(newPage);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
+
+    // Social Feed Logic
+    const socialPosts = useMemo(() => {
+        const platforms = [
+            { name: 'Mastodon', icon: <Globe className="h-4 w-4" />, color: 'bg-[#2b90d9]', patterns: ['mastodon.social'] },
+            { name: 'YouTube', icon: <Youtube className="h-4 w-4" />, color: 'bg-red-600', patterns: ['YouTube', 'w3Develops'] },
+            { name: 'X / Twitter', icon: <Twitter className="h-4 w-4" />, color: 'bg-black', patterns: ['x.com', 'twitter'] },
+            { name: 'GitHub', icon: <Github className="h-4 w-4" />, color: 'bg-[#24292e]', patterns: ['GitHub'] },
+        ];
+
+        return platforms.map(platform => {
+            const latest = newsItems.find(item => 
+                platform.patterns.some(p => item.source.includes(p) || item.link.includes(p))
+            );
+            return { ...platform, post: latest };
+        });
+    }, [newsItems]);
 
     return (
         <div className="max-w-5xl mx-auto p-4 md:p-10 space-y-12">
@@ -241,41 +259,66 @@ export default function NewsPage() {
                 </Card>
             </div>
 
-            {/* Social Media Section */}
-            <section className="space-y-6">
+            {/* Social Pulse Feed Section */}
+            <section className="space-y-8 pt-12 border-t">
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold font-headline">Community Social Activity</h2>
-                    <p className="text-muted-foreground">Join the conversation on our official social channels.</p>
+                    <h2 className="text-3xl font-bold font-headline">Latest from our Socials</h2>
+                    <p className="text-muted-foreground mt-2">Real-time updates directly from our community platforms.</p>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                    {[
-                        { name: 'Discord', icon: <MessageSquare className="h-5 w-5" />, color: 'bg-[#5865F2]', link: '/chat' },
-                        { name: 'Twitter / X', icon: <Twitter className="h-5 w-5" />, color: 'bg-black', link: 'https://x.com/w3develops' },
-                        { name: 'GitHub', icon: <Github className="h-5 w-5" />, color: 'bg-[#24292e]', link: 'https://github.com/w3develops' },
-                        { name: 'Mastodon', icon: <Globe className="h-5 w-5" />, color: 'bg-[#2b90d9]', link: 'https://mastodon.social/@w3develops' },
-                        { name: 'Bluesky', icon: <Globe className="h-5 w-5" />, color: 'bg-[#0085ff]', link: 'https://bsky.app/profile/w3develops.bsky.social' },
-                    ].map((platform) => (
-                        <a 
-                            key={platform.name} 
-                            href={platform.link} 
-                            target={platform.link.startsWith('http') ? "_blank" : undefined}
-                            rel="noopener noreferrer"
-                            className="group"
-                        >
-                            <Card className="overflow-hidden hover:scale-105 transition-transform">
-                                <div className={`h-1 ${platform.color}`}></div>
-                                <CardContent className="p-4 flex flex-col items-center gap-2">
-                                    {platform.icon}
-                                    <span className="text-sm font-bold group-hover:text-primary transition-colors">{platform.name}</span>
-                                </CardContent>
-                            </Card>
-                        </a>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {socialPosts.map((platform) => (
+                        <Card key={platform.name} className="flex flex-col h-full hover:shadow-lg transition-shadow border-t-4" style={{ borderTopColor: platform.post ? undefined : 'transparent' }}>
+                            <CardHeader className="pb-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`p-1.5 rounded-md ${platform.color} text-white`}>
+                                            {platform.icon}
+                                        </div>
+                                        <span className="font-bold text-sm">{platform.name}</span>
+                                    </div>
+                                    <Badge variant="outline" className="text-[10px] uppercase">Live</Badge>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="flex-1 flex flex-col justify-between pt-0">
+                                {platform.post ? (
+                                    <>
+                                        <div className="space-y-2">
+                                            <a 
+                                                href={platform.post.link} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="text-sm font-semibold hover:text-primary transition-colors line-clamp-3 leading-snug"
+                                            >
+                                                {platform.post.title}
+                                            </a>
+                                            <p className="text-[10px] text-muted-foreground uppercase tracking-tight">
+                                                {formatDate(platform.post.isoDate)}
+                                            </p>
+                                        </div>
+                                        <Button asChild variant="link" size="sm" className="px-0 mt-4 h-auto justify-start">
+                                            <a href={platform.post.link} target="_blank" rel="noopener noreferrer" className="gap-1">
+                                                View Post <ExternalLink className="h-3 w-3" />
+                                            </a>
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                                        <p className="text-xs text-muted-foreground italic">No recent posts found.</p>
+                                        <Button asChild variant="link" size="sm" className="mt-2 h-auto">
+                                            <Link href="/chat">Join our Discord</Link>
+                                        </Button>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                     ))}
                 </div>
+                
                 <Card className="bg-secondary/30">
                     <CardContent className="p-6 text-center">
                         <p className="text-sm italic text-muted-foreground">
-                            "The best way to stay informed is to join our live community spaces. See you there!"
+                            "Stay connected. Follow us across all platforms to never miss an update!"
                         </p>
                     </CardContent>
                 </Card>
