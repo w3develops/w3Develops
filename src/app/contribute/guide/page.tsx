@@ -22,7 +22,8 @@ import {
     Github,
     Flag,
     Lightbulb,
-    Palette
+    Palette,
+    ExternalLink
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -144,6 +145,14 @@ export default function ContributorGuidePage() {
                                 )}
                             </div>
                         ))}
+                    </div>
+
+                    <div className="flex justify-center pt-4">
+                        <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                            <Link href="https://github.com/w3develops/w3Develops/blob/main/docs/GITHUB_FORKING.md" target="_blank" className="gap-2">
+                                <BookOpen className="h-4 w-4" /> View Technical Forking Tutorial
+                            </Link>
+                        </Button>
                     </div>
                 </section>
 
