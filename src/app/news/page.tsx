@@ -1,16 +1,16 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Rss, Megaphone, Info, AlertTriangle, CheckCircle2, History } from "lucide-react";
+import { Rss, Megaphone, Info, AlertTriangle, CheckCircle2, History, Share2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { GlobalAnnouncement } from '@/lib/types';
-import { formatTimestamp, timeAgo } from '@/lib/utils';
+import { formatTimestamp } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import GlobalPulse from '@/components/GlobalPulse';
 
 interface Post {
   title: string;
@@ -50,11 +50,11 @@ function AnnouncementItem({ announcement }: { announcement: GlobalAnnouncement }
                 </div>
                 {isOngoing && <Badge>Live Now</Badge>}
             </div>
-            <p className="text-muted-foreground">{announcement.message}</p>
-            <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-                <span>{formatTimestamp(announcement.startTime, true)} - {formatTimestamp(announcement.endTime, true)}</span>
+            <p className="text-muted-foreground text-sm leading-relaxed">{announcement.message}</p>
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 uppercase tracking-wider">
+                <span>{formatTimestamp(announcement.startTime, true)}</span>
                 {announcement.link && (
-                    <Link href={announcement.link} className="text-primary underline hover:opacity-80">
+                    <Link href={announcement.link} className="text-primary font-bold hover:underline">
                         View Details
                     </Link>
                 )}
@@ -72,7 +72,7 @@ export default function NewsPage() {
         return query(
             collection(firestore, 'announcements'),
             orderBy('createdAt', 'desc'),
-            limit(10)
+            limit(5)
         );
     }, [firestore]);
 
@@ -104,48 +104,52 @@ export default function NewsPage() {
                 <div className="lg:col-span-2 space-y-8">
                     <Card>
                         <CardHeader>
-                            <div className="flex justify-between items-start">
+                            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                                 <div>
                                     <CardTitle className="font-headline text-3xl flex items-center gap-3">
-                                        <Rss className="h-8 w-8" />
+                                        <Rss className="h-8 w-8 text-primary" />
                                         Latest News
                                     </CardTitle>
                                     <CardDescription>
-                                        Posts from the last 3 days, updated twice daily.
+                                        Aggregated posts from the developer ecosystem, updated daily.
                                     </CardDescription>
                                 </div>
-                                <Button asChild variant="link">
+                                <Button asChild variant="outline" size="sm">
                                    <Link href="/news/archive">View Archive</Link>
                                 </Button>
                             </div>
                         </CardHeader>
                         <CardContent>
                             {isLoadingNews ? (
-                                <div className="text-center py-12">
-                                    <h3 className="text-xl font-semibold">Fetching latest articles...</h3>
-                                    <p className="text-muted-foreground mt-2">
-                                        This may take a moment.
-                                    </p>
+                                <div className="space-y-8 animate-pulse py-4">
+                                    {[...Array(4)].map((_, i) => (
+                                        <div key={i} className="space-y-3">
+                                            <div className="h-4 bg-muted rounded w-24"></div>
+                                            <div className="h-6 bg-muted rounded w-3/4"></div>
+                                            <div className="h-4 bg-muted rounded w-32"></div>
+                                        </div>
+                                    ))}
                                 </div>
                             ) : newsItems.length > 0 ? (
-                                <div className="space-y-6">
+                                <div className="space-y-8">
                                     {newsItems.map((item, index) => (
-                                        <div key={`${item.link}-${index}`} className="border-b pb-6 last:border-b-0 last:pb-0">
-                                            <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wider">{item.source}</p>
-                                            <a href={item.link} target="_blank" rel="noopener noreferrer" className="block text-xl font-semibold hover:text-primary mt-1">
+                                        <div key={`${item.link}-${index}`} className="border-b border-border/50 pb-8 last:border-b-0 last:pb-0 group">
+                                            <p className="text-xs text-primary font-bold uppercase tracking-widest">{item.source}</p>
+                                            <a href={item.link} target="_blank" rel="noopener noreferrer" className="block text-2xl font-bold font-headline group-hover:text-primary transition-colors mt-2 leading-tight">
                                                 {item.title}
                                             </a>
-                                             <p className="text-sm text-muted-foreground mt-2">
+                                             <p className="text-sm text-muted-foreground mt-3">
                                                 {formatDate(item.isoDate)}
                                             </p>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                 <div className="text-center py-12">
+                                 <div className="text-center py-16 border-2 border-dashed rounded-xl">
+                                    <Rss className="h-12 w-12 mx-auto mb-4 opacity-20" />
                                     <h3 className="text-xl font-semibold">No Recent News Found</h3>
-                                    <p className="text-muted-foreground mt-2">
-                                        We couldn't find any articles from the last 3 days. Please check back later.
+                                    <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
+                                        We couldn't find any articles from the last 3 days. Our bots are searching for fresh content!
                                     </p>
                                 </div>
                             )}
@@ -153,42 +157,55 @@ export default function NewsPage() {
                     </Card>
                 </div>
 
-                {/* Sidebar: Status & Announcements */}
+                {/* Sidebar: Status & Pulse */}
                 <div className="space-y-8">
-                    <Card className="sticky top-24">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
+                    <Card className="sticky top-24 border-2 border-primary/10">
+                        <CardHeader className="pb-4">
+                            <CardTitle className="flex items-center gap-2 text-xl">
                                 <Megaphone className="h-5 w-5 text-primary" />
                                 Community Status
                             </CardTitle>
                             <CardDescription>
-                                Official updates and current activities.
+                                Official updates from w3Develops HQ.
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-6">
-                            {isLoadingAnnouncements ? (
-                                <p className="text-center py-4 text-muted-foreground animate-pulse">Loading status...</p>
-                            ) : announcements && announcements.length > 0 ? (
-                                <div className="space-y-6">
-                                    {announcements.map(announcement => (
+                        <CardContent className="space-y-8">
+                            {/* Manual Announcements */}
+                            <div className="space-y-6">
+                                {isLoadingAnnouncements ? (
+                                    <p className="text-center py-4 text-muted-foreground animate-pulse">Loading status...</p>
+                                ) : announcements && announcements.length > 0 ? (
+                                    announcements.map(announcement => (
                                         <AnnouncementItem key={announcement.id} announcement={announcement} />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
-                                    <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                    <p>No recent announcements.</p>
-                                </div>
-                            )}
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
+                                        <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                        <p className="text-sm">No recent announcements.</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Automated Pulse */}
+                            <div className="pt-6 border-t border-border/50">
+                                <GlobalPulse />
+                            </div>
                             
-                            <div className="pt-4 border-t">
-                                <h4 className="text-sm font-semibold mb-2">Connect with us</h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <Button asChild variant="outline" size="sm" className="w-full">
+                            {/* Social Connect */}
+                            <div className="pt-6 border-t border-border/50">
+                                <h4 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                                    <Share2 className="h-4 w-4 text-primary" />
+                                    Stay Connected
+                                </h4>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Button asChild variant="secondary" size="sm" className="w-full font-bold">
                                         <Link href="/chat">Discord</Link>
                                     </Button>
-                                    <Button asChild variant="outline" size="sm" className="w-full">
-                                        <Link href="https://x.com/w3develops" target="_blank">Twitter</Link>
+                                    <Button asChild variant="secondary" size="sm" className="w-full font-bold">
+                                        <Link href="https://x.com/w3develops" target="_blank">Twitter / X</Link>
+                                    </Button>
+                                    <Button asChild variant="outline" size="sm" className="col-span-2 font-bold">
+                                        <Link href="/newsletter">Community Newsletter</Link>
                                     </Button>
                                 </div>
                             </div>
