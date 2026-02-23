@@ -312,6 +312,24 @@
         "createdAt"
       ]
     },
+    "GlobalAnnouncement": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "GlobalAnnouncement",
+      "type": "object",
+      "description": "Represents an official community announcement or status update.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["info", "warning", "success", "alert"] },
+        "link": { "type": "string", "format": "uri" },
+        "startTime": { "type": "string", "format": "date-time" },
+        "endTime": { "type": "string", "format": "date-time" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "message", "type", "startTime", "endTime", "isActive", "createdAt"]
+    },
     "StudyGroup": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "StudyGroup",
@@ -947,6 +965,10 @@
         "$ref": "#/entities/UserProfile"
       },
       "description": "Stores user profile data."
+    },
+    "/announcements/{announcementId}": {
+      "schema": { "$ref": "#/entities/GlobalAnnouncement" },
+      "description": "Stores official community announcements and banners."
     },
     "/studyGroups/{groupId}": {
       "schema": {

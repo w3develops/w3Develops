@@ -7,6 +7,7 @@ import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { Toaster } from "@/components/ui/toaster";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 
 
 const inter = Inter({ 
@@ -64,6 +65,7 @@ export default function RootLayout({
         )}
       >
         <FirebaseClientProvider>
+            <AnnouncementBanner />
             <Header />
             <main className="flex-grow">
               {children}

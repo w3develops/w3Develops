@@ -1,3 +1,4 @@
+
 import { FieldValue, Timestamp } from 'firebase/firestore';
 
 export interface NotificationSettings {
@@ -68,6 +69,18 @@ export interface UserProfile {
   pairProgrammingSkills?: string[];
   pairPartnerIds?: string[];
   pairingIds?: string[];
+}
+
+export interface GlobalAnnouncement {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'warning' | 'success' | 'alert';
+  link?: string;
+  startTime: Timestamp;
+  endTime: Timestamp;
+  isActive: boolean;
+  createdAt: Timestamp;
 }
 
 export interface GroupProject {

@@ -110,6 +110,11 @@ service cloud.firestore {
       allow create: if request.auth.uid == request.resource.data.uid;
       allow update, delete: if false;
     }
+
+    match /announcements/{announcementId} {
+      allow read: if true;
+      allow write: if false; // Reserved for admin console/automated processes
+    }
     
     match /mentorshipRequests/{requestId} {
         allow read: if request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid;
