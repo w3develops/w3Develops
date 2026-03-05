@@ -159,7 +159,18 @@ export interface Competition {
   createdAt: Timestamp;
 }
 
-// ... remaining interfaces stay same
+export interface CompetitionEntry {
+  id: string;
+  competitionId: string;
+  userId: string;
+  username: string;
+  projectUrl: string;
+  soloProjectId?: string | null;
+  description: string;
+  submittedAt: Timestamp;
+  voterIds: string[];
+}
+
 export interface MeetupUpdate {
     id: string;
     meetupId: string;
@@ -178,26 +189,6 @@ export interface Task {
     createdAt: Timestamp;
     completedAt?: Timestamp | null;
     position: number;
-}
-
-export interface User {
-  email: string;
-  username: string;
-  username_lowercase: string;
-  createdAt: FieldValue;
-  lastLoginAt: FieldValue;
-  profilePictureUrl: string;
-  bio: string;
-  socialLinks: { [key: string]: string };
-  skills: string[];
-  followers: string[];
-  following: string[];
-  followInfoPrivate: boolean;
-  createdStudyGroupIds: string[];
-  joinedStudyGroupIds: string[];
-  createdGroupProjectIds: string[];
-  joinedGroupProjectIds: string[];
-  notificationSettings?: NotificationSettings;
 }
 
 export interface Notification {
@@ -224,6 +215,13 @@ export interface SoloProject {
   projectUrl: string;
   description: string;
   createdAt: Timestamp;
+}
+
+export interface SharedNote {
+  id: string;
+  content: string;
+  lastUpdatedBy: string;
+  lastUpdatedAt: Timestamp;
 }
 
 export interface MentorshipRequest {
@@ -305,5 +303,24 @@ export interface CareerApplication {
   portfolioUrl?: string;
   coverLetter: string;
   status: 'pending' | 'reviewed' | 'rejected' | 'accepted';
+  createdAt: Timestamp;
+}
+
+export interface Feedback {
+  id: string;
+  feedback: string;
+  createdAt: Timestamp;
+  userId?: string;
+  username?: string;
+}
+
+export interface SupportRequest {
+  id: string;
+  userId: string;
+  username: string;
+  email: string;
+  subject: string;
+  description: string;
+  status: 'open' | 'in_progress' | 'closed';
   createdAt: Timestamp;
 }
