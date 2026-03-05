@@ -1,10 +1,10 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Search, Globe, Clock, CheckCircle2 } from "lucide-react";
 import Link from 'next/link';
 
