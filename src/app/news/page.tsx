@@ -1,12 +1,11 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Rss, Megaphone, Info, AlertTriangle, CheckCircle2, History, ChevronLeft, ChevronRight, Twitter, Youtube, ExternalLink, Facebook, Linkedin, Instagram, Heart, Share2 } from "lucide-react";
+import { Rss, Megaphone, History, ChevronLeft, ChevronRight, Heart, Share2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
 import { collection, query, orderBy, limit, doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { GlobalAnnouncement, UserProfile } from '@/lib/types';
 import { formatTimestamp } from '@/lib/utils';
@@ -24,18 +23,6 @@ interface Post {
 
 const ITEMS_PER_PAGE = 25;
 
-const MastodonIcon = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M23.193 7.879c0-5.206-3.411-6.732-3.411-6.732C18.062.357 15.108.025 12.041 0h-.076c-3.068.025-6.02.357-7.74 1.147 0 0-3.411 1.526-3.411 6.732 0 1.192-.023 2.618.015 4.129.124 5.092.934 10.109 5.641 11.355 2.17.574 4.034.694 5.535.612 2.722-.147 4.256-.9 4.256-.9l-.083-1.751s-1.909.549-4.248.48c-2.326-.074-4.805-.272-5.19-3.058-.04-.285-.041-.59-.033-.9 1.971.479 3.912.596 5.699.51 1.777-.086 3.584-.342 5.39-.735 3.191-.695 4.465-2.312 4.465-2.312.093-1.508.059-2.997.059-4.188zm-4.319 9.74h-2.428V9.255c0-1.281-.519-1.93-1.557-1.93-.864 0-1.484.59-1.861 1.771L12 10.829l-1.028-1.733c-.377-1.181-.997-1.771-1.861-1.771-1.038 0-1.557.65-1.557 1.93v8.364H5.126V9.149c0-2.428 1.556-3.624 3.557-3.624 1.162 0 2.056.445 2.688 1.312L12 7.829l.629-1.002c.632-.867 1.526-1.312 2.688-1.312 2.001 0 3.557 1.196 3.557 3.624v8.47z"/>
-  </svg>
-);
-
-const BlueskyIcon = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C3.405 1.447 1.457 1.62 1.457 3.412c0 1.501.97 5.56 1.457 7.027.652 1.965 2.143 2.436 4.003 2.236-1.859.2-3.351-.271-4.003-2.236-.487-1.467-1.457-5.526-1.457-7.027 0-1.792 1.948-1.965 3.745-.592 2.752 1.942 5.711 5.881 6.798 7.995 1.087-2.114 4.046-6.053 6.798-7.995 1.797-1.373 3.745-1.2 3.745.592 0 1.501-.97 5.56-1.456 7.027-.652 1.965-2.144 2.436-4.003 2.236 1.859.2 3.351-.271 4.003-2.236.487-1.467 1.457-5.526 1.457-7.027 0-1.792-1.948-1.965-3.745-.592-2.752 1.942-5.711 5.881-6.798 7.995zM12 13.2c-1.087 2.114-4.046 6.053-6.798 7.995-1.797 1.373-3.745 1.2-3.745-.592 0-1.501.97-5.56 1.457-7.027.652-1.965 2.143-2.436 4.003-2.236-1.859-.2-3.351.271-4.003 2.236-.487 1.467-1.457-5.526-1.457 7.027 0 1.792 1.948 1.965 3.745.592 2.752-1.942 5.711-5.881 6.798-7.995 1.087 2.114 4.046 6.053 6.798 7.995 1.797 1.373 3.745 1.2 3.745-.592 0-1.501-.97-5.56 1.457-7.027.652-1.965-2.144-2.436-4.003-2.236 1.859-.2 3.351.271 4.003 2.236.487-1.467 1.457-5.526 1.457 7.027 0 1.792-1.948 1.965-3.745.592-2.752-1.942-5.711-5.881-6.798-7.995z"/>
-  </svg>
-);
-
 function formatDate(dateString: string) {
     if (!dateString) return 'No date';
     try {
@@ -51,7 +38,7 @@ function formatDate(dateString: string) {
 function NewsItem({ item, user, userProfile }: { item: Post, user: any, userProfile: UserProfile | null }) {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const isHearted = userProfile?.starredSoloProjectIds?.includes(item.link) || false; // Reusing starred list for hearts for MVP
+    const isHearted = userProfile?.starredSoloProjectIds?.includes(item.link) || false;
 
     const handleHeart = async () => {
         if (!user) {
@@ -119,7 +106,7 @@ export default function NewsPage() {
     const { data: announcements, isLoading: isLoadingAnnouncements } = useCollection<GlobalAnnouncement>(announcementsQuery);
     
     const userDocRef = useMemo(() => user ? doc(firestore, 'users', user.uid) : null, [user, firestore]);
-    const { data: userProfile } = useCollection<UserProfile>(userDocRef as any);
+    const { data: userProfile } = useDoc<UserProfile>(userDocRef as any);
 
     useEffect(() => {
       const fetchNews = async () => {
@@ -175,7 +162,7 @@ export default function NewsPage() {
                 ) : (
                     <div className="space-y-6">
                         {paginatedNews.map((item, index) => (
-                            <NewsItem key={`${item.link}-${index}`} item={item} user={user} userProfile={userProfile as any} />
+                            <NewsItem key={`${item.link}-${index}`} item={item} user={user} userProfile={userProfile} />
                         ))}
                     </div>
                 )}

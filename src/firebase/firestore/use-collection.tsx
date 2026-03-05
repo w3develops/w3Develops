@@ -59,6 +59,15 @@ export function useCollection<T = any>(
     const unsubscribe = onSnapshot(
       targetRefOrQuery,
       (snapshot: QuerySnapshot<DocumentData>) => {
+        // Defensive check: ensure snapshot has docs before mapping.
+        // This avoids errors if a DocumentReference is accidentally passed here.
+        if (!snapshot || !('docs' in snapshot)) {
+          console.warn('useCollection received a snapshot that is not a QuerySnapshot. Expected a collection or query.');
+          setData([]);
+          setIsLoading(false);
+          return;
+        }
+        
         const results = snapshot.docs.map(doc => ({ ...(doc.data() as T), id: doc.id }));
         setData(results);
         setError(null);
