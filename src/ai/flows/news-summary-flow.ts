@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow to generate a daily AI news summary for the w3Develops community.
@@ -8,7 +9,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 
 const NewsSummaryInputSchema = z.object({
   articles: z.array(z.object({
@@ -54,18 +55,19 @@ Format your response to be highly encouraging and developer-focused. Include a s
 export async function generateDailyNewsSummary(input: NewsSummaryInput): Promise<NewsSummaryOutput> {
   try {
     if (!process.env.GOOGLE_GENAI_API_KEY) {
-      throw new Error('GOOGLE_GENAI_API_KEY is not configured.');
+      throw new Error('GOOGLE_GENAI_API_KEY is not configured in environment variables.');
     }
 
     const { output } = await prompt(input);
 
     if (!output) {
-      throw new Error('AI failed to generate a summary.');
+      throw new Error('AI failed to generate a summary. Please try again later.');
     }
 
     return output;
   } catch (error: any) {
     console.error('AI Summary Error:', error);
-    throw new Error(error.message || 'Failed to generate AI summary.');
+    // Return a structured error or throw for the client to handle
+    throw new Error(error.message || 'An unexpected error occurred during AI generation.');
   }
 }
