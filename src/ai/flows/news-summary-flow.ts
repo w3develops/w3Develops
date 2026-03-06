@@ -1,12 +1,14 @@
-
 'use server';
 /**
  * @fileOverview A flow to generate a daily AI news summary for the w3Develops community.
+ *
+ * - generateDailyNewsSummary - A function that handles the AI news synthesis process.
+ * - NewsSummaryInput - The input type for the summary flow.
+ * - NewsSummaryOutput - The return type for the summary flow.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'zod';
-import { gemini15Flash } from '@genkit-ai/google-genai';
+import { z } from 'genkit';
 
 const NewsSummaryInputSchema = z.object({
   articles: z.array(z.object({
@@ -29,7 +31,7 @@ export type NewsSummaryOutput = z.infer<typeof NewsSummaryOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'generateDailyNewsSummaryPrompt',
-  model: gemini15Flash,
+  model: 'googleai/gemini-1.5-flash',
   input: { schema: NewsSummaryInputSchema },
   output: { schema: NewsSummaryOutputSchema },
   prompt: `You are the lead community editor at w3Develops, a global community for developers who learn and build together for free.

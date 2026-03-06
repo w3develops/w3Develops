@@ -29,7 +29,8 @@
         "firebase-debug.log",
         "firebase-debug.*.log",
         "functions"
-      ]
+      ],
+      "alwaysDeployFromSource": true
     },
     {
       "backendId": "studio",
@@ -40,7 +41,8 @@
         "firebase-debug.log",
         "firebase-debug.*.log",
         "functions"
-      ]
+      ],
+      "alwaysDeployFromSource": true
     },
     {
       "backendId": "studio",
@@ -51,11 +53,13 @@
         "firebase-debug.log",
         "firebase-debug.*.log",
         "functions"
-      ]
+      ],
+      "alwaysDeployFromSource": true
     }
   ],
   "storage": {
-    "rules": "storage.rules"
+    "rules": "storage.rules",
+    "bucket": "studio-5652324508-ae238.firebasestorage.app"
   },
   "auth": {
     "providers": {
