@@ -33,19 +33,7 @@
       "alwaysDeployFromSource": true
     },
     {
-      "backendId": "studio",
-      "rootDir": "/",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "functions"
-      ],
-      "alwaysDeployFromSource": true
-    },
-    {
-      "backendId": "studio",
+      "backendId": "w3develops-backend-id",
       "rootDir": "/",
       "ignore": [
         "node_modules",
