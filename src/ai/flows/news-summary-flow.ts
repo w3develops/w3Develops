@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A flow to generate a daily AI news summary for the w3Develops community.
@@ -67,7 +66,6 @@ export async function generateDailyNewsSummary(input: NewsSummaryInput): Promise
     return output;
   } catch (error: any) {
     console.error('AI Summary Error:', error);
-    // Return a structured error or throw for the client to handle
     throw new Error(error.message || 'An unexpected error occurred during AI generation.');
   }
 }
