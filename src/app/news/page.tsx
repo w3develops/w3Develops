@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Rss, Megaphone, History, ChevronLeft, ChevronRight, Heart, Share2 } from "lucide-react";
+import { Rss, Megaphone, History, ChevronLeft, ChevronRight, Heart, Share2, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
@@ -12,7 +12,6 @@ import { GlobalAnnouncement, UserProfile } from '@/lib/types';
 import { formatTimestamp } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import GlobalPulse from '@/components/GlobalPulse';
-import AiNewsSummary from '@/components/AiNewsSummary';
 import { useToast } from '@/components/ui/use-toast';
 
 interface Post {
@@ -151,7 +150,25 @@ export default function NewsPage() {
                 </div>
             </div>
 
-            {!isLoadingNews && newsItems.length > 0 && <AiNewsSummary articles={newsItems} />}
+            {/* AI Briefing CTA Banner */}
+            <Card className="border-2 border-primary/20 bg-primary/5 mb-8 overflow-hidden group">
+                <CardContent className="p-0">
+                    <Link href="/news/ai-community-brief" className="flex flex-col sm:flex-row items-center justify-between p-6 gap-6 hover:bg-primary/10 transition-colors">
+                        <div className="flex items-center gap-4">
+                            <div className="bg-primary/20 p-3 rounded-full group-hover:scale-110 transition-transform">
+                                <Sparkles className="h-6 w-6 text-primary fill-primary" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold font-headline">Daily AI Community Briefing</h3>
+                                <p className="text-sm text-muted-foreground">Get today's synthesized state of the community insights.</p>
+                            </div>
+                        </div>
+                        <Button variant="outline" className="shrink-0 border-primary/50 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                            View Today's Briefing
+                        </Button>
+                    </Link>
+                </CardContent>
+            </Card>
 
             <section className="space-y-8">
                 {isLoadingNews ? (

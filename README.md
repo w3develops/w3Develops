@@ -18,4 +18,4 @@ To contribute to this project, please review our core documentation:
 
 ## Community
 
-Join us on [Discord](https://discord.gg/ckQ52gA) to connect with other members and stay updated on the latest news.
+Join us on [Discord](https://discord.gg/ckQ52gA) to connect with other members and stay updated on the latest news. 
