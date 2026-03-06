@@ -32,7 +32,7 @@ export default function AiNewsSummary({ articles }: AiNewsSummaryProps) {
         });
 
         const result = await generateDailyNewsSummary({
-          articles: articles.slice(0, 15), // Send top 15 for summary
+          articles: articles.slice(0, 15),
           today
         });
         

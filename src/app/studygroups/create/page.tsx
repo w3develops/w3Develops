@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -147,7 +148,7 @@ export default function CreateGroupPage() {
             <div className="grid gap-2">
                 <Label htmlFor="startTime" className="flex items-center gap-2"><Clock className="h-4 w-4" /> Preferred Start Time (In your local time)</Label>
                 <Input id="startTime" type="time" value={localStartTime} onChange={e => setLocalTime(e.target.value)} required />
-                {profile && (
+                {profile && profile.utcOffset !== undefined && (
                   <p className="text-[10px] text-muted-foreground">This will be converted to UTC {profile.utcOffset >= 0 ? '+' : ''}{profile.utcOffset} for coordination.</p>
                 )}
             </div>

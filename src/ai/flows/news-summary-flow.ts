@@ -1,10 +1,7 @@
+
 'use server';
 /**
  * @fileOverview A flow to generate a daily AI news summary for the w3Develops community.
- *
- * - generateDailyNewsSummary - A function that handles the AI generation process.
- * - NewsSummaryInput - The input type for the summary flow.
- * - NewsSummaryOutput - The return type for the summary flow.
  */
 
 import { ai } from '@/ai/genkit';
