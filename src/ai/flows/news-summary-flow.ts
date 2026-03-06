@@ -6,6 +6,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { gemini15Flash } from '@genkit-ai/google-genai';
 
 const NewsSummaryInputSchema = z.object({
   articles: z.array(z.object({
@@ -28,11 +29,9 @@ export type NewsSummaryOutput = z.infer<typeof NewsSummaryOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'generateDailyNewsSummaryPrompt',
+  model: gemini15Flash,
   input: { schema: NewsSummaryInputSchema },
   output: { schema: NewsSummaryOutputSchema },
-  config: {
-    model: 'googleai/gemini-1.5-flash',
-  },
   prompt: `You are the lead community editor at w3Develops, a global community for developers who learn and build together for free.
 Today is {{{today}}}.
 

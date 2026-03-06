@@ -11,8 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { collection, serverTimestamp, query, where, getDocs, doc, writeBatch, arrayUnion, Timestamp, DocumentReference } from 'firebase/firestore';
-import { topics, ONE_WEEK_IN_MS } from '@/lib/constants';
+import { collection, serverTimestamp, doc, writeBatch, arrayUnion, DocumentReference } from 'firebase/firestore';
+import { topics } from '@/lib/constants';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose, DrawerFooter, DrawerDescription } from '@/components/ui/drawer';
 import { ChevronDown, Clock } from 'lucide-react';
@@ -141,6 +141,11 @@ export default function CreateGroupPage() {
                         <Button key={t} variant="ghost" className="w-full justify-start" onClick={() => { setTopic(t); setIsDrawerOpen(false); }}>{t}</Button>
                       ))}
                     </div>
+                    <DrawerFooter>
+                        <DrawerClose asChild>
+                            <Button variant="outline">Cancel</Button>
+                        </DrawerClose>
+                    </DrawerFooter>
                   </DrawerContent>
                 </Drawer>
             </div>
