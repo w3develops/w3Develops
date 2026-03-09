@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow to generate a daily AI news summary for the w3Develops community.
@@ -51,8 +52,8 @@ Format your response to be highly encouraging and developer-focused. Include a s
 
 export async function generateDailyNewsSummary(input: NewsSummaryInput): Promise<NewsSummaryOutput> {
   try {
-    if (!process.env.GOOGLE_GENAI_API_KEY) {
-      throw new Error('GOOGLE_GENAI_API_KEY is not configured in environment variables.');
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not configured in environment variables.');
     }
 
     const { output } = await prompt(input);
