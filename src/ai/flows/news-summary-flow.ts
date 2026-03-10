@@ -1,70 +1,102 @@
-
 'use server';
 /**
- * @fileOverview A flow to generate a daily AI news summary for the w3Develops community.
+ * @fileOverview A flow to generate a daily AI tech news summary using the Google Generative AI SDK.
  *
  * - generateDailyNewsSummary - A function that handles the AI news synthesis process.
  * - NewsSummaryInput - The input type for the summary flow.
  * - NewsSummaryOutput - The return type for the summary flow.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { z } from 'zod';
 
 const NewsSummaryInputSchema = z.object({
   articles: z.array(z.object({
     title: z.string(),
     link: z.string(),
     source: z.string(),
-  })).describe('A list of recent news articles collected from community and tech RSS feeds.'),
-  today: z.string().describe('The current date for context.'),
+  })),
+  today: z.string(),
 });
 
 export type NewsSummaryInput = z.infer<typeof NewsSummaryInputSchema>;
 
 const NewsSummaryOutputSchema = z.object({
-  summary: z.string().describe('A concise, engaging daily summary of tech and community news.'),
-  highlights: z.array(z.string()).describe('Top 3-5 key takeaways for the day.'),
-  stateOfTheCommunity: z.string().describe('A specific section highlighting w3Develops community activity and growth.'),
+  summary: z.string(),
+  highlights: z.array(z.string()),
+  stateOfTheCommunity: z.string(),
 });
 
 export type NewsSummaryOutput = z.infer<typeof NewsSummaryOutputSchema>;
 
-const prompt = ai.definePrompt({
-  name: 'generateDailyNewsSummaryPrompt',
-  model: 'googleai/gemini-1.5-flash',
-  input: { schema: NewsSummaryInputSchema },
-  output: { schema: NewsSummaryOutputSchema },
-  prompt: `You are the lead community editor at w3Develops, a global community for developers who learn and build together for free.
-Today is {{{today}}}.
+/**
+ * Generates a daily news summary using Gemini 2.0 Flash.
+ * Includes character cleaning for the API key and detailed diagnostic logging for Logs Explorer.
+ */
+export async function generateDailyNewsSummary(input: NewsSummaryInput): Promise<NewsSummaryOutput> {
+  const rawApiKey = process.env.GEMINI_API_KEY;
 
-Your task is to analyze the following articles and provide a "State of the Community" daily briefing. 
+  try {
+    if (!rawApiKey) {
+      console.error("CRITICAL: GEMINI_API_KEY is missing from environment variables.");
+      throw new Error("API key not configured.");
+    }
 
-CORE MISSION: Highlight how these tech trends impact learners and builders. Specifically look for developments that align with w3Develops' focus on free coding bootcamps, collaborative projects, and peer-to-peer growth.
+    // Clean the API key: remove any accidental quotes or surrounding whitespace
+    const apiKey = rawApiKey.trim().replace(/['"]/g, '');
+    
+    // Diagnostic logging for Logs Explorer troubleshooting
+    console.log(`DIAGNOSTIC: Processing request for ${input.today}. API Key detected. Length: ${apiKey.length}. Starts with: ${apiKey.substring(0, 3)}... Ends with: ${apiKey.substring(apiKey.length - 3)}`);
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.0-flash",
+      generationConfig: { responseMimeType: "application/json" }
+    });
+
+    const prompt = `You are the lead tech editor at w3Develops. Today is ${input.today}.
+Your task is to analyze the following articles and provide a synthesized "Tech World Briefing" in JSON format.
+
+CORE MISSION: Focus on these four pillars:
+1. Programming Updates (Frameworks, tools, languages).
+2. Artificial Intelligence (Models, ethics, breakthroughs).
+3. Cryptocurrency & Web3 (Market, blockchain, regulation).
+4. General Tech Updates (Hardware, big tech news).
 
 Articles for Today:
-{{#each articles}}
-- {{{title}}} (Source: {{{source}}})
-{{/each}}
+${input.articles.slice(0, 15).map(a => `- ${a.title} (Source: ${a.source})`).join('\n')}
 
-Format your response to be highly encouraging and developer-focused. Include a special "State of the Community" section that synthesizes the news into actionable inspiration for our members.`,
-});
+Return a JSON object with these exact keys:
+{
+  "summary": "A concise, engaging briefing paragraph",
+  "highlights": ["Key takeaway 1", "Key takeaway 2", "Key takeaway 3"],
+  "stateOfTheCommunity": "Explain why this matters to developers learning together"
+}`;
 
-export async function generateDailyNewsSummary(input: NewsSummaryInput): Promise<NewsSummaryOutput> {
-  try {
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY is not configured in environment variables.');
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+
+    if (!responseText) {
+      throw new Error("Gemini returned an empty response.");
     }
 
-    const { output } = await prompt(input);
+    const parsedData = JSON.parse(responseText);
+    return NewsSummaryOutputSchema.parse(parsedData);
 
-    if (!output) {
-      throw new Error('AI failed to generate a summary. Please try again later.');
-    }
-
-    return output;
   } catch (error: any) {
-    console.error('AI Summary Error:', error);
-    throw new Error(error.message || 'An unexpected error occurred during AI generation.');
+    const errorDetails = {
+      message: error.message,
+      status: error.status || 'Unknown Status',
+      reason: error.reason || 'Unknown Reason',
+      timestamp: new Date().toISOString(),
+    };
+
+    console.error("AI GENERATION FAILED:", JSON.stringify(errorDetails, null, 2));
+
+    if (error.message?.toLowerCase().includes('api key not valid') || error.message?.includes('400')) {
+      throw new Error('AI service authentication failed. The GEMINI_API_KEY was rejected by Google. Common fixes: 1. Ensure the "Generative Language API" is enabled in Google Cloud Console. 2. Remove any quotes or spaces from your secret value.');
+    }
+
+    throw new Error('The AI was unable to synthesize the news. Check Logs Explorer for "AI GENERATION FAILED" to see the technical error details.');
   }
 }
