@@ -7,20 +7,8 @@ runConfig:
   # cpu: 1
   # memoryMiB: 512
 
-  # Environment variables and secrets.
-  # env:
-  # Configure environment variables.
-  # See https://firebase.google.com/docs/app-hosting/configure#user-defined-environment
-  # - variable: MESSAGE
-  #   value: Hello world!
-  #   availability:
-  #     - BUILD
-  #     - RUNTIME
-
-  # Grant access to secrets in Cloud Secret Manager.
-  # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
-  # - variable: MY_SECRET
-  #   secret: mySecretRef
+# Environment variables.
+# Since you added the GEMINI_API_KEY manually in the Firebase Console UI,
+# we just need to list it here so the app knows to expect it.
 env:
   - variable: GEMINI_API_KEY
-    secret: GEMINI_API_KEY
