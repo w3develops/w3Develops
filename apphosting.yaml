@@ -7,8 +7,8 @@ runConfig:
   # cpu: 1
   # memoryMiB: 512
 
-# Environment variables.
-# Since you added the GEMINI_API_KEY manually in the Firebase Console UI,
-# we just need to list it here so the app knows to expect it.
-env:
+# Secrets from Google Cloud Secret Manager.
+# App Hosting will automatically fetch these values and provide them as environment variables.
+secrets:
   - variable: GEMINI_API_KEY
+    secret: GEMINI_API_KEY
