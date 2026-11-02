@@ -10,5 +10,5 @@ runConfig:
 # Secrets from Google Cloud Secret Manager.
 # App Hosting will automatically fetch these values and provide them as environment variables.
 secrets:
-  - variable: GEMINI_API_KEY
-    secret: GEMINI_API_KEY
+  - variable: JEV_API_KEY
+    secret: JEV_API_KEY
