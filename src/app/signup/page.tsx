@@ -14,7 +14,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { doc, getDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { UserProfile, UserStatus } from '@/lib/types';
-import { EmailAuthProvider, linkWithCredential, createUserWithEmailAndPassword, User as FirebaseUser } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification, User as FirebaseUser } from 'firebase/auth';
 import SocialSignInButtons from '@/components/SocialSignInButtons';
 
 function useDebounce(value: string, delay: number) {
@@ -108,24 +108,28 @@ function SignupPageContent() {
 
   const debouncedUsername = useDebounce(username, 500);
 
-  // Members who signed in with Google or GitHub have an account but no
-  // profile yet, so they finish here by picking a username and timezone
-  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
-  const isSignedIn = !!user && !user.isAnonymous;
-  const isFinishing = isSignedIn && hasProfile === false;
+  // Signed-in members finish here when something required is missing: new
+  // Google or GitHub members have no profile yet, and older members may be
+  // missing a timezone. undefined means the profile is still loading.
+  const [profile, setProfile] = useState<Partial<UserProfile> | null | undefined>(undefined);
+  const needsUsername = !profile?.username;
+  const needsTimezone = profile?.utcOffset === undefined || profile?.utcOffset === null;
+  const isComplete = !!profile && !needsUsername && !needsTimezone;
+  const isFinishing = !!user && profile !== undefined && !isComplete;
+  const isReturning = isFinishing && !!profile;
 
   useEffect(() => {
-    setHasProfile(null);
-    if (!user || user.isAnonymous) return;
+    setProfile(undefined);
+    if (!user) return;
     let cancelled = false;
     getDoc(doc(firestore, 'users', user.uid))
-      .then(snap => { if (!cancelled) setHasProfile(snap.exists()); })
+      .then(snap => { if (!cancelled) setProfile(snap.exists() ? snap.data() as UserProfile : null); })
       .catch(() => toast({ variant: "destructive", title: "Couldn't load your account", description: "Please refresh the page." }));
     return () => { cancelled = true; };
   }, [user, firestore, toast]);
 
   useEffect(() => {
-    if (isFinishing && !username && user?.displayName) {
+    if (isFinishing && needsUsername && !username && user?.displayName) {
       setUsername(user.displayName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 24));
     }
   // Only suggest a username once, when the finishing step first appears
@@ -167,20 +171,20 @@ function SignupPageContent() {
   }, [debouncedUsername, checkUsername]);
 
   useEffect(() => {
-    if (!isUserLoading && user && hasProfile) {
+    if (!isUserLoading && user && isComplete) {
       router.push(redirectUrl);
     }
-  }, [user, isUserLoading, hasProfile, router, redirectUrl]);
+  }, [user, isUserLoading, isComplete, router, redirectUrl]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !specificOffset || (!isFinishing && (!email || !password))) {
+    if ((needsUsername && !username) || (needsTimezone && !specificOffset) || (!isFinishing && (!email || !password))) {
       toast({ variant: "destructive", title: "Missing fields", description: "Please fill out all fields." });
       return;
     }
     
     const offsetNum = Number(specificOffset);
-    if (isNaN(offsetNum)) {
+    if (needsTimezone && (specificOffset === '' || isNaN(offsetNum))) {
         toast({ variant: "destructive", title: "Invalid Offset", description: "Please select a valid UTC offset." });
         return;
     }
@@ -189,11 +193,25 @@ function SignupPageContent() {
     
     try {
       const usernameLower = username.toLowerCase();
-      const usernameDocRef = doc(firestore, 'usernames', usernameLower);
-      const usernameDoc = await getDoc(usernameDocRef);
-      if (usernameDoc.exists()) {
+      if (needsUsername && (await getDoc(doc(firestore, 'usernames', usernameLower))).exists()) {
         setIsUsernameAvailable(false);
         throw new Error("This username is already in use.");
+      }
+
+      // Returning members only fill in what's missing from their profile
+      if (isReturning && user) {
+        const batch = writeBatch(firestore);
+        const missing: Partial<UserProfile> = {};
+        if (needsTimezone) missing.utcOffset = offsetNum;
+        if (needsUsername) {
+          missing.username = username;
+          missing.username_lowercase = usernameLower;
+          batch.set(doc(firestore, "usernames", usernameLower), { uid: user.uid });
+        }
+        batch.update(doc(firestore, "users", user.uid), missing);
+        await batch.commit();
+        setProfile({ ...profile, ...missing });
+        return;
       }
 
       let finalUser: FirebaseUser;
@@ -202,17 +220,16 @@ function SignupPageContent() {
       if (isFinishing && currentUser) {
         finalUser = currentUser;
         // Never overwrite a profile that was created in another tab
-        if ((await getDoc(doc(firestore, 'users', currentUser.uid))).exists()) {
-          setHasProfile(true);
+        const existing = await getDoc(doc(firestore, 'users', currentUser.uid));
+        if (existing.exists()) {
+          setProfile(existing.data() as UserProfile);
           return;
         }
-      } else if (currentUser && currentUser.isAnonymous) {
-        const credential = EmailAuthProvider.credential(email, password);
-        const userCredential = await linkWithCredential(currentUser, credential);
-        finalUser = userCredential.user;
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         finalUser = userCredential.user;
+        // Google and GitHub confirm emails themselves; email sign-ups confirm here
+        sendEmailVerification(finalUser).catch(() => {});
       }
 
       const batch = writeBatch(firestore);
@@ -246,7 +263,10 @@ function SignupPageContent() {
       batch.set(userDocRef, userData, { merge: true }); 
       batch.set(doc(firestore, "usernames", usernameLower), { uid: finalUser.uid });
       await batch.commit();
-      setHasProfile(true);
+      setProfile(userData);
+      // Go straight on, so a slow profile read from before the commit can't
+      // show the finishing step again
+      router.push(redirectUrl);
         
     } catch (error: any) {
       toast({ variant: "destructive", title: "Sign up failed", description: error.message });
@@ -255,7 +275,7 @@ function SignupPageContent() {
     }
   };
   
-  if (isUserLoading || (isSignedIn && !isFinishing && !isSubmitting)) {
+  if (isUserLoading || (user && !isFinishing && !isSubmitting)) {
     return <LoadingSkeleton />;
   }
 
@@ -268,7 +288,9 @@ function SignupPageContent() {
           <CardHeader>
             <CardTitle className="font-headline text-2xl">{isFinishing ? 'Finish Your Account' : 'Create an Account'}</CardTitle>
             <CardDescription>
-              {isFinishing
+              {isReturning
+                ? `Welcome back! We need ${needsUsername && needsTimezone ? 'a username and your timezone' : needsUsername ? 'a username' : 'your timezone'} so group times and your profile show correctly.`
+                : isFinishing
                 ? `Signed in as ${user?.email || 'your account'}. Pick a username and timezone to finish.`
                 : 'Join our global community of developers.'}
             </CardDescription>
@@ -276,6 +298,7 @@ function SignupPageContent() {
           <CardContent>
             {!isFinishing && <SocialSignInButtons disabled={isSubmitting} />}
             <form onSubmit={handleSignUp} className="grid gap-4">
+              {needsUsername && (
               <div className="grid gap-2">
                 <Label htmlFor="username">Username</Label>
                 <Input
@@ -295,7 +318,9 @@ function SignupPageContent() {
                   {!isUsernameChecking && !usernameError && isUsernameAvailable === true && username.length > 0 && <p className="text-xs text-green-600">Available!</p>}
                 </div>
               </div>
+              )}
 
+              {needsTimezone && (
               <div className="grid gap-2">
                 <Label>What is the UTC timezone for where you will be coding from?</Label>
                 <p className="text-[10px] text-muted-foreground leading-tight">
@@ -318,6 +343,7 @@ function SignupPageContent() {
                     </Select>
                 )}
               </div>
+              )}
 
               {!isFinishing && <>
               <div className="grid gap-2">
@@ -329,7 +355,7 @@ function SignupPageContent() {
                 <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} disabled={isSubmitting} />
               </div>
               </>}
-              <Button type="submit" className="w-full" disabled={isSubmitting || !isUsernameAvailable || !specificOffset}>
+              <Button type="submit" className="w-full" disabled={isSubmitting || (needsUsername && !isUsernameAvailable) || (needsTimezone && !specificOffset)}>
                 {isSubmitting ? 'Creating Account...' : isFinishing ? 'Finish' : 'Create Account'}
               </Button>
             </form>
