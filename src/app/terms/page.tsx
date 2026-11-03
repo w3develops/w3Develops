@@ -133,8 +133,8 @@ export default function TermsPage() {
                 summary="You can leave whenever you like. If we change these terms, we'll tell you."
             >
                 <p>
-                    You can stop using w3Develops at any time, and you can ask us to delete your account (see our{' '}
-                    <Link href="/privacy" className={linkClass}>Privacy Policy</Link>). If we ever have to shut the site down,
+                    You can stop using w3Develops at any time, and you can delete your account yourself from the{' '}
+                    <Link href="/security" className={linkClass}>Security page</Link>. If we ever have to shut the site down,
                     we'll give members advance notice and a chance to download their data.
                 </p>
                 <p>

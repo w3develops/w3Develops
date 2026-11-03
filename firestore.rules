@@ -112,7 +112,9 @@ service cloud.firestore {
       allow get: if true;
       allow list: if false;
       allow create: if request.auth.uid == request.resource.data.uid;
-      allow update, delete: if false;
+      allow update: if false;
+      // Lets members free up their username when they delete their account
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
     }
 
     match /announcements/{announcementId} {
