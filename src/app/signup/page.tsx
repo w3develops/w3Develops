@@ -187,7 +187,6 @@ function SignupPageContent() {
       const userDocRef = doc(firestore, "users", finalUser.uid);
       const userData: Partial<UserProfile> = {
         id: finalUser.uid,
-        email: finalUser.email!,
         username: username,
         username_lowercase: usernameLower,
         utcOffset: offsetNum,

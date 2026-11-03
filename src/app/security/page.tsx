@@ -7,16 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUser, useAuth, useFirestore } from '@/firebase';
+import { useUser, useAuth } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
 import { LoadingSkeleton } from "@/components/layout/loading-skeleton";
 import { sendPasswordResetEmail, updateEmail, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
-import { doc, updateDoc } from 'firebase/firestore';
 
 export default function SecurityPage() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
-  const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -79,10 +77,6 @@ export default function SecurityPage() {
       
       // If re-authentication is successful, update email
       await updateEmail(user, newEmail);
-
-      // Update email in Firestore profile document
-      const userDocRef = doc(firestore, "users", user.uid);
-      await updateDoc(userDocRef, { email: newEmail });
       
       toast({
         title: "Email Change Successful",

@@ -21,7 +21,6 @@ export type PairProgrammingStatus = 'open' | 'closed';
 
 export interface UserProfile {
   id: string;
-  email?: string;
   username: string;
   username_lowercase?: string;
   profilePictureUrl?: string;

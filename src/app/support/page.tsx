@@ -143,8 +143,8 @@ export default function SupportPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {userProfile && userProfile.email ? (
-            <SupportForm username={userProfile.username} userId={user.uid} email={userProfile.email} />
+          {userProfile && user.email ? (
+            <SupportForm username={userProfile.username} userId={user.uid} email={user.email} />
           ) : (
              <div className="text-center py-12">
                 <LifeBuoy className="h-12 w-12 mx-auto text-muted-foreground" />

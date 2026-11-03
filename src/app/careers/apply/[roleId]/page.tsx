@@ -51,10 +51,10 @@ export default function CareerApplyPage() {
 
     useEffect(() => {
         if (userProfile) {
-            setEmail(userProfile.email || '');
+            setEmail(user?.email || '');
             setFullName(userProfile.username || '');
         }
-    }, [userProfile]);
+    }, [userProfile, user]);
 
     useEffect(() => {
         if (!isUserLoading && !user) {
