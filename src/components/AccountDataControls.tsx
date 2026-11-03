@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { collection, deleteDoc, doc, getDoc, getDocs, query, where, writeBatch, type Firestore } from 'firebase/firestore';
-import { deleteUser, EmailAuthProvider, reauthenticateWithCredential, type User } from 'firebase/auth';
+import { deleteUser, EmailAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup, type User } from 'firebase/auth';
 import { useFirestore } from '@/firebase';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { makeProvider } from '@/components/SocialSignInButtons';
 
 const REQUEST_COLLECTIONS = ['mentorshipRequests', 'tutorRequests', 'pairRequests'];
 
@@ -49,6 +50,9 @@ export default function AccountDataControls({ user }: { user: User }) {
     const [password, setPassword] = useState('');
     const [confirmation, setConfirmation] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
+    // Members who signed up with Google or GitHub have no password to confirm with
+    const hasPassword = user.providerData.some(p => p.providerId === 'password');
+    const socialProviderId = user.providerData.find(p => makeProvider(p.providerId))?.providerId;
 
     const handleExport = async () => {
         setIsExporting(true);
@@ -70,11 +74,14 @@ export default function AccountDataControls({ user }: { user: User }) {
 
     const handleDelete = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user.email) return;
         setIsDeleting(true);
         try {
             // Firebase requires a recent sign-in before deleting an account
-            await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
+            if (hasPassword && user.email) {
+                await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
+            } else if (socialProviderId) {
+                await reauthenticateWithPopup(user, makeProvider(socialProviderId)!);
+            }
 
             const profile = await getDoc(doc(firestore, 'users', user.uid));
             const username = profile.data()?.username_lowercase as string | undefined;
@@ -129,15 +136,17 @@ export default function AccountDataControls({ user }: { user: User }) {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleDelete} className="space-y-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="delete-password">Current Password</Label>
-                            <Input id="delete-password" type="password" value={password} onChange={e => setPassword(e.target.value)} required disabled={isDeleting} />
-                        </div>
+                        {hasPassword && (
+                            <div className="grid gap-2">
+                                <Label htmlFor="delete-password">Current Password</Label>
+                                <Input id="delete-password" type="password" value={password} onChange={e => setPassword(e.target.value)} required disabled={isDeleting} />
+                            </div>
+                        )}
                         <div className="grid gap-2">
                             <Label htmlFor="delete-confirm">Type DELETE to confirm</Label>
                             <Input id="delete-confirm" value={confirmation} onChange={e => setConfirmation(e.target.value)} disabled={isDeleting} />
                         </div>
-                        <Button type="submit" variant="destructive" disabled={isDeleting || confirmation !== 'DELETE' || !password}>
+                        <Button type="submit" variant="destructive" disabled={isDeleting || confirmation !== 'DELETE' || (hasPassword && !password)}>
                             {isDeleting ? 'Deleting...' : 'Delete My Account'}
                         </Button>
                     </form>

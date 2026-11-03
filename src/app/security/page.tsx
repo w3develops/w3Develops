@@ -114,6 +114,10 @@ export default function SecurityPage() {
   };
 
 
+  // Google and GitHub members manage their password and email with that provider
+  const hasPassword = !!user?.providerData.some(p => p.providerId === 'password');
+  const providerName = user?.providerData.some(p => p.providerId === 'github.com') ? 'GitHub' : 'Google';
+
   if (isUserLoading || !user) {
     return (
         <div className="p-4 md:p-10">
@@ -124,6 +128,18 @@ export default function SecurityPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 p-4 md:p-10">
+      {!hasPassword && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Sign-in</CardTitle>
+            <CardDescription>
+              You sign in with {providerName}{user.email ? ` as ${user.email}` : ''}. Your password and email are managed there.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
+      {hasPassword && <>
       <Card>
         <CardHeader>
           <CardTitle>Change Password</CardTitle>
@@ -180,6 +196,7 @@ export default function SecurityPage() {
           </form>
         </CardContent>
       </Card>
+      </>}
 
       <AccountDataControls user={user} />
     </div>

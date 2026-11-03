@@ -8,13 +8,16 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useAuth, useUser, initiateEmailSignIn } from '@/firebase';
+import { useAuth, useUser, useFirestore, initiateEmailSignIn } from '@/firebase';
 import { useToast } from '@/components/ui/use-toast';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { sendPasswordResetEmail } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import SocialSignInButtons from '@/components/SocialSignInButtons';
 
 function LoginPageContent() {
   const auth = useAuth();
+  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -25,11 +28,18 @@ function LoginPageContent() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // First-time Google or GitHub members have no profile yet, so they
+  // pick a username on the signup page before going on
   useEffect(() => {
-    if (!isUserLoading && user) {
+    if (isUserLoading || !user) return;
+    if (user.isAnonymous) {
       router.push(redirectUrl);
+      return;
     }
-  }, [user, isUserLoading, router, redirectUrl]);
+    getDoc(doc(firestore, 'users', user.uid))
+      .then(snap => router.push(snap.exists() ? redirectUrl : `/signup?redirect=${encodeURIComponent(redirectUrl)}`))
+      .catch(() => router.push(redirectUrl));
+  }, [user, isUserLoading, firestore, router, redirectUrl]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,9 +99,10 @@ function LoginPageContent() {
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle className="font-headline text-2xl">Login</CardTitle>
-            <CardDescription>Enter your email below to login to your account.</CardDescription>
+            <CardDescription>Log in with Google, GitHub or your email.</CardDescription>
           </CardHeader>
           <CardContent>
+            <SocialSignInButtons disabled={isSubmitting} />
             <form onSubmit={handleSignIn} className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
