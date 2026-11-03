@@ -78,7 +78,7 @@ export default function SettingsPage() {
                    <div className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
                             <h4 className="font-medium">Security</h4>
-                            <p className="text-sm text-muted-foreground">Change your password and email address.</p>
+                            <p className="text-sm text-muted-foreground">Change your password or email, download your data, or delete your account.</p>
                         </div>
                         <Button asChild>
                             <Link href="/security">Manage Security</Link>

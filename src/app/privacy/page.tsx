@@ -124,11 +124,12 @@ export default function PrivacyPage() {
                 <ul className="list-disc pl-6 space-y-2">
                     <li><strong>Change it:</strong> edit your profile and notification settings at any time.</li>
                     <li>
-                        <strong>Get a copy:</strong> email us and we'll send you a copy of your data in a format you can reuse.
+                        <strong>Get a copy:</strong> use <em>Download My Data</em> on the{' '}
+                        <Link href="/security" className={linkClass}>Security page</Link>, or email us and we'll send it to you.
                     </li>
                     <li>
-                        <strong>Delete it:</strong> email us and we'll delete your account and the personal information tied to
-                        it. Things you posted in shared spaces, like group project tasks, may be kept without your name so the
+                        <strong>Delete it:</strong> use <em>Delete My Account</em> on the Security page, or email us and we'll
+                        do it for you. Things you posted in shared spaces, like group project tasks, may be kept without your name so the
                         group's work still makes sense.
                     </li>
                     <li>

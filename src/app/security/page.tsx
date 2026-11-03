@@ -11,6 +11,7 @@ import { useUser, useAuth } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
 import { LoadingSkeleton } from "@/components/layout/loading-skeleton";
 import { sendPasswordResetEmail, updateEmail, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import AccountDataControls from '@/components/AccountDataControls';
 
 export default function SecurityPage() {
   const { user, isUserLoading } = useUser();
@@ -180,6 +181,7 @@ export default function SecurityPage() {
         </CardContent>
       </Card>
 
+      <AccountDataControls user={user} />
     </div>
   );
 }
