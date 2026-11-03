@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { formatTimestamp } from '@/lib/utils';
 import { ONE_WEEK_IN_MS } from '@/lib/constants';
 import { JoinGroupModal } from '@/components/modals/JoinGroupModal';
-import JoinGroupButton from '@/components/JoinGroupButton';
+import JoinButton from '@/components/JoinButton';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 
 function GroupCardSkeleton() {
@@ -166,7 +166,7 @@ export default function GroupsPage() {
                       </div>
                     </div>
                     <div className="flex items-center">
-                       {isNew && <JoinGroupButton group={group} />}
+                       {isNew && <JoinButton kind="studyGroup" item={group} />}
                     </div>
                   </CardContent>
                 </Card>
@@ -203,7 +203,7 @@ export default function GroupsPage() {
                         <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(group.createdAt)}</div>
                         </div>
                     </div>
-                    <JoinGroupButton group={group} />
+                    <JoinButton kind="studyGroup" item={group} />
                   </CardContent>
                 </Card>
               ))}

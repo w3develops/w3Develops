@@ -15,7 +15,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { topics, ONE_WEEK_IN_MS } from '@/lib/constants';
 import { collection, query, where, Query, Timestamp } from 'firebase/firestore';
 import { BookClub } from '@/lib/types';
-import JoinBookClubButton from '../JoinBookClubButton';
+import JoinButton from '../JoinButton';
 import Link from 'next/link';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose, DrawerFooter, DrawerDescription } from '@/components/ui/drawer';
 import { ChevronDown } from 'lucide-react';
@@ -186,7 +186,7 @@ export function JoinBookClubModal({ isOpen, onClose }: JoinBookClubModalProps) {
                       <p className="font-semibold">{club.name}</p>
                       <p className="text-sm text-muted-foreground">{club.memberIds.length} / 25 members</p>
                     </div>
-                    <JoinBookClubButton club={club} onJoinSuccess={handleJoinSuccess} />
+                    <JoinButton kind="bookClub" item={club} onJoinSuccess={handleJoinSuccess} />
                   </div>
                 ))}
               </div>
