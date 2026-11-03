@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { Task, UserProfile } from '@/lib/types';
 import { collection, query, orderBy, addDoc, updateDoc, serverTimestamp, writeBatch, documentId, getDocs, where, doc, deleteDoc } from 'firebase/firestore';
@@ -21,7 +22,7 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 interface TaskListProps {
-  groupOrCohortId: string;
+  parentId: string;
   collectionPath: 'studyGroups' | 'groupProjects' | 'bookClubs' | 'mentorships' | 'tutorships' | 'pairings' | 'meetups';
   memberIds: string[];
 }
@@ -90,7 +91,7 @@ function SortableTaskItem({ task, userProfiles, isMember, onToggle, onDelete, us
     );
 }
 
-export default function TaskList({ groupOrCohortId, collectionPath, memberIds }: TaskListProps) {
+export default function TaskList({ parentId, collectionPath, memberIds }: TaskListProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -101,8 +102,8 @@ export default function TaskList({ groupOrCohortId, collectionPath, memberIds }:
   const [activeTasks, setActiveTasks] = useState<Task[]>([]);
 
   const tasksCollectionRef = useMemo(() => 
-    collection(firestore, collectionPath, groupOrCohortId, 'tasks'),
-    [firestore, collectionPath, groupOrCohortId]
+    collection(firestore, collectionPath, parentId, 'tasks'),
+    [firestore, collectionPath, parentId]
   );
   
   const tasksQuery = useMemo(() => 
@@ -146,7 +147,9 @@ export default function TaskList({ groupOrCohortId, collectionPath, memberIds }:
     fetchProfiles();
   }, [tasks, firestore, userProfiles]);
 
+  const ensureVerified = useVerifiedGuard();
   const handleAddTask = () => {
+      if (!ensureVerified()) return;
     if (!user || !isMember || !newTask.trim() || !newPriority) return;
 
     const highestPosition = tasks && tasks.length > 0 ? Math.max(...tasks.map(t => t.position)) : 0;
@@ -178,7 +181,7 @@ export default function TaskList({ groupOrCohortId, collectionPath, memberIds }:
 
   const handleToggleTask = (task: Task) => {
     if (!user || !isMember) return;
-    const taskRef = doc(firestore, collectionPath, groupOrCohortId, 'tasks', task.id);
+    const taskRef = doc(firestore, collectionPath, parentId, 'tasks', task.id);
     const updateData = {
         isCompleted: !task.isCompleted,
         completedBy: task.isCompleted ? null : user.uid,

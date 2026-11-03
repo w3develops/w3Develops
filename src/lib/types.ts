@@ -25,7 +25,7 @@ export interface UserProfile {
   username_lowercase?: string;
   profilePictureUrl?: string;
   bio?: string;
-  utcOffset: number; // Mandatory for time coordination
+  timezone?: string; // e.g. "America/New_York", detected from the browser
   socialLinks?: {
     github?: string;
     linkedin?: string;
@@ -38,12 +38,6 @@ export interface UserProfile {
   followers?: string[];
   following?: string[];
   followInfoPrivate?: boolean;
-  createdStudyGroupIds?: string[];
-  joinedStudyGroupIds?: string[];
-  createdGroupProjectIds?: string[];
-  joinedGroupProjectIds?: string[];
-  createdBookClubIds?: string[];
-  joinedBookClubIds?: string[];
   createdMeetupIds?: string[];
   joinedMeetupIds?: string[];
   soloProjectIds?: string[];
@@ -83,48 +77,28 @@ export interface GlobalAnnouncement {
   createdAt: Timestamp;
 }
 
-export interface GroupProject {
+// Study groups, group projects and book clubs share one shape; see src/lib/groups.ts
+export interface Group {
   id: string;
   name: string;
   name_lowercase: string;
   creatorId: string;
   description: string;
   memberIds: string[];
-  githubUrl?: string;
   topic: string;
-  startTimeUTC: string; // HH:mm format
-  commitment: string;
-  commitmentDays: string[];
+  commitment?: string; // e.g. "4hr/day"
+  commitmentHours?: string; // older book clubs only
+  commitmentDays: string[]; // days in the host's timezone
+  startTime?: string; // "HH:mm" in the host's timezone
+  timezone?: string; // the host's timezone, e.g. "America/New_York"
+  githubUrl?: string; // group projects only
   createdAt: Timestamp;
 }
+export type StudyGroup = Group;
+export type GroupProject = Group;
+export type BookClub = Group;
 
-export interface StudyGroup {
-  id: string;
-  name: string;
-  name_lowercase: string;
-  creatorId: string;
-  description: string;
-  memberIds: string[];
-  topic: string;
-  startTimeUTC: string; // HH:mm format
-  commitment: string;
-  commitmentDays: string[];
-  createdAt: Timestamp;
-}
 
-export interface BookClub {
-  id: string;
-  name: string;
-  name_lowercase: string;
-  creatorId: string;
-  description: string;
-  memberIds: string[];
-  topic: string;
-  startTimeUTC: string; // HH:mm format
-  commitmentHours: string;
-  commitmentDays: string[];
-  createdAt: Timestamp;
-}
 
 export interface Meetup {
     id: string;
@@ -136,7 +110,6 @@ export interface Meetup {
     attendeeIds: string[];
     dateTime: Timestamp;
     timezone: string;
-    startTimeUTC: string; // HH:mm format
     locationType: 'Online' | 'In-Person' | 'Hybrid';
     locationAddress?: string;
     virtualLink?: string;
@@ -153,7 +126,6 @@ export interface Competition {
   creatorId: string;
   startDate: Timestamp;
   endDate: Timestamp;
-  startTimeUTC: string; // HH:mm format
   winnerId?: string;
   createdAt: Timestamp;
 }

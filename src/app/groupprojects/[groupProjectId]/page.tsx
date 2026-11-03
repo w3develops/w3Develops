@@ -1,9 +1,9 @@
-import GroupProjectDashboardPage from './client';
+import GroupDashboard from '@/components/groups/GroupDashboard';
 
 export async function generateStaticParams() {
   return [];
 }
 
 export default function Page({ params }: { params: { groupProjectId: string } }) {
-  return <GroupProjectDashboardPage params={params} />;
+  return <GroupDashboard kind="groupProject" groupId={params.groupProjectId} />;
 }

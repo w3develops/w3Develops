@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
-import { UserProfile, CheckIn, Task } from '@/lib/types';
-import { collection, query, where, orderBy, limit, getDocs, doc, documentId, Timestamp } from 'firebase/firestore';
+import { CheckIn, Task } from '@/lib/types';
+import { GROUP_KINDS } from '@/lib/groups';
+import { collection, query, where, orderBy, limit, getDocs, Timestamp } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { timeAgo } from '@/lib/utils';
 import Link from 'next/link';
@@ -24,7 +25,7 @@ type TaskActivity = Task & {
 type ActivityItem = CheckInActivity | TaskActivity;
 
 interface ActivityFeedProps {
-    userProfile: UserProfile;
+    uid: string;
 }
 
 const ActivityItemCard = ({ item }: { item: ActivityItem }) => {
@@ -66,58 +67,24 @@ const ActivityItemCard = ({ item }: { item: ActivityItem }) => {
     )
 }
 
-export default function ActivityFeed({ userProfile }: ActivityFeedProps) {
+export default function ActivityFeed({ uid }: ActivityFeedProps) {
     const firestore = useFirestore();
     const [activity, setActivity] = useState<ActivityItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const groupIds = useMemo(() => {
-        const allIds = [
-            ...(userProfile.createdStudyGroupIds || []),
-            ...(userProfile.joinedStudyGroupIds || []),
-            ...(userProfile.createdGroupProjectIds || []),
-            ...(userProfile.joinedGroupProjectIds || []),
-            ...(userProfile.createdBookClubIds || []),
-            ...(userProfile.joinedBookClubIds || []),
-        ];
-        return [...new Set(allIds)];
-    }, [userProfile]);
-    
-    const collectionMap = useMemo(() => ({
-        studyGroups: 'studyGroups',
-        groupProjects: 'groupProjects',
-        bookClubs: 'bookClubs',
-    }), []);
-
     useEffect(() => {
         const fetchActivity = async () => {
-            if (groupIds.length === 0) {
-                setIsLoading(false);
-                return;
-            }
-
             setIsLoading(true);
             let allItems: ActivityItem[] = [];
-            const parentDocs: { [key: string]: ParentInfo } = {};
-            
+            const parentDocs: { [key: string]: ParentInfo & { collection: string } } = {};
+
             try {
-                // 1. Fetch all parent documents to get their names
-                const groupTypes = Object.keys(collectionMap) as (keyof typeof collectionMap)[];
-                for (const type of groupTypes) {
-                    const idsKey = `created${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof UserProfile;
-                    const joinedIdsKey = `joined${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof UserProfile;
-                    
-                    const ids = [
-                        ...((userProfile[idsKey] as string[]) || []),
-                        ...((userProfile[joinedIdsKey] as string[]) || [])
-                    ];
-                    
-                    if (ids.length > 0) {
-                        const docsSnap = await getDocs(query(collection(firestore, collectionMap[type]), where(documentId(), 'in', ids.slice(0,30))));
-                        docsSnap.forEach(d => {
-                            parentDocs[d.id] = { id: d.id, name: d.data().name, path: `/${collectionMap[type]}/${d.id}` };
-                        });
-                    }
+                // 1. Find the member's groups from each group's member list
+                for (const config of Object.values(GROUP_KINDS)) {
+                    const snap = await getDocs(query(collection(firestore, config.collection), where('memberIds', 'array-contains', uid)));
+                    snap.forEach(d => {
+                        parentDocs[d.id] = { id: d.id, name: d.data().name, path: `${config.path}/${d.id}`, collection: config.collection };
+                    });
                 }
 
                 // 2. Fetch recent check-ins and tasks for each group
@@ -125,7 +92,7 @@ export default function ActivityFeed({ userProfile }: ActivityFeedProps) {
 
                 for (const parentId in parentDocs) {
                     const parent = parentDocs[parentId];
-                    const collectionName = parent.path.split('/')[1];
+                    const collectionName = parent.collection;
                     
                     const subcollections = ['checkIns', 'tasks'] as const;
                     for (const sub of subcollections) {
@@ -175,7 +142,7 @@ export default function ActivityFeed({ userProfile }: ActivityFeedProps) {
         };
 
         fetchActivity();
-    }, [firestore, groupIds, collectionMap, userProfile]);
+    }, [firestore, uid]);
 
     return (
         <Card>

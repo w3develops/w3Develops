@@ -20,6 +20,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { doc, DocumentReference, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { UserProfile } from '@/lib/types';
 import NotificationBell from '@/components/notifications/NotificationBell';
+import { browserTimeZone } from '@/lib/timezones';
 import Sidebar from './sidebar';
 import { useToast } from '../ui/use-toast';
 
@@ -70,24 +71,28 @@ export default function Header() {
 
   const isLoading = isUserLoading || isProfileLoading;
 
-  // Members missing something required (a new Google or GitHub member with no
-  // profile, or an older member with no username or timezone) get sent to
-  // finish it. A fresh read confirms it, since the live listener can lag
-  // behind a new sign-in.
+  // Members missing a profile or username (like a new Google or GitHub member
+  // who left before finishing) get sent to finish it. A fresh read confirms
+  // it, since the live listener can lag behind a new sign-in.
   const needsCheck = !!user && !isLoading && pathname !== '/signup' && pathname !== '/login'
-    && (!userProfile || !userProfile.username || userProfile.utcOffset === undefined || userProfile.utcOffset === null);
+    && (!userProfile || !userProfile.username);
   useEffect(() => {
     if (!needsCheck || !user) return;
     let cancelled = false;
     getDoc(doc(firestore, 'users', user.uid))
       .then(snap => {
-        const data = snap.data();
-        const incomplete = !data || !data.username || data.utcOffset === undefined || data.utcOffset === null;
-        if (!cancelled && incomplete) router.replace(`/signup?redirect=${encodeURIComponent(pathname)}`);
+        if (!cancelled && !snap.data()?.username) router.replace(`/signup?redirect=${encodeURIComponent(pathname)}`);
       })
       .catch(() => {});
     return () => { cancelled = true; };
   }, [needsCheck, user, firestore, router, pathname]);
+
+  // Older profiles have no timezone, so save the one the browser reports
+  useEffect(() => {
+    if (user && userProfile?.username && !userProfile.timezone) {
+      updateDoc(doc(firestore, 'users', user.uid), { timezone: browserTimeZone() }).catch(() => {});
+    }
+  }, [user, userProfile?.username, userProfile?.timezone, firestore]);
   
   const username = userProfile?.username || user?.email;
   const avatarFallback = userProfile?.username?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase();

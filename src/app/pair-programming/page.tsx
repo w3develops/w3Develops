@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { Button } from "@/components/ui/button";
 import { useUser, useFirestore, useDoc, useCollection } from '@/firebase';
 import { useRouter } from "next/navigation";
@@ -130,7 +131,9 @@ function PairingDashboard({ user, userProfile }: { user: any, userProfile: UserP
 
     const { data: incomingRequests, isLoading: isLoadingRequests } = useCollection<PairingRequest>(incomingRequestsQuery);
 
+    const ensureVerified = useVerifiedGuard();
     const handleRequest = async (request: PairingRequest, newStatus: 'accepted' | 'declined') => {
+        if (!ensureVerified()) return;
         const requestRef = doc(firestore, 'pairRequests', request.id);
         const batch = writeBatch(firestore);
 
@@ -273,7 +276,9 @@ function PairingFinder({ currentUserProfile }: { currentUserProfile: UserProfile
         return Array.from(combined.values());
     }, [sentRequests, receivedRequests]);
 
+    const ensureVerified = useVerifiedGuard();
     const handleRequest = async (targetUser: UserProfile) => {
+        if (!ensureVerified()) return;
         const requestsCollection = collection(firestore, 'pairRequests');
         const requestData = {
             fromUid: currentUserProfile.id,

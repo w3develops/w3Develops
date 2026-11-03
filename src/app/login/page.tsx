@@ -28,15 +28,13 @@ function LoginPageContent() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Members missing a profile, username or timezone finish on the
-  // signup page before going on
+  // Members missing a profile or username finish on the signup page
+  // before going on
   useEffect(() => {
     if (isUserLoading || !user) return;
     getDoc(doc(firestore, 'users', user.uid))
       .then(snap => {
-        const data = snap.data();
-        const complete = data && data.username && data.utcOffset !== undefined && data.utcOffset !== null;
-        router.push(complete ? redirectUrl : `/signup?redirect=${encodeURIComponent(redirectUrl)}`);
+        router.push(snap.data()?.username ? redirectUrl : `/signup?redirect=${encodeURIComponent(redirectUrl)}`);
       })
       .catch(() => router.push(redirectUrl));
   }, [user, isUserLoading, firestore, router, redirectUrl]);

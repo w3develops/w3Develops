@@ -1,19 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { sendEmailVerification } from 'firebase/auth';
 import { useUser } from '@/firebase';
 import { useToast } from '@/components/ui/use-toast';
+import { needsEmailVerification } from '@/lib/hooks/useVerifiedGuard';
 
-// Reminds members who signed up with email to confirm it. Google and GitHub
-// accounts arrive already verified, so they never see this.
+// Email sign-ups confirm their address before joining or posting. Google and
+// GitHub accounts arrive already verified, so they never see this.
 export default function EmailVerificationBanner() {
     const { user } = useUser();
     const { toast } = useToast();
     const [isSending, setIsSending] = useState(false);
     const [verified, setVerified] = useState(false);
+    const waiting = !!user && !verified && needsEmailVerification(user);
 
-    if (!user || user.emailVerified || verified || !user.providerData.some(p => p.providerId === 'password')) {
+    // Most people click the link in another tab, so check again when they come back
+    useEffect(() => {
+        if (!waiting || !user) return;
+        const onFocus = async () => {
+            await user.reload().catch(() => {});
+            if (user.emailVerified) {
+                // Fresh token so security rules see the verified email right away
+                await user.getIdToken(true);
+                setVerified(true);
+            }
+        };
+        window.addEventListener('focus', onFocus);
+        return () => window.removeEventListener('focus', onFocus);
+    }, [waiting, user]);
+
+    if (!waiting || !user) {
         return null;
     }
 
@@ -49,7 +66,7 @@ export default function EmailVerificationBanner() {
     return (
         <div className="bg-primary/15 border-b border-primary/30 text-sm">
             <div className="container mx-auto flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
-                <span>Please verify your email address{user.email ? ` (${user.email})` : ''}.</span>
+                <span>Verify your email{user.email ? ` (${user.email})` : ''} to join groups and post. Check your inbox for the link.</span>
                 <button type="button" onClick={resend} disabled={isSending} className="underline">
                     {isSending ? 'Sending...' : 'Resend email'}
                 </button>

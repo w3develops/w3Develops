@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Calendar, Clock, Trophy, User, PlusCircle, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
-import { formatTimestamp, convertUTCToLocal } from '@/lib/utils';
+import { formatTimestamp } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -138,14 +138,6 @@ export default function CompetitionDashboardPage({ params }: { params: { competi
            <div className="grid md:grid-cols-2 gap-x-6 gap-y-4 text-sm md:text-base">
                 <div className="flex items-start gap-3"><Calendar className="w-5 h-5 mt-1 flex-shrink-0" /><p><span className="font-semibold">Starts:</span> {formatTimestamp(competition.startDate, true)}</p></div>
                 <div className="flex items-start gap-3"><Clock className="w-5 h-5 mt-1 flex-shrink-0" /><p><span className="font-semibold">Ends:</span> {formatTimestamp(competition.endDate, true)}</p></div>
-                {competition.startTimeUTC && (
-                    <div className="flex items-start gap-3 text-primary">
-                        <Clock className="w-5 h-5 mt-1 flex-shrink-0" />
-                        <div>
-                            <p><span className="font-semibold">Local Launch:</span> {currentUserProfile ? convertUTCToLocal(competition.startTimeUTC, currentUserProfile.utcOffset) : `${competition.startTimeUTC} UTC`}</p>
-                        </div>
-                    </div>
-                )}
                 <div className="flex items-start gap-3"><Trophy className="w-5 h-5 mt-1 flex-shrink-0" /><p><span className="font-semibold">Prize:</span> {competition.prize}</p></div>
                 {creator && <div className="flex items-start gap-3"><User className="w-5 h-5 mt-1 flex-shrink-0" /><p><span className="font-semibold">Hosted by:</span> <Link href={`/users/${creator.id}`} className="font-semibold hover:underline">{creator.username}</Link></p></div>}
            </div>

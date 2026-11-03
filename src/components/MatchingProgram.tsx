@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { Button } from "@/components/ui/button";
 import { useUser, useFirestore, useDoc, useCollection } from '@/firebase';
 import { useRouter } from "next/navigation";
@@ -208,7 +209,9 @@ function Dashboard({ config, user, userProfile }: { config: MatchingConfig; user
 
     const { data: incomingRequests, isLoading: isLoadingRequests } = useCollection<MatchingRequest>(incomingRequestsQuery);
 
+    const ensureVerified = useVerifiedGuard();
     const handleRequest = async (request: MatchingRequest, newStatus: 'accepted' | 'declined') => {
+        if (!ensureVerified()) return;
         const batch = writeBatch(firestore);
         batch.update(doc(firestore, config.requestsCollection, request.id), { status: newStatus });
         let batchUpdateData = {};
@@ -368,7 +371,9 @@ function Finder({ config, currentUserProfile }: { config: MatchingConfig; curren
         return Array.from(combined.values());
     }, [sentRequests, receivedRequests]);
 
+    const ensureVerified = useVerifiedGuard();
     const sendRequest = async (targetUser: UserProfile, type: string) => {
+        if (!ensureVerified()) return;
         const requestsCollection = collection(firestore, config.requestsCollection);
         const requestData = {
             fromUid: currentUserProfile.id,
