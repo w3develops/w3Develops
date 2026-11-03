@@ -7,6 +7,7 @@ Started November 2, 2026. Updated November 3, 2026.
 - **Member emails were public.** All 90 profiles had their email readable by anyone. Emails now live only in Firebase Auth, were removed from every profile, and the rules reject any profile containing one. `firestore.rules` is back in sync with the live rules, which had been deployed without being committed.
 - **Warrant canary renewed** (next update due February 1, 2027), and the fake PGP placeholder removed.
 - **Account deletion and data export** are now on the Security page.
+- **The unused `studio` App Hosting backend is deleted.** Only `w3develops-backend-id` (w3develops.org) builds now.
 - **News brief:** a failed Jev refresh keeps the last good brief instead of caching keyword sorting for a day.
 - **Dead RSS feeds** removed, and Tom's Hardware's moved feed fixed.
 - **Env precedence** is documented in `apphosting.yaml`.
@@ -18,7 +19,6 @@ Started November 2, 2026. Updated November 3, 2026.
 
 ## Needs a decision from you
 
-- **Two App Hosting backends.** `studio` and `w3develops-backend-id` both build every push, but only `w3develops-backend-id` serves w3develops.org. Deleting `studio` would halve build time and Jev spend, but it can't be undone.
 - **Google Analytics.** It's disclosed on `/cookies`. Remove `measurementId` from `src/firebase/config.ts` if you'd rather not use it.
 - **YouTube feeds.** The channel ID in the news feeds and the podcast playlist (`src/app/api/podcast/route.ts`) both return 404. Replace them with the current channel and playlist IDs.
 - **The old repo, `w3develops/w3Develops`.** It still gets issues and looks active. Archive it, or add a note pointing to `JonDevOps/w3Develops`.
