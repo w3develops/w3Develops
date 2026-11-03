@@ -1,125 +1,155 @@
-'use client';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Scale } from 'lucide-react';
+import { LegalPage, LegalSection } from '@/components/LegalPage';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Scale, Zap, Gavel, FileCode, DoorOpen, Terminal } from 'lucide-react';
+export const metadata: Metadata = {
+    title: 'Terms of Use | w3Develops',
+    description: 'The ground rules for using w3Develops, written in plain language: be kind, own your work, and help each other learn.',
+};
+
+const linkClass = 'text-primary underline';
 
 export default function TermsPage() {
     return (
-        <div className="max-w-4xl mx-auto p-4 md:p-10 space-y-8">
-            <header className="text-center space-y-4">
-                <Scale className="h-12 w-12 mx-auto text-primary" />
-                <h1 className="text-4xl font-headline font-bold">Terms of Use</h1>
-                <p className="text-muted-foreground max-w-2xl mx-auto">
-                    Our attempt at a "Cory Doctorow-approved" terms of service built on agency, transparency, and the rejection of enshittification.
+        <LegalPage
+            icon={<Scale className="h-10 w-10" />}
+            title="Terms of Use"
+            lastUpdated="November 2, 2026"
+            intro={
+                <>
+                    <p>
+                        w3Develops is a free community where developers learn, build and team up. These terms are the ground rules
+                        that keep it working. We've tried to keep them short and readable.
+                    </p>
+                    <p>
+                        By using w3Develops you agree to these terms and to our{' '}
+                        <Link href="/privacy" className={linkClass}>Privacy Policy</Link>.
+                    </p>
+                </>
+            }
+        >
+            <LegalSection
+                title="Your account"
+                summary="You need to be 13 or older. Use a real email address and keep your password to yourself."
+            >
+                <p>
+                    You need to be at least 13 years old to make an account. Please use an email address you can access, keep
+                    your password safe, and let us know if you think someone else is using your account. You're responsible for
+                    what happens on your account, so don't share it.
                 </p>
-                <p className="text-sm text-muted-foreground italic font-mono uppercase tracking-widest">
-                    Last Hardened: February 7, 2026
+            </LegalSection>
+
+            <LegalSection
+                title="Be a good community member"
+                summary="Treat people with respect and help each other learn."
+            >
+                <p>People here are at every level, from writing their first line of code to leading teams. Please don't:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                    <li>Harass, threaten, bully or discriminate against anyone.</li>
+                    <li>Share someone's private information without their permission.</li>
+                    <li>Post spam, scams, malware, or anything illegal.</li>
+                    <li>Pretend to be someone you're not.</li>
+                    <li>Post other people's work as your own, or share content you don't have the right to share.</li>
+                    <li>Try to break into accounts, or disrupt the site for others.</li>
+                </ul>
+                <p>
+                    If someone breaks these rules, we may remove their content or suspend their account. We'll try to explain
+                    why, and if you think we got it wrong, email us and we'll take another look.
                 </p>
-            </header>
+            </LegalSection>
 
-            <Card className="border-2 border-primary/20">
-                <CardHeader className="bg-primary/5">
-                    <CardTitle className="flex items-center gap-2">
-                        <Zap className="h-5 w-5 text-primary" />
-                        The Golden Rule
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6 space-y-4">
-                    <div className="p-3 bg-muted rounded-md border-l-4 border-primary">
-                        <p className="text-sm font-bold uppercase">TL;DR:</p>
-                        <p className="text-sm">We provide the tools, you provide the talent. Don't be a jerk, and we won't treat you like a product.</p>
-                    </div>
-                    <p>
-                        These Terms are not a trap. They are a mutual agreement between peers. By using w3Develops, you agree to respect the community and the platform, and we agree to respect your rights as an individual.
-                    </p>
-                </CardContent>
-            </Card>
+            <LegalSection
+                title="Your work is yours"
+                summary="You keep ownership of everything you create here. You just give us permission to show it on the site."
+            >
+                <p>
+                    You own the code, writing and projects you share on w3Develops. By posting them, you give us permission to
+                    store and display them on w3Develops so the community can see them and work with you. That permission ends
+                    when you delete your content or your account, except for copies other people have already made under an open
+                    license you chose.
+                </p>
+                <p>
+                    We encourage you to share your work under an open source or Creative Commons license so others can learn
+                    from it. Group projects follow whatever license the group picks.
+                </p>
+            </LegalSection>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Terminal className="h-5 w-5 text-primary" />
-                        1. The Right to Interoperate
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="p-3 bg-muted rounded-md border-l-4 border-primary">
-                        <p className="text-sm font-bold uppercase">TL;DR:</p>
-                        <p className="text-sm">You have the right to build tools that interact with your data. We won't sue you for being creative with how you use the site.</p>
-                    </div>
-                    <p>
-                        We reject the use of the DMCA or "Computer Fraud and Abuse" laws to prevent **Adversarial Interoperability**. You have the right to build alternative clients, bots, or scrapers to interact with your own data or public community data, provided they do not disrupt the service for others. We will never use legal threats to stop you from building tools that help you leave or improve your experience.
-                    </p>
-                </CardContent>
-            </Card>
+            <LegalSection
+                title="Building on w3Develops"
+                summary="You're welcome to build tools, bots and scripts that work with the site. Just don't overload it or misuse people's data."
+            >
+                <p>
+                    You're free to build your own tools that work with your own data or public community content, including
+                    apps, bots, browser extensions and scrapers. Please keep them polite: don't overload the site, don't get
+                    around privacy settings, and don't collect members' information to spam or track them. We won't use legal
+                    threats to stop people building tools that help others learn, or that help them take their data elsewhere.
+                </p>
+                <p>
+                    The w3Develops code is{' '}
+                    <a href="https://github.com/JonDevOps/w3Develops" className={linkClass}>open source on GitHub</a> under the BSD 3-Clause license, and
+                    contributions are welcome. The w3Develops name and logo are ours, so please don't use them in a way that
+                    suggests we endorse something we don't.
+                </p>
+            </LegalSection>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <FileCode className="h-5 w-5 text-primary" />
-                        2. User Content & Ownership
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="p-3 bg-muted rounded-md border-l-4 border-primary">
-                        <p className="text-sm font-bold uppercase">TL;DR:</p>
-                        <p className="text-sm">Your code is yours. We only ask for the minimum permission needed to show it to the community.</p>
-                    </div>
-                    <p>
-                        You retain full ownership of the code, text, and projects you submit. When you post content, you grant us a non-exclusive license to display it on the platform. We encourage you to use **Open Source** or **Creative Commons** licenses for your work, ensuring that the community can learn from and build upon your contributions.
-                    </p>
-                </CardContent>
-            </Card>
+            <LegalSection
+                title="Other websites and donations"
+                summary="Links to other sites and donation platforms follow those sites' own rules."
+            >
+                <p>
+                    w3Develops links to many outside resources, like news articles, job listings, tutorials and meetups we don't
+                    run. We aren't responsible for what's on those sites. Donations go through Open Collective, Patreon or PayPal
+                    under their terms. If you donated by mistake, email us and we'll do our best to help.
+                </p>
+            </LegalSection>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Gavel className="h-5 w-5 text-primary" />
-                        3. No Forced Arbitration
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="p-3 bg-muted rounded-md border-l-4 border-primary">
-                        <p className="text-sm font-bold uppercase">TL;DR:</p>
-                        <p className="text-sm">If we have a legal dispute, you keep your right to go to a real court. No secret private "arbitration" here.</p>
-                    </div>
-                    <p>
-                        Many platforms use "Forced Arbitration" to strip users of their day in court. We find this practice abhorrent. If a legal dispute arises that cannot be settled through a simple conversation, you retain the right to resolve it in a court of law or participate in a class-action lawsuit.
-                    </p>
-                </CardContent>
-            </Card>
+            <LegalSection
+                title="The fine print"
+                summary="w3Develops is free and run by volunteers, so we can't promise it will always be perfect."
+            >
+                <p>
+                    We work hard to keep w3Develops running smoothly, but we provide it "as is," without guarantees that it will
+                    always be available or error-free. Advice, code and opinions shared by members are their own, so use your own
+                    judgment before relying on them. To the extent the law allows, w3Develops and its volunteers aren't liable
+                    for indirect losses that come from using the site. Nothing in these terms takes away rights you have under
+                    the consumer protection laws where you live.
+                </p>
+            </LegalSection>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <DoorOpen className="h-5 w-5 text-primary" />
-                        4. Freedom to Leave
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="p-3 bg-muted rounded-md border-l-4 border-primary">
-                        <p className="text-sm font-bold uppercase">TL;DR:</p>
-                        <p className="text-sm">We won't hold your data hostage. You can export your info and delete your account at any time.</p>
-                    </div>
-                    <p>
-                        Platform lock-in is a form of digital serfdom. We commit to **Data Portability**. You can export your data and delete your account whenever you choose. We will not create "roach motels" where it's easy to check in but impossible to leave.
-                    </p>
-                </CardContent>
-            </Card>
+            <LegalSection
+                title="If we disagree"
+                summary="Let's talk first. If that doesn't work, you keep your right to go to court."
+            >
+                <p>
+                    If you have a problem with w3Develops, please email us first. Most things can be sorted out with a
+                    conversation. If they can't, you keep every right you have to take the matter to court, including joining a
+                    class action. We don't use forced arbitration.
+                </p>
+            </LegalSection>
 
-            <Card className="bg-primary/5">
-                <CardHeader>
-                    <CardTitle>5. Community Integrity</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <p>
-                        The only way this works is if we treat each other with respect. Harassment, spam, and malicious disruption are the only things that will get you shown the door.
-                    </p>
-                    <p className="font-semibold text-center py-4">
-                        Questions or concerns? reach out: legal@w3develops.org
-                    </p>
-                </CardContent>
-            </Card>
-        </div>
+            <LegalSection
+                title="Leaving, and changes to these terms"
+                summary="You can leave whenever you like. If we change these terms, we'll tell you."
+            >
+                <p>
+                    You can stop using w3Develops at any time, and you can ask us to delete your account (see our{' '}
+                    <Link href="/privacy" className={linkClass}>Privacy Policy</Link>). If we ever have to shut the site down,
+                    we'll give members advance notice and a chance to download their data.
+                </p>
+                <p>
+                    If we change these terms, we'll update this page and the date at the top, and let members know about
+                    bigger changes before they take effect. You can see every past version{' '}
+                    <a href="https://github.com/JonDevOps/w3Develops/commits/main/src/app/terms/page.tsx" className={linkClass}>on GitHub</a>.
+                </p>
+            </LegalSection>
+
+            <LegalSection title="Questions">
+                <p>
+                    Email <a href="mailto:legal@w3develops.org" className={linkClass}>legal@w3develops.org</a> with any
+                    questions about these terms.
+                </p>
+            </LegalSection>
+        </LegalPage>
     );
 }

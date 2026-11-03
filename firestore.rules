@@ -62,46 +62,50 @@ service cloud.firestore {
              && !listAfter.hasAny([request.auth.uid]);
     }
     
-    function isMentorshipUpdate(userId) {
-        let isAddingMentor = isBeingAddedToList(userId, request.resource.data.get('mentorIds', []), resource.data.get('mentorIds', []));
-        let isAddingMentee = isBeingAddedToList(userId, request.resource.data.get('menteeIds', []), resource.data.get('menteeIds', []));                     
+    function isAcceptingMentorship() {
+        // The person accepting (auth.uid) is adding themselves to the other person's list
+        let isAddingMentor = isBeingAddedToList(request.auth.uid, request.resource.data.get('mentorIds', []), resource.data.get('mentorIds', []));
+        let isAddingMentee = isBeingAddedToList(request.auth.uid, request.resource.data.get('menteeIds', []), resource.data.get('menteeIds', []));                     
         let isAddingMentorshipId = isAddingSelfToList(request.resource.data.get('mentorshipIds', []), resource.data.get('mentorshipIds', []));
         let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
         
-        return (isAddingMentor && changedKeys.hasAll(['mentorIds', 'mentorshipIds']) && changedKeys.size() == 2 && isAddingMentorshipId) ||
-               (isAddingMentee && changedKeys.hasAll(['menteeIds', 'mentorshipIds']) && changedKeys.size() == 2 && isAddingMentorshipId);
+        return (isAddingMentor && changedKeys.hasAll(['mentorIds', 'mentorshipIds']) && isAddingMentorshipId) ||
+               (isAddingMentee && changedKeys.hasAll(['menteeIds', 'mentorshipIds']) && isAddingMentorshipId);
     }
     
-    function isTutorshipUpdate(userId) {
-        let isAddingTutor = isBeingAddedToList(userId, request.resource.data.get('tutorIds', []), resource.data.get('tutorIds', []));
-        let isAddingStudent = isBeingAddedToList(userId, request.resource.data.get('studentIds', []), resource.data.get('studentIds', []));
+    function isAcceptingTutorship() {
+        let isAddingTutor = isBeingAddedToList(request.auth.uid, request.resource.data.get('tutorIds', []), resource.data.get('tutorIds', []));
+        let isAddingStudent = isBeingAddedToList(request.auth.uid, request.resource.data.get('studentIds', []), resource.data.get('studentIds', []));
         let isAddingTutorshipId = isAddingSelfToList(request.resource.data.get('tutorshipIds', []), resource.data.get('tutorshipIds', []));
         let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
 
-        return (isAddingTutor && changedKeys.hasAll(['tutorIds', 'tutorshipIds']) && changedKeys.size() == 2 && isAddingTutorshipId) ||
-               (isAddingStudent && changedKeys.hasAll(['studentIds', 'tutorshipIds']) && changedKeys.size() == 2 && isAddingTutorshipId);
+        return (isAddingTutor && changedKeys.hasAll(['tutorIds', 'tutorshipIds']) && isAddingTutorshipId) ||
+               (isAddingStudent && changedKeys.hasAll(['studentIds', 'tutorshipIds']) && isAddingTutorshipId);
     }
     
-    function isPairingUpdate(userId) {
-        let isAddingPartner = isBeingAddedToList(userId, request.resource.data.get('pairPartnerIds', []), resource.data.get('pairPartnerIds', []));
+    function isAcceptingPairing() {
+        let isAddingPartner = isBeingAddedToList(request.auth.uid, request.resource.data.get('pairPartnerIds', []), resource.data.get('pairPartnerIds', []));
         let isAddingPairingId = isAddingSelfToList(request.resource.data.get('pairingIds', []), resource.data.get('pairingIds', []));
         let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
 
-        return isAddingPartner && changedKeys.hasAll(['pairPartnerIds', 'pairingIds']) && changedKeys.size() == 2 && isAddingPairingId;
+        return isAddingPartner && changedKeys.hasAll(['pairPartnerIds', 'pairingIds']) && isAddingPairingId;
     }
 
+    // Profiles are public, so they must never hold an email address.
+    // Firebase Auth already keeps each member's email privately.
     match /users/{userId} {
       allow read: if true;
-      allow create: if isOwner(userId);
+      allow create: if isOwner(userId) && !('email' in request.resource.data);
       allow delete: if isOwner(userId);
-      allow update: if
+      allow update: if !('email' in request.resource.data) && (
         isOwner(userId) ||
         (
           request.resource.data.diff(resource.data).affectedKeys().size() == 1 &&
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
           (isAddingSelfToList(request.resource.data.followers, resource.data.get('followers', [])) ||
             isRemovingSelfFromList(request.resource.data.followers, resource.data.get('followers', [])))
-        ) || isMentorshipUpdate(userId) || isTutorshipUpdate(userId) || isPairingUpdate(userId);
+        ) || isAcceptingMentorship() || isAcceptingTutorship() || isAcceptingPairing()
+      );
     }
 
     match /usernames/{username} {
@@ -113,7 +117,7 @@ service cloud.firestore {
 
     match /announcements/{announcementId} {
       allow read: if true;
-      allow write: if false; // Reserved for admin console/automated processes
+      allow write: if false; 
     }
     
     match /mentorshipRequests/{requestId} {
@@ -447,7 +451,7 @@ service cloud.firestore {
     }
 
     match /supportRequests/{supportRequestId} {
-      allow read: if false; // Should only be readable by admins, which is handled server-side
+      allow read: if false; 
       allow create: if request.auth != null
                      && request.resource.data.userId == request.auth.uid
                      && request.resource.data.subject is string
@@ -464,3 +468,4 @@ service cloud.firestore {
     }
   }
 }
+
