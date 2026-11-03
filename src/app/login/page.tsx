@@ -28,16 +28,16 @@ function LoginPageContent() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // First-time Google or GitHub members have no profile yet, so they
-  // pick a username on the signup page before going on
+  // Members missing a profile, username or timezone finish on the
+  // signup page before going on
   useEffect(() => {
     if (isUserLoading || !user) return;
-    if (user.isAnonymous) {
-      router.push(redirectUrl);
-      return;
-    }
     getDoc(doc(firestore, 'users', user.uid))
-      .then(snap => router.push(snap.exists() ? redirectUrl : `/signup?redirect=${encodeURIComponent(redirectUrl)}`))
+      .then(snap => {
+        const data = snap.data();
+        const complete = data && data.username && data.utcOffset !== undefined && data.utcOffset !== null;
+        router.push(complete ? redirectUrl : `/signup?redirect=${encodeURIComponent(redirectUrl)}`);
+      })
       .catch(() => router.push(redirectUrl));
   }, [user, isUserLoading, firestore, router, redirectUrl]);
 

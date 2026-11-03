@@ -70,17 +70,20 @@ export default function Header() {
 
   const isLoading = isUserLoading || isProfileLoading;
 
-  // Someone who signed in with Google or GitHub but left before picking a
-  // username gets sent back to finish. A fresh read confirms the profile is
-  // really missing, since the live listener can lag behind a new sign-in.
-  const needsCheck = !!user && !user.isAnonymous && !isLoading && !userProfile
-    && pathname !== '/signup' && pathname !== '/login';
+  // Members missing something required (a new Google or GitHub member with no
+  // profile, or an older member with no username or timezone) get sent to
+  // finish it. A fresh read confirms it, since the live listener can lag
+  // behind a new sign-in.
+  const needsCheck = !!user && !isLoading && pathname !== '/signup' && pathname !== '/login'
+    && (!userProfile || !userProfile.username || userProfile.utcOffset === undefined || userProfile.utcOffset === null);
   useEffect(() => {
     if (!needsCheck || !user) return;
     let cancelled = false;
     getDoc(doc(firestore, 'users', user.uid))
       .then(snap => {
-        if (!cancelled && !snap.exists()) router.replace(`/signup?redirect=${encodeURIComponent(pathname)}`);
+        const data = snap.data();
+        const incomplete = !data || !data.username || data.utcOffset === undefined || data.utcOffset === null;
+        if (!cancelled && incomplete) router.replace(`/signup?redirect=${encodeURIComponent(pathname)}`);
       })
       .catch(() => {});
     return () => { cancelled = true; };
