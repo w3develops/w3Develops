@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { formatTimestamp } from '@/lib/utils';
 import { ONE_WEEK_IN_MS } from '@/lib/constants';
 import { JoinCohortModal } from '@/components/modals/JoinCohortModal';
-import JoinCohortButton from '@/components/JoinCohortButton';
+import JoinButton from '@/components/JoinButton';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 
 function CohortCardSkeleton() {
@@ -176,7 +176,7 @@ export default function GroupProjectsPage() {
                               </a>
                           </Button>
                       )}
-                      {isNew && <JoinCohortButton groupProject={groupProject} />}
+                      {isNew && <JoinButton kind="groupProject" item={groupProject} />}
                     </div>
                   </CardContent>
                 </Card>
@@ -222,7 +222,7 @@ export default function GroupProjectsPage() {
                               </a>
                           </Button>
                       )}
-                      <JoinCohortButton groupProject={groupProject} />
+                      <JoinButton kind="groupProject" item={groupProject} />
                       </div>
                   </CardContent>
                 </Card>

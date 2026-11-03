@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { formatTimestamp } from '@/lib/utils';
 import { ONE_WEEK_IN_MS } from '@/lib/constants';
 import { JoinBookClubModal } from '@/components/modals/JoinBookClubModal';
-import JoinBookClubButton from '@/components/JoinBookClubButton';
+import JoinButton from '@/components/JoinButton';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 
 function ClubCardSkeleton() {
@@ -164,7 +164,7 @@ export default function BookClubsPage() {
                       </div>
                     </div>
                     <div className="flex items-center">
-                       {isNew && <JoinBookClubButton club={club} />}
+                       {isNew && <JoinButton kind="bookClub" item={club} />}
                     </div>
                   </CardContent>
                 </Card>
@@ -198,7 +198,7 @@ export default function BookClubsPage() {
                       {club.commitmentHours && <Badge variant="outline" className="w-fit">{club.commitmentHours}hr/day</Badge>}
                       <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(club.createdAt)}</div>
                     </div>
-                    <JoinBookClubButton club={club} />
+                    <JoinButton kind="bookClub" item={club} />
                   </CardContent>
                 </Card>
               ))}

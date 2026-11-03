@@ -15,7 +15,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { topics, ONE_WEEK_IN_MS } from '@/lib/constants';
 import { collection, query, where, Query, Timestamp } from 'firebase/firestore';
 import { StudyGroup } from '@/lib/types';
-import JoinGroupButton from '../JoinGroupButton';
+import JoinButton from '../JoinButton';
 import Link from 'next/link';
 import { Input } from '../ui/input';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose, DrawerFooter, DrawerDescription } from '@/components/ui/drawer';
@@ -183,7 +183,7 @@ export function JoinGroupModal({ isOpen, onClose }: JoinGroupModalProps) {
                       <p className="font-semibold">{group.name}</p>
                       <p className="text-sm text-muted-foreground">{group.memberIds.length} / 25 members</p>
                     </div>
-                    <JoinGroupButton group={group} onJoinSuccess={handleJoinSuccess} />
+                    <JoinButton kind="studyGroup" item={group} onJoinSuccess={handleJoinSuccess} />
                   </div>
                 ))}
               </div>

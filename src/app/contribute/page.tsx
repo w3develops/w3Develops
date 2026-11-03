@@ -1,5 +1,3 @@
-'use client';
-
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Heart, Pencil, Languages, Search, Braces, Shield, BookOpen } from 'lucide-react';
