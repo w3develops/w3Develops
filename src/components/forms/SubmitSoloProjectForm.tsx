@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { useFirestore } from '@/firebase';
 import { collection, doc, writeBatch, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
@@ -18,8 +19,10 @@ export default function SubmitSoloProjectForm({ user, userProfile, onSuccess }: 
   const { toast } = useToast();
   const firestore = useFirestore();
 
+  const ensureVerified = useVerifiedGuard();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+      if (!ensureVerified()) return;
     if (!name.trim() || !projectUrl.trim() || !description.trim()) {
       toast({ variant: 'destructive', title: 'Please fill all fields' });
       return;

@@ -158,13 +158,13 @@ export default function TutorshipDashboardPage({ params }: { params: { tutorship
         </Card>
 
         <TaskList 
-            groupOrCohortId={tutorshipId}
+            parentId={tutorshipId}
             collectionPath="tutorships"
             memberIds={tutorship.memberIds}
         />
 
         <CheckInSystem
-            groupOrCohortId={tutorshipId}
+            parentId={tutorshipId}
             collectionPath="tutorships"
             memberIds={tutorship.memberIds}
         />

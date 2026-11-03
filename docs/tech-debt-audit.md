@@ -16,6 +16,12 @@ Started November 2, 2026. Updated November 3, 2026.
 - **`initialize-server-app.ts`** renamed to `initialize-app.ts`.
 - **Unused packages** (`zod`, `baseline-browser-mapping`) removed, and `npm run lint` works again with no errors.
 - **Firebase Studio leftovers** removed, README refreshed, BSD 3-Clause `LICENSE` added.
+- **One shared version of groups.** Study groups, group projects and book clubs now use the components in `src/components/groups/` and the settings in `src/lib/groups.ts`, replacing three copies of each page, pop-up and rule set. Creators can edit and delete their group, and members can leave.
+- **Real timezones.** Profiles, groups and meetups store a timezone like `America/New_York` (`src/lib/timezones.ts`), and times show in each viewer's own timezone. The old offset math counted the offset twice, so times were wrong for anyone outside the creator's timezone.
+- **Group bugs fixed:** the "Join a group" search needed a Firestore index that never existed, anyone could rewrite someone else's check-in, members could add other people to a group, and the 25th member couldn't join.
+- **Membership lives on the group.** Profiles no longer keep their own copy of which groups they're in; the dashboard, My Tasks and the activity feed read each group's member list. My Tasks and the activity feed also had broken links and field names.
+- **Verified email required** for joining, creating and posting. Google and GitHub sign-ins count as verified.
+- **Fake, spam and test accounts deleted**, along with their test groups and competitions. Backups are in `~/Documents/w3develops-admin/`.
 
 ## Needs a decision from you
 
@@ -28,7 +34,6 @@ Started November 2, 2026. Updated November 3, 2026.
 
 - **`pair-programming`, `pairings` and `tutorships`/`mentorships` detail pages** follow the same pattern as the matching pages and could share code too.
 - **`account/page.tsx` is 835 lines.** It repeats the mentorship accept logic, and should be split into section components.
-- **The users doc is a grab bag.** `UserProfile` keeps growing ID arrays (`joinedStudyGroupIds`, `mentorIds`, …) that are synced by hand. Querying membership from the groups would be simpler.
+- **The users doc is a grab bag.** Group membership now comes from the groups, but meetups (`joinedMeetupIds`) and mentorships (`mentorIds`, `menteeIds`, …) still keep hand-synced ID arrays on profiles.
 - **About 68 `any` types** remain.
 - **Next.js 14 → 16.** Next 14 will stop receiving security fixes. Plan this as its own project.
-- **Notifications when a group fills up.** `JoinButton` writes to other members' notifications, but the rules only let owners write their own, so those notifications likely fail silently.

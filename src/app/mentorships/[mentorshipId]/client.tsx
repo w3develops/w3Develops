@@ -158,13 +158,13 @@ export default function MentorshipDashboardPage({ params }: { params: { mentorsh
         </Card>
 
         <TaskList 
-            groupOrCohortId={mentorshipId}
+            parentId={mentorshipId}
             collectionPath="mentorships"
             memberIds={mentorship.memberIds}
         />
 
         <CheckInSystem
-            groupOrCohortId={mentorshipId}
+            parentId={mentorshipId}
             collectionPath="mentorships"
             memberIds={mentorship.memberIds}
         />

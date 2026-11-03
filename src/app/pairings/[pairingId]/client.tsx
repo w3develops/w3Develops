@@ -155,13 +155,13 @@ export default function PairingDashboardPage({ params }: { params: { pairingId: 
         </Card>
 
         <TaskList 
-            groupOrCohortId={pairingId}
+            parentId={pairingId}
             collectionPath="pairings"
             memberIds={pairing.memberIds}
         />
 
         <CheckInSystem
-            groupOrCohortId={pairingId}
+            parentId={pairingId}
             collectionPath="pairings"
             memberIds={pairing.memberIds}
         />

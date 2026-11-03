@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +15,7 @@ import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { UserProfile } from '@/lib/types';
-import { normalizeToUTC } from '@/lib/utils';
+import { browserTimeZone, zonedTimeToDate } from '@/lib/timezones';
 import { Clock } from 'lucide-react';
 
 export default function CreateCompetitionPage() {
@@ -41,8 +42,10 @@ export default function CreateCompetitionPage() {
     }
   }, [user, isUserLoading, router]);
 
+  const ensureVerified = useVerifiedGuard();
   const handleCreateCompetition = async (e: React.FormEvent) => {
     e.preventDefault();
+      if (!ensureVerified()) return;
     if (!user || !firestore || !profile) {
         toast({ variant: "destructive", title: "Not Authenticated" });
         return;
@@ -53,8 +56,9 @@ export default function CreateCompetitionPage() {
       return;
     }
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    // Dates and the start time are read in the creator's own timezone
+    const start = zonedTimeToDate(startDate, localStartTime, browserTimeZone());
+    const end = zonedTimeToDate(endDate, '23:59', browserTimeZone());
     if (end <= start) {
         toast({ variant: "destructive", title: "Invalid Dates", description: "End date must be after the start date." });
         return;
@@ -62,8 +66,6 @@ export default function CreateCompetitionPage() {
     
     setIsSubmitting(true);
     
-    const startTimeUTC = normalizeToUTC(localStartTime, profile.utcOffset);
-
     const competitionData = {
         name: name,
         name_lowercase: name.toLowerCase(),
@@ -73,7 +75,6 @@ export default function CreateCompetitionPage() {
         creatorId: user.uid,
         startDate: Timestamp.fromDate(start),
         endDate: Timestamp.fromDate(end),
-        startTimeUTC: startTimeUTC,
         createdAt: serverTimestamp(),
     };
     

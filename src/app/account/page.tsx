@@ -12,12 +12,10 @@ import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Github, Linkedin, Twitter, PlusCircle, Star, GraduationCap, BrainCircuit, GitBranch, CheckSquare } from 'lucide-react';
-import { JoinCohortModal } from '@/components/modals/JoinCohortModal';
-import { JoinGroupModal } from '@/components/modals/JoinGroupModal';
+import FindGroupModal from '@/components/groups/FindGroupModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import SubmitSoloProjectForm from '@/components/forms/SubmitSoloProjectForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { JoinBookClubModal } from '@/components/modals/JoinBookClubModal';
 import { useToast } from '@/components/ui/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
@@ -495,7 +493,7 @@ export default function AccountPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
-  const [isCohortModalOpen, setIsCohortModalOpen] = useState(false);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [isBookClubModalOpen, setIsBookClubModalOpen] = useState(false);
   const [isSoloProjectModalOpen, setIsSoloProjectModalOpen] = useState(false);
@@ -575,9 +573,9 @@ export default function AccountPage() {
   
   return (
     <div className="p-4 md:p-10">
-      <JoinCohortModal isOpen={isCohortModalOpen} onClose={() => setIsCohortModalOpen(false)} />
-      <JoinGroupModal isOpen={isGroupModalOpen} onClose={() => setIsGroupModalOpen(false)} />
-      <JoinBookClubModal isOpen={isBookClubModalOpen} onClose={() => setIsBookClubModalOpen(false)} />
+      <FindGroupModal kind="groupProject" isOpen={isProjectModalOpen} onClose={() => setIsProjectModalOpen(false)} />
+      <FindGroupModal kind="studyGroup" isOpen={isGroupModalOpen} onClose={() => setIsGroupModalOpen(false)} />
+      <FindGroupModal kind="bookClub" isOpen={isBookClubModalOpen} onClose={() => setIsBookClubModalOpen(false)} />
 
       <Dialog open={isSoloProjectModalOpen} onOpenChange={setIsSoloProjectModalOpen}>
         <DialogContent>
@@ -606,7 +604,7 @@ export default function AccountPage() {
           </div>
         </div>
 
-        <ActivityFeed userProfile={userProfile} />
+        <ActivityFeed uid={user!.uid} />
 
         <Card>
           <CardHeader>
@@ -674,7 +672,7 @@ export default function AccountPage() {
                   <Button asChild size="sm" variant="secondary">
                     <Link href="/groupprojects">Explore Projects</Link>
                   </Button>
-                   <Button size="sm" onClick={() => setIsCohortModalOpen(true)}>
+                   <Button size="sm" onClick={() => setIsProjectModalOpen(true)}>
                     Join a Project
                   </Button>
               </div>

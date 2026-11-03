@@ -11,14 +11,15 @@ import { useUser, useFirestore, useDoc } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { collection, serverTimestamp, doc, writeBatch, arrayUnion, Timestamp, DocumentReference } from 'firebase/firestore';
-import { topics, timezones } from '@/lib/constants';
+import { topics } from '@/lib/constants';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose, DrawerFooter, DrawerDescription } from '@/components/ui/drawer';
 import { ChevronDown } from 'lucide-react';
 import NameSearchInput from '@/components/NameSearchInput';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserProfile } from '@/lib/types';
-import { normalizeToUTC } from '@/lib/utils';
+import TimezoneSelect from '@/components/TimezoneSelect';
+import { browserTimeZone, zonedTimeToDate } from '@/lib/timezones';
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 
 export default function CreateMeetupPage() {
   const { user, isUserLoading } = useUser();
@@ -36,7 +37,10 @@ export default function CreateMeetupPage() {
   const [customTopic, setCustomTopic] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  const [timezone, setTimezone] = useState('');
+  const ensureVerified = useVerifiedGuard();
+
+  useEffect(() => setTimezone(browserTimeZone()), []);
   const [locationType, setLocationType] = useState<'Online' | 'In-Person' | 'Hybrid'>('Online');
   const [locationAddress, setLocationAddress] = useState('');
   const [virtualLink, setVirtualLink] = useState('');
@@ -71,12 +75,12 @@ export default function CreateMeetupPage() {
        return;
     }
 
+    if (!ensureVerified()) return;
     setIsSubmitting(true);
     
     try {
-      const dateTimeString = `${date}T${time}`;
-      const dateTime = new Date(dateTimeString);
-      const startTimeUTC = normalizeToUTC(time, profile.utcOffset);
+      // The date and time are read in the chosen timezone, not the browser's
+      const dateTime = zonedTimeToDate(date, time, timezone);
 
       const batch = writeBatch(firestore);
       const newMeetupRef = doc(collection(firestore, 'meetups'));
@@ -89,7 +93,6 @@ export default function CreateMeetupPage() {
         creatorId: user.uid,
         attendeeIds: [user.uid],
         dateTime: Timestamp.fromDate(dateTime),
-        startTimeUTC: startTimeUTC,
         timezone,
         locationType,
         locationAddress: (locationType === 'In-Person' || locationType === 'Hybrid') ? locationAddress : '',
@@ -165,16 +168,11 @@ export default function CreateMeetupPage() {
             )}
              <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2"><Label htmlFor="date">Date</Label><Input id="date" type="date" value={date} onChange={e => setDate(e.target.value)} required /></div>
-                <div className="grid gap-2"><Label htmlFor="time">Time (Your Local Time)</Label><Input id="time" type="time" value={time} onChange={e => setTime(e.target.value)} required /></div>
+                <div className="grid gap-2"><Label htmlFor="time">Time</Label><Input id="time" type="time" value={time} onChange={e => setTime(e.target.value)} required /></div>
             </div>
              <div className="grid gap-2">
                 <Label htmlFor="timezone">Time Zone</Label>
-                <Select value={timezone} onValueChange={setTimezone}>
-                    <SelectTrigger><SelectValue placeholder="Select a timezone" /></SelectTrigger>
-                    <SelectContent>
-                        {timezones.map(tz => <SelectItem key={tz.value} value={tz.value}>{tz.label}</SelectItem>)}
-                    </SelectContent>
-                </Select>
+                <TimezoneSelect id="timezone" value={timezone} onChange={setTimezone} />
             </div>
              <div className="grid gap-2">
                 <Label>Location Type</Label>

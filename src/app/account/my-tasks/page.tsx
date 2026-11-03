@@ -2,9 +2,9 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { useUser, useFirestore, useDoc } from '@/firebase';
-import { Task, UserProfile, StudyGroup, GroupProject, BookClub, Mentorship, Tutorship, Pairing } from '@/lib/types';
-import { collection, query, where, orderBy, getDocs, doc, documentId, DocumentReference, Timestamp } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useCollection } from '@/firebase';
+import { Task, UserProfile, Group, Mentorship, Tutorship, Pairing } from '@/lib/types';
+import { collection, query, where, orderBy, getDocs, doc, documentId, DocumentReference, Query } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -16,7 +16,7 @@ import { timeAgo } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
-type ParentDoc = StudyGroup | GroupProject | BookClub | Mentorship | Tutorship | Pairing;
+type ParentDoc = Group | Mentorship | Tutorship | Pairing;
 
 const priorityColors = {
   high: 'text-red-500',
@@ -25,7 +25,7 @@ const priorityColors = {
 };
 
 // Component to render a list of tasks for a given category (e.g., Study Groups)
-function CategoryTaskList({ collectionPath, groupIds, categoryTitle }: { collectionPath: string, groupIds: string[], categoryTitle: string }) {
+function CategoryTaskList({ collectionPath, route, groupIds, categoryTitle }: { collectionPath: string, route: string, groupIds: string[], categoryTitle: string }) {
     const firestore = useFirestore();
     const [tasksByGroup, setTasksByGroup] = useState<Map<string, { parent: ParentDoc, tasks: Task[] }>>(new Map());
     const [isLoading, setIsLoading] = useState(true);
@@ -39,7 +39,7 @@ function CategoryTaskList({ collectionPath, groupIds, categoryTitle }: { collect
             setIsLoading(true);
 
             try {
-                const parentDocsSnap = await getDocs(query(collection(firestore, collectionPath), where(documentId(), 'in', groupIds)));
+                const parentDocsSnap = await getDocs(query(collection(firestore, collectionPath), where(documentId(), 'in', groupIds.slice(0, 30))));
                 const parents = new Map<string, ParentDoc>();
                 parentDocsSnap.forEach(doc => parents.set(doc.id, { id: doc.id, ...doc.data() } as ParentDoc));
 
@@ -78,7 +78,7 @@ function CategoryTaskList({ collectionPath, groupIds, categoryTitle }: { collect
             {Array.from(tasksByGroup.entries()).map(([groupId, { parent, tasks }]) => (
                 <AccordionItem key={groupId} value={groupId} className="border rounded-lg bg-card">
                     <AccordionTrigger className="px-4 hover:no-underline">
-                        <Link href={`/${collectionPath}/${groupId}`} className="font-semibold hover:underline">
+                        <Link href={`${route}/${groupId}`} className="font-semibold hover:underline">
                             {('name' in parent && parent.name) || `Session from ${parent.createdAt ? new Date(parent.createdAt.seconds * 1000).toLocaleDateString() : ''}` }
                         </Link>
                     </AccordionTrigger>
@@ -125,20 +125,19 @@ export default function MyTasksPage() {
         }
     }, [user, isUserLoading, router]);
 
-    const studyGroupIds = useMemo(() => {
-        if (!userProfile) return [];
-        return Array.from(new Set([...(userProfile.createdStudyGroupIds || []), ...(userProfile.joinedStudyGroupIds || [])]));
-    }, [userProfile]);
-    
-    const groupProjectIds = useMemo(() => {
-        if (!userProfile) return [];
-        return Array.from(new Set([...(userProfile.createdGroupProjectIds || []), ...(userProfile.joinedGroupProjectIds || [])]));
-    }, [userProfile]);
-
-    const bookClubIds = useMemo(() => {
-        if (!userProfile) return [];
-        return Array.from(new Set([...(userProfile.createdBookClubIds || []), ...(userProfile.joinedBookClubIds || [])]));
-    }, [userProfile]);
+    // A group's member list is the record of who belongs to it
+    const memberOf = (collectionName: string) => user
+        ? query(collection(firestore, collectionName), where('memberIds', 'array-contains', user.uid)) as Query<Group>
+        : null;
+    const studyGroupsQuery = useMemo(() => memberOf('studyGroups'), [user, firestore]); // eslint-disable-line react-hooks/exhaustive-deps
+    const groupProjectsQuery = useMemo(() => memberOf('groupProjects'), [user, firestore]); // eslint-disable-line react-hooks/exhaustive-deps
+    const bookClubsQuery = useMemo(() => memberOf('bookClubs'), [user, firestore]); // eslint-disable-line react-hooks/exhaustive-deps
+    const { data: studyGroups } = useCollection<Group>(studyGroupsQuery);
+    const { data: groupProjects } = useCollection<Group>(groupProjectsQuery);
+    const { data: bookClubs } = useCollection<Group>(bookClubsQuery);
+    const studyGroupIds = useMemo(() => (studyGroups || []).map(g => g.id), [studyGroups]);
+    const groupProjectIds = useMemo(() => (groupProjects || []).map(g => g.id), [groupProjects]);
+    const bookClubIds = useMemo(() => (bookClubs || []).map(g => g.id), [bookClubs]);
     
     const mentorshipIds = useMemo(() => userProfile?.mentorshipIds || [], [userProfile]);
     const tutorshipIds = useMemo(() => userProfile?.tutorshipIds || [], [userProfile]);
@@ -149,12 +148,12 @@ export default function MyTasksPage() {
     }
 
     const tabsData = [
-        { value: 'studyGroups', title: 'Study Groups', ids: studyGroupIds, path: 'studyGroups' },
-        { value: 'groupProjects', title: 'Group Projects', ids: groupProjectIds, path: 'groupProjects' },
-        { value: 'bookClubs', title: 'Book Clubs', ids: bookClubIds, path: 'bookClubs' },
-        { value: 'mentorships', title: 'Mentorships', ids: mentorshipIds, path: 'mentorships' },
-        { value: 'tutorships', title: 'Tutorships', ids: tutorshipIds, path: 'tutorships' },
-        { value: 'pairings', title: 'Pairings', ids: pairingIds, path: 'pairings' },
+        { value: 'studyGroups', title: 'Study Groups', ids: studyGroupIds, path: 'studyGroups', route: '/studygroups' },
+        { value: 'groupProjects', title: 'Group Projects', ids: groupProjectIds, path: 'groupProjects', route: '/groupprojects' },
+        { value: 'bookClubs', title: 'Book Clubs', ids: bookClubIds, path: 'bookClubs', route: '/book-clubs' },
+        { value: 'mentorships', title: 'Mentorships', ids: mentorshipIds, path: 'mentorships', route: '/mentorships' },
+        { value: 'tutorships', title: 'Tutorships', ids: tutorshipIds, path: 'tutorships', route: '/tutorships' },
+        { value: 'pairings', title: 'Pairings', ids: pairingIds, path: 'pairings', route: '/pairings' },
     ].filter(tab => tab.ids.length > 0);
 
     return (
@@ -172,7 +171,7 @@ export default function MyTasksPage() {
                             </TabsList>
                             {tabsData.map(tab => (
                                 <TabsContent key={tab.value} value={tab.value} className="pt-4">
-                                    <CategoryTaskList collectionPath={tab.path} groupIds={tab.ids} categoryTitle={tab.title} />
+                                    <CategoryTaskList collectionPath={tab.path} route={tab.route} groupIds={tab.ids} categoryTitle={tab.title} />
                                 </TabsContent>
                             ))}
                         </Tabs>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { CheckIn, UserProfile } from '@/lib/types';
 import { collection, query, addDoc, serverTimestamp, where, getDocs, documentId, doc, Timestamp, updateDoc } from 'firebase/firestore';
@@ -17,7 +18,7 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 interface CheckInSystemProps {
-  groupOrCohortId: string;
+  parentId: string;
   collectionPath: 'studyGroups' | 'groupProjects' | 'bookClubs' | 'mentorships' | 'tutorships' | 'pairings';
   memberIds: string[];
 }
@@ -90,7 +91,7 @@ function UserCheckInsDisplay({ memberId, memberProfiles, allCheckins, isLoading,
 }
 
 
-export default function CheckInSystem({ groupOrCohortId, collectionPath, memberIds }: CheckInSystemProps) {
+export default function CheckInSystem({ parentId, collectionPath, memberIds }: CheckInSystemProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -105,8 +106,8 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
     const isMember = user ? memberIds.includes(user.uid) : false;
 
     const checkInsCollectionRef = useMemo(() => 
-        collection(firestore, collectionPath, groupOrCohortId, 'checkIns'),
-        [firestore, collectionPath, groupOrCohortId]
+        collection(firestore, collectionPath, parentId, 'checkIns'),
+        [firestore, collectionPath, parentId]
     );
     
     // Fetch checkins by type
@@ -174,7 +175,9 @@ export default function CheckInSystem({ groupOrCohortId, collectionPath, memberI
     }, [memberIds, firestore, memberProfiles]);
 
 
+    const ensureVerified = useVerifiedGuard();
     const handleSubmitCheckIn = async (type: 'daily' | 'weekly') => {
+        if (!ensureVerified()) return;
         const content = type === 'daily' ? dailyCheckInContent : weeklyCheckInContent;
         if (!user || !isMember || !content.trim()) return;
         

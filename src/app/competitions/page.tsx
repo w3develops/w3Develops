@@ -40,12 +40,6 @@ function CompetitionCard({ competition }: { competition: Competition }) {
                         <Trophy className="h-4 w-4 text-primary" />
                         <span>Prize: {competition.prize || 'Bragging rights'}</span>
                     </div>
-                    {competition.startTimeUTC && (
-                        <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            <span>Starts: {competition.startTimeUTC} UTC</span>
-                        </div>
-                    )}
                     <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
                         <span>Date: {formatTimestamp(competition.startDate)}</span>

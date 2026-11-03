@@ -9,7 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Users, CalendarDays, ArrowLeft, MapPin, Video, User, Clock } from 'lucide-react';
 import Link from 'next/link';
-import { formatTimestamp, convertUTCToLocal } from '@/lib/utils';
+import { formatTimestamp } from '@/lib/utils';
+import { browserTimeZone, formatDateTime } from '@/lib/timezones';
 import { useToast } from '@/components/ui/use-toast';
 import TaskList from '@/components/TaskList';
 import { Button } from '@/components/ui/button';
@@ -182,21 +183,15 @@ export default function MeetupDashboardPage({ params }: { params: { meetupId: st
         <CardContent className="space-y-6">
            <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                    <div className="flex items-start gap-3"><CalendarDays className="w-5 h-5 mt-1 flex-shrink-0" /><p>{formatTimestamp(meetup.dateTime, true)} ({meetup.timezone})</p></div>
-                    {meetup.startTimeUTC && (
-                        <div className="flex items-start gap-3">
-                            <Clock className="w-5 h-5 mt-1 flex-shrink-0 text-primary" />
-                            <div>
-                                <p className="font-semibold text-primary">
-                                    {currentUserProfile 
-                                        ? convertUTCToLocal(meetup.startTimeUTC, currentUserProfile.utcOffset)
-                                        : `${meetup.startTimeUTC} UTC`
-                                    }
-                                </p>
-                                <p className="text-xs text-muted-foreground">Calculated for your profile location.</p>
-                            </div>
+                    <div className="flex items-start gap-3">
+                        <CalendarDays className="w-5 h-5 mt-1 flex-shrink-0 text-primary" />
+                        <div>
+                            <p className="font-semibold text-primary">{formatDateTime(meetup.dateTime.toDate())}</p>
+                            {meetup.timezone && meetup.timezone !== browserTimeZone() && (
+                                <p className="text-xs text-muted-foreground">Host&apos;s time: {formatDateTime(meetup.dateTime.toDate(), meetup.timezone)}</p>
+                            )}
                         </div>
-                    )}
+                    </div>
                     {meetup.locationType !== 'Online' && <div className="flex items-start gap-3"><MapPin className="w-5 h-5 mt-1 flex-shrink-0" /><p>{meetup.locationAddress}</p></div>}
                     {meetup.locationType !== 'In-Person' && <div className="flex items-start gap-3"><Video className="w-5 h-5 mt-1 flex-shrink-0" /><a href={meetup.virtualLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">{meetup.virtualLink}</a></div>}
                     {creator && <div className="flex items-start gap-3"><User className="w-5 h-5 mt-1 flex-shrink-0" /><p>Hosted by <Link href={`/users/${creator.id}`} className="font-semibold hover:underline">{creator.username}</Link></p></div>}
@@ -206,7 +201,7 @@ export default function MeetupDashboardPage({ params }: { params: { meetupId: st
         </CardContent>
       </Card>
       
-      {isAttendee && <TaskList groupOrCohortId={meetupId} collectionPath="meetups" memberIds={meetup.attendeeIds} />}
+      {isAttendee && <TaskList parentId={meetupId} collectionPath="meetups" memberIds={meetup.attendeeIds} />}
 
       <MeetupUpdates meetupId={meetupId} creatorId={meetup.creatorId} />
 

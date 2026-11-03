@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { useUser, useFirestore } from '@/firebase';
 import { arrayUnion, doc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/components/ui/use-toast';
@@ -15,6 +16,7 @@ import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/e
 
 export default function JoinMeetupButton({ meetup }: { meetup: Meetup }) {
     const { user } = useUser();
+    const ensureVerified = useVerifiedGuard();
     const { toast } = useToast();
     const firestore = useFirestore();
     const router = useRouter();
@@ -37,6 +39,7 @@ export default function JoinMeetupButton({ meetup }: { meetup: Meetup }) {
     }
     
     const handleJoin = async () => {
+        if (!ensureVerified()) return;
         setIsJoining(true);
         const meetupRef = doc(firestore, 'meetups', meetup.id);
         const userRef = doc(firestore, 'users', user.uid);

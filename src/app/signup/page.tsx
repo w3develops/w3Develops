@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Link from "next/link";
 import { useAuth, useUser, useFirestore } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
@@ -16,6 +15,8 @@ import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { UserProfile, UserStatus } from '@/lib/types';
 import { createUserWithEmailAndPassword, sendEmailVerification, User as FirebaseUser } from 'firebase/auth';
 import SocialSignInButtons from '@/components/SocialSignInButtons';
+import TimezoneSelect from '@/components/TimezoneSelect';
+import { browserTimeZone } from '@/lib/timezones';
 
 function useDebounce(value: string, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -76,15 +77,6 @@ function validateUsername(username: string): string | null {
   return null;
 }
 
-const UTC_CATEGORIES = [
-  { id: 'A', label: 'A: 0 to 4', offsets: [0, 1, 2, 3, 4] },
-  { id: 'B', label: 'B: 5 to 9', offsets: [5, 6, 7, 8, 9] },
-  { id: 'C', label: 'C: 10 to 12', offsets: [10, 11, 12] },
-  { id: 'D', label: 'D: -1 to -4', offsets: [-1, -2, -3, -4] },
-  { id: 'E', label: 'E: -5 to -9 (USA/Canada)', offsets: [-5, -6, -7, -8, -9] },
-  { id: 'F', label: 'F: -10 to -12', offsets: [-10, -11, -12] },
-];
-
 function SignupPageContent() {
   const auth = useAuth();
   const firestore = useFirestore();
@@ -98,8 +90,7 @@ function SignupPageContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const [utcCategory, setUtcCategory] = useState('');
-  const [specificOffset, setSpecificOffset] = useState('');
+  const [timezone, setTimezone] = useState('');
   
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [isUsernameChecking, setIsUsernameChecking] = useState(false);
@@ -108,13 +99,17 @@ function SignupPageContent() {
 
   const debouncedUsername = useDebounce(username, 500);
 
+  useEffect(() => setTimezone(browserTimeZone()), []);
+
   // Signed-in members finish here when something required is missing: new
   // Google or GitHub members have no profile yet, and older members may be
   // missing a timezone. undefined means the profile is still loading.
   const [profile, setProfile] = useState<Partial<UserProfile> | null | undefined>(undefined);
   const needsUsername = !profile?.username;
-  const needsTimezone = profile?.utcOffset === undefined || profile?.utcOffset === null;
-  const isComplete = !!profile && !needsUsername && !needsTimezone;
+  // Only brand-new profiles pick a timezone here; the header fills in a
+  // missing one for older members from their browser
+  const needsTimezone = !profile;
+  const isComplete = !!profile && !needsUsername;
   const isFinishing = !!user && profile !== undefined && !isComplete;
   const isReturning = isFinishing && !!profile;
 
@@ -178,16 +173,11 @@ function SignupPageContent() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((needsUsername && !username) || (needsTimezone && !specificOffset) || (!isFinishing && (!email || !password))) {
+    if ((needsUsername && !username) || (needsTimezone && !timezone) || (!isFinishing && (!email || !password))) {
       toast({ variant: "destructive", title: "Missing fields", description: "Please fill out all fields." });
       return;
     }
     
-    const offsetNum = Number(specificOffset);
-    if (needsTimezone && (specificOffset === '' || isNaN(offsetNum))) {
-        toast({ variant: "destructive", title: "Invalid Offset", description: "Please select a valid UTC offset." });
-        return;
-    }
 
     setIsSubmitting(true);
     
@@ -202,7 +192,7 @@ function SignupPageContent() {
       if (isReturning && user) {
         const batch = writeBatch(firestore);
         const missing: Partial<UserProfile> = {};
-        if (needsTimezone) missing.utcOffset = offsetNum;
+        if (!profile?.timezone) missing.timezone = timezone || browserTimeZone();
         if (needsUsername) {
           missing.username = username;
           missing.username_lowercase = usernameLower;
@@ -238,7 +228,7 @@ function SignupPageContent() {
         id: finalUser.uid,
         username: username,
         username_lowercase: usernameLower,
-        utcOffset: offsetNum,
+        timezone,
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp(),
         profilePictureUrl: finalUser.photoURL || '',
@@ -279,7 +269,6 @@ function SignupPageContent() {
     return <LoadingSkeleton />;
   }
 
-  const selectedCategory = UTC_CATEGORIES.find(c => c.id === utcCategory);
 
   return (
     <div className="p-4 md:p-10">
@@ -289,7 +278,7 @@ function SignupPageContent() {
             <CardTitle className="font-headline text-2xl">{isFinishing ? 'Finish Your Account' : 'Create an Account'}</CardTitle>
             <CardDescription>
               {isReturning
-                ? `Welcome back! We need ${needsUsername && needsTimezone ? 'a username and your timezone' : needsUsername ? 'a username' : 'your timezone'} so group times and your profile show correctly.`
+                ? 'Welcome back! Please pick a username so your profile shows correctly.'
                 : isFinishing
                 ? `Signed in as ${user?.email || 'your account'}. Pick a username and timezone to finish.`
                 : 'Join our global community of developers.'}
@@ -322,26 +311,9 @@ function SignupPageContent() {
 
               {needsTimezone && (
               <div className="grid gap-2">
-                <Label>What is the UTC timezone for where you will be coding from?</Label>
-                <p className="text-[10px] text-muted-foreground leading-tight">
-                  (If unsure, <Link href="/time-converter" className="text-primary underline">check our time converter here</Link>) Ex. Florida = -4
-                </p>
-                <Select value={utcCategory} onValueChange={setUtcCategory}>
-                    <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
-                    <SelectContent>
-                        {UTC_CATEGORIES.map(c => <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-                {selectedCategory && (
-                    <Select value={specificOffset} onValueChange={setSpecificOffset}>
-                        <SelectTrigger><SelectValue placeholder="Specific Offset" /></SelectTrigger>
-                        <SelectContent>
-                            {selectedCategory.offsets.map(o => (
-                                <SelectItem key={o} value={o.toString()}>UTC {o >= 0 ? '+' : ''}{o}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                )}
+                <Label htmlFor="timezone">Your timezone</Label>
+                <TimezoneSelect id="timezone" value={timezone} onChange={setTimezone} disabled={isSubmitting} />
+                <p className="text-xs text-muted-foreground">We detected this from your browser. Group times are shown in it.</p>
               </div>
               )}
 
@@ -355,7 +327,7 @@ function SignupPageContent() {
                 <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} disabled={isSubmitting} />
               </div>
               </>}
-              <Button type="submit" className="w-full" disabled={isSubmitting || (needsUsername && !isUsernameAvailable) || (needsTimezone && !specificOffset)}>
+              <Button type="submit" className="w-full" disabled={isSubmitting || (needsUsername && !isUsernameAvailable) || (needsTimezone && !timezone)}>
                 {isSubmitting ? 'Creating Account...' : isFinishing ? 'Finish' : 'Create Account'}
               </Button>
             </form>
