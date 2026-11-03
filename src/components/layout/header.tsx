@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import SearchBar from './search-bar';
-import { useRouter } from 'next/navigation';
-import { doc, DocumentReference, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { usePathname, useRouter } from 'next/navigation';
+import { doc, DocumentReference, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { UserProfile } from '@/lib/types';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import Sidebar from './sidebar';
@@ -29,6 +29,7 @@ export default function Header() {
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
+  const pathname = usePathname();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
@@ -68,6 +69,22 @@ export default function Header() {
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
   const isLoading = isUserLoading || isProfileLoading;
+
+  // Someone who signed in with Google or GitHub but left before picking a
+  // username gets sent back to finish. A fresh read confirms the profile is
+  // really missing, since the live listener can lag behind a new sign-in.
+  const needsCheck = !!user && !user.isAnonymous && !isLoading && !userProfile
+    && pathname !== '/signup' && pathname !== '/login';
+  useEffect(() => {
+    if (!needsCheck || !user) return;
+    let cancelled = false;
+    getDoc(doc(firestore, 'users', user.uid))
+      .then(snap => {
+        if (!cancelled && !snap.exists()) router.replace(`/signup?redirect=${encodeURIComponent(pathname)}`);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [needsCheck, user, firestore, router, pathname]);
   
   const username = userProfile?.username || user?.email;
   const avatarFallback = userProfile?.username?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase();

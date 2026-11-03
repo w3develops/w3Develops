@@ -14,7 +14,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { doc, getDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { UserProfile, UserStatus } from '@/lib/types';
-import { EmailAuthProvider, linkWithCredential, createUserWithEmailAndPassword, User as FirebaseUser, UserCredential } from 'firebase/auth';
+import { EmailAuthProvider, linkWithCredential, createUserWithEmailAndPassword, User as FirebaseUser } from 'firebase/auth';
+import SocialSignInButtons from '@/components/SocialSignInButtons';
 
 function useDebounce(value: string, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -107,6 +108,30 @@ function SignupPageContent() {
 
   const debouncedUsername = useDebounce(username, 500);
 
+  // Members who signed in with Google or GitHub have an account but no
+  // profile yet, so they finish here by picking a username and timezone
+  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+  const isSignedIn = !!user && !user.isAnonymous;
+  const isFinishing = isSignedIn && hasProfile === false;
+
+  useEffect(() => {
+    setHasProfile(null);
+    if (!user || user.isAnonymous) return;
+    let cancelled = false;
+    getDoc(doc(firestore, 'users', user.uid))
+      .then(snap => { if (!cancelled) setHasProfile(snap.exists()); })
+      .catch(() => toast({ variant: "destructive", title: "Couldn't load your account", description: "Please refresh the page." }));
+    return () => { cancelled = true; };
+  }, [user, firestore, toast]);
+
+  useEffect(() => {
+    if (isFinishing && !username && user?.displayName) {
+      setUsername(user.displayName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 24));
+    }
+  // Only suggest a username once, when the finishing step first appears
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFinishing]);
+
   const checkUsername = useCallback(async (usernameToCheck: string) => {
     setIsUsernameChecking(true);
     const validationError = validateUsername(usernameToCheck);
@@ -142,14 +167,14 @@ function SignupPageContent() {
   }, [debouncedUsername, checkUsername]);
 
   useEffect(() => {
-    if (!isUserLoading && user) {
+    if (!isUserLoading && user && hasProfile) {
       router.push(redirectUrl);
     }
-  }, [user, isUserLoading, router, redirectUrl]);
+  }, [user, isUserLoading, hasProfile, router, redirectUrl]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !email || !password || !specificOffset) {
+    if (!username || !specificOffset || (!isFinishing && (!email || !password))) {
       toast({ variant: "destructive", title: "Missing fields", description: "Please fill out all fields." });
       return;
     }
@@ -174,7 +199,14 @@ function SignupPageContent() {
       let finalUser: FirebaseUser;
       const currentUser = auth.currentUser;
 
-      if (currentUser && currentUser.isAnonymous) {
+      if (isFinishing && currentUser) {
+        finalUser = currentUser;
+        // Never overwrite a profile that was created in another tab
+        if ((await getDoc(doc(firestore, 'users', currentUser.uid))).exists()) {
+          setHasProfile(true);
+          return;
+        }
+      } else if (currentUser && currentUser.isAnonymous) {
         const credential = EmailAuthProvider.credential(email, password);
         const userCredential = await linkWithCredential(currentUser, credential);
         finalUser = userCredential.user;
@@ -192,7 +224,7 @@ function SignupPageContent() {
         utcOffset: offsetNum,
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp(),
-        profilePictureUrl: '',
+        profilePictureUrl: finalUser.photoURL || '',
         bio: '',
         socialLinks: { github: '', linkedin: '', twitter: '' },
         skills: [],
@@ -214,6 +246,7 @@ function SignupPageContent() {
       batch.set(userDocRef, userData, { merge: true }); 
       batch.set(doc(firestore, "usernames", usernameLower), { uid: finalUser.uid });
       await batch.commit();
+      setHasProfile(true);
         
     } catch (error: any) {
       toast({ variant: "destructive", title: "Sign up failed", description: error.message });
@@ -222,7 +255,7 @@ function SignupPageContent() {
     }
   };
   
-  if (isUserLoading || user) {
+  if (isUserLoading || (isSignedIn && !isFinishing && !isSubmitting)) {
     return <LoadingSkeleton />;
   }
 
@@ -233,10 +266,15 @@ function SignupPageContent() {
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle className="font-headline text-2xl">Create an Account</CardTitle>
-            <CardDescription>Join our global community of developers.</CardDescription>
+            <CardTitle className="font-headline text-2xl">{isFinishing ? 'Finish Your Account' : 'Create an Account'}</CardTitle>
+            <CardDescription>
+              {isFinishing
+                ? `Signed in as ${user?.email || 'your account'}. Pick a username and timezone to finish.`
+                : 'Join our global community of developers.'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
+            {!isFinishing && <SocialSignInButtons disabled={isSubmitting} />}
             <form onSubmit={handleSignUp} className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="username">Username</Label>
@@ -281,6 +319,7 @@ function SignupPageContent() {
                 )}
               </div>
 
+              {!isFinishing && <>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={isSubmitting} />
@@ -289,14 +328,21 @@ function SignupPageContent() {
                 <Label htmlFor="password">Password</Label>
                 <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} disabled={isSubmitting} />
               </div>
+              </>}
               <Button type="submit" className="w-full" disabled={isSubmitting || !isUsernameAvailable || !specificOffset}>
-                {isSubmitting ? 'Creating Account...' : 'Create Account'}
+                {isSubmitting ? 'Creating Account...' : isFinishing ? 'Finish' : 'Create Account'}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="text-center text-sm">
-            Already have an account?&nbsp;
-            <Link href={`/login?redirect=${encodeURIComponent(redirectUrl)}`} className="underline">Login</Link>
+            {isFinishing ? (
+              <button type="button" onClick={() => auth.signOut()} className="underline">Use a different account</button>
+            ) : (
+              <>
+                Already have an account?&nbsp;
+                <Link href={`/login?redirect=${encodeURIComponent(redirectUrl)}`} className="underline">Login</Link>
+              </>
+            )}
           </CardFooter>
         </Card>
       </div>
