@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect, type ReactNode } from 'react';
 import { FirebaseProvider } from '@/firebase/provider';
-import { initializeFirebase } from '@/firebase/initialize-server-app';
+import { initializeFirebase } from '@/firebase/initialize-app';
 import { Analytics } from 'firebase/analytics';
 
 interface FirebaseClientProviderProps {
