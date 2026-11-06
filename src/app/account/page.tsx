@@ -15,7 +15,7 @@ import AccountPageSkeleton from '@/components/account/AccountPageSkeleton';
 import GroupListCard from '@/components/account/GroupListCard';
 import MeetupsCard from '@/components/account/MeetupsCard';
 import ProjectsCard from '@/components/account/ProjectsCard';
-import PairingCard from '@/components/account/PairingCard';
+import PairingDashboard from '@/components/PairingDashboard';
 import { MENTORSHIP, TUTORING } from '@/lib/matching-programs';
 import type { UserProfile } from '@/lib/types';
 
@@ -92,7 +92,11 @@ export default function AccountPage() {
             <Link href="/tutor">Explore Tutoring Program</Link>
           </Button>
         </MatchingDashboard>
-        <PairingCard user={user} userProfile={userProfile} />
+        <PairingDashboard user={user} userProfile={userProfile} title="Pair Programming">
+          <Button asChild variant="secondary" className="w-full">
+            <Link href="/pair-programming">Explore Pair Programming</Link>
+          </Button>
+        </PairingDashboard>
       </div>
     </div>
   );

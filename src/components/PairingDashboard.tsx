@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import Link from 'next/link';
 import type { User } from 'firebase/auth';
 import { arrayUnion, collection, doc, query, serverTimestamp, where, writeBatch } from 'firebase/firestore';
@@ -12,10 +12,16 @@ import { useToast } from '@/components/ui/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useDocsByIds } from '@/lib/hooks/useDocsByIds';
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import type { PairingRequest, UserProfile } from '@/lib/types';
 
-/** Pair programming requests and partners, on the account page */
-export default function PairingCard({ user, userProfile }: { user: User; userProfile: UserProfile }) {
+/** Pair programming requests and partners. Shown on the pair programming and account pages. */
+export default function PairingDashboard({ user, userProfile, title = 'Pairing Dashboard', children }: {
+  user: User;
+  userProfile: UserProfile;
+  title?: string;
+  children?: ReactNode;
+}) {
   const firestore = useFirestore();
   const { toast } = useToast();
 
@@ -27,7 +33,9 @@ export default function PairingCard({ user, userProfile }: { user: User; userPro
   const { data: incomingRequests, isLoading: isLoadingRequests } = useCollection<PairingRequest>(incomingRequestsQuery);
   const { data: partners } = useDocsByIds<UserProfile>('users', userProfile.pairPartnerIds);
 
+  const ensureVerified = useVerifiedGuard();
   const handleRequest = async (request: PairingRequest, newStatus: 'accepted' | 'declined') => {
+    if (!ensureVerified()) return;
     const batch = writeBatch(firestore);
     batch.update(doc(firestore, 'pairRequests', request.id), { status: newStatus });
     let batchUpdateData = {};
@@ -57,7 +65,7 @@ export default function PairingCard({ user, userProfile }: { user: User; userPro
       toast({
         variant: 'destructive',
         title: "Error",
-        description: "Failed to accept request due to a permission issue.",
+        description: "Failed to process request due to a permission issue. Please try again.",
         duration: 10000
       });
     }
@@ -66,7 +74,7 @@ export default function PairingCard({ user, userProfile }: { user: User; userPro
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2"><GitBranch />Pair Programming</CardTitle>
+        <CardTitle className="flex items-center gap-2"><GitBranch />{title}</CardTitle>
         <CardDescription>Manage your pair programming connections and requests.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -98,9 +106,7 @@ export default function PairingCard({ user, userProfile }: { user: User; userPro
             </ul>
           ) : <p className="text-sm text-muted-foreground">You have no partners yet.</p>}
         </div>
-        <Button asChild variant="secondary" className="w-full">
-          <Link href="/pair-programming">Explore Pair Programming</Link>
-        </Button>
+        {children}
       </CardContent>
     </Card>
   );
