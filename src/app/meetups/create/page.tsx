@@ -20,6 +20,7 @@ import { UserProfile } from '@/lib/types';
 import TimezoneSelect from '@/components/TimezoneSelect';
 import { browserTimeZone, zonedTimeToDate } from '@/lib/timezones';
 import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
+import { getErrorMessage } from '@/lib/utils';
 
 export default function CreateMeetupPage() {
   const { user, isUserLoading } = useUser();
@@ -109,8 +110,8 @@ export default function CreateMeetupPage() {
 
       toast({ title: "Success!", description: "Your new meetup has been created." });
       router.push(`/meetups/${newMeetupRef.id}`);
-    } catch (error: any) {
-        toast({ variant: "destructive", title: "Could Not Create Meetup", description: error.message || "An unexpected error occurred." });
+    } catch (error) {
+        toast({ variant: "destructive", title: "Could Not Create Meetup", description: getErrorMessage(error, "An unexpected error occurred.") });
     } finally {
         setIsSubmitting(false);
     }
@@ -176,7 +177,7 @@ export default function CreateMeetupPage() {
             </div>
              <div className="grid gap-2">
                 <Label>Location Type</Label>
-                <RadioGroup value={locationType} onValueChange={(v: any) => setLocationType(v)} className="flex gap-4">
+                <RadioGroup value={locationType} onValueChange={v => setLocationType(v as typeof locationType)} className="flex gap-4">
                     <div className="flex items-center space-x-2"><RadioGroupItem value="Online" id="loc-online" /><Label htmlFor="loc-online">Online</Label></div>
                     <div className="flex items-center space-x-2"><RadioGroupItem value="In-Person" id="loc-person" /><Label htmlFor="loc-person">In-Person</Label></div>
                     <div className="flex items-center space-x-2"><RadioGroupItem value="Hybrid" id="loc-hybrid" /><Label htmlFor="loc-hybrid">Hybrid</Label></div>

@@ -13,7 +13,7 @@ export function browserTimeZone(): string {
 
 export function allTimeZones(): string[] {
   try {
-    return (Intl as any).supportedValuesOf('timeZone') as string[];
+    return Intl.supportedValuesOf('timeZone');
   } catch {
     return [browserTimeZone(), 'UTC'];
   }

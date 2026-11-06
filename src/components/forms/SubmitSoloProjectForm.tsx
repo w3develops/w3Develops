@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { UserProfile } from '@/lib/types';
 import type { User } from 'firebase/auth';
+import { getErrorMessage } from '@/lib/utils';
 
 export default function SubmitSoloProjectForm({ user, userProfile, onSuccess }: { user: User; userProfile: UserProfile, onSuccess: () => void }) {
   const [name, setName] = useState('');
@@ -57,9 +58,9 @@ export default function SubmitSoloProjectForm({ user, userProfile, onSuccess }: 
       setDescription('');
       onSuccess();
 
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error submitting project: ", error);
-      toast({ variant: 'destructive', title: 'Submission Failed', description: error.message });
+      toast({ variant: 'destructive', title: 'Submission Failed', description: getErrorMessage(error) });
     } finally {
       setIsSubmitting(false);
     }

@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { makeProvider } from '@/components/SocialSignInButtons';
+import { getErrorCode } from '@/lib/utils';
 
 const REQUEST_COLLECTIONS = ['mentorshipRequests', 'tutorRequests', 'pairRequests'];
 
@@ -99,8 +100,8 @@ export default function AccountDataControls({ user }: { user: User }) {
 
             toast({ title: 'Account deleted', description: 'Your account and profile have been removed.' });
             router.push('/');
-        } catch (error: any) {
-            const wrongPassword = error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password';
+        } catch (error) {
+            const wrongPassword = getErrorCode(error) === 'auth/invalid-credential' || getErrorCode(error) === 'auth/wrong-password';
             toast({
                 variant: 'destructive',
                 title: 'Could not delete account',

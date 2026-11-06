@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Sparkles, Loader2, AlertCircle } from 'lucide-react';
 import type { NewsBrief } from '@/lib/news-brief';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { getErrorMessage } from '@/lib/utils';
 
 export default function AiNewsSummary() {
   const [brief, setBrief] = useState<NewsBrief | null>(null);
@@ -18,9 +19,9 @@ export default function AiNewsSummary() {
         const res = await fetch('/api/news/brief');
         if (!res.ok) throw new Error('Failed to load today\'s briefing.');
         setBrief(await res.json());
-      } catch (err: any) {
+      } catch (err) {
         console.error("News brief failed to load:", err);
-        setError(err.message || "Failed to load today's briefing.");
+        setError(getErrorMessage(err, "Failed to load today's briefing."));
       } finally {
         setIsLoading(false);
       }

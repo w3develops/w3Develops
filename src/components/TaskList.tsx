@@ -20,6 +20,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import type { User } from 'firebase/auth';
 
 interface TaskListProps {
   parentId: string;
@@ -55,7 +56,7 @@ function UserAvatar({ userId, userProfiles }: { userId: string | undefined | nul
   );
 }
 
-function SortableTaskItem({ task, userProfiles, isMember, onToggle, onDelete, user }: { task: Task, userProfiles: Map<string, UserProfile>, isMember: boolean, onToggle: (task: Task) => void, onDelete: (taskId: string) => void, user: any }) {
+function SortableTaskItem({ task, userProfiles, isMember, onToggle, onDelete, user }: { task: Task, userProfiles: Map<string, UserProfile>, isMember: boolean, onToggle: (task: Task) => void, onDelete: (taskId: string) => void, user: User | null }) {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.id });
     const style = {
         transform: CSS.Transform.toString(transform),

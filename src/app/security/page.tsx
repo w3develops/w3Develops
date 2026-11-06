@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { LoadingSkeleton } from "@/components/layout/loading-skeleton";
 import { sendPasswordResetEmail, updateEmail, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import AccountDataControls from '@/components/AccountDataControls';
+import { getErrorCode } from '@/lib/utils';
 
 export default function SecurityPage() {
   const { user, isUserLoading } = useUser();
@@ -47,7 +48,7 @@ export default function SecurityPage() {
         title: "Password Reset Email Sent",
         description: `A password reset link has been sent to ${user.email}.`,
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -86,9 +87,9 @@ export default function SecurityPage() {
       setNewEmail('');
       setCurrentPassword('');
 
-    } catch (error: any) {
+    } catch (error) {
       let description = "An unknown error occurred.";
-      switch (error.code) {
+      switch (getErrorCode(error)) {
         case 'auth/invalid-credential':
         case 'auth/wrong-password':
           description = "The password you entered is incorrect.";

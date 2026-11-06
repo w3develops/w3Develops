@@ -56,7 +56,7 @@ export default function VoteButton({ entry, competitionId, canVote }: VoteButton
 
         try {
             await updateDoc(entryRef, updateData);
-        } catch (error: any) {
+        } catch (error) {
             console.error("Vote Error: ", error);
              const permissionError = new FirestorePermissionError({
                 path: entryRef.path,

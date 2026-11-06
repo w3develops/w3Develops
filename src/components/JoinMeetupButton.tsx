@@ -52,7 +52,7 @@ export default function JoinMeetupButton({ meetup }: { meetup: Meetup }) {
             await batch.commit();
             toast({ title: 'Success!', description: `You've joined the meetup: ${meetup.name}` });
             router.refresh();
-        } catch (error: any) {
+        } catch (error) {
             const permissionError = new FirestorePermissionError({
                 path: `batch write for joining meetup ${meetup.id}`,
                 operation: 'update',

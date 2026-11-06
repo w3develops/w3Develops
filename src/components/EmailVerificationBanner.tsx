@@ -5,6 +5,7 @@ import { sendEmailVerification } from 'firebase/auth';
 import { useUser } from '@/firebase';
 import { useToast } from '@/components/ui/use-toast';
 import { needsEmailVerification } from '@/lib/hooks/useVerifiedGuard';
+import { getErrorCode } from '@/lib/utils';
 
 // Email sign-ups confirm their address before joining or posting. Google and
 // GitHub accounts arrive already verified, so they never see this.
@@ -39,8 +40,8 @@ export default function EmailVerificationBanner() {
         try {
             await sendEmailVerification(user);
             toast({ title: 'Verification email sent', description: `Check ${user.email} for the link.` });
-        } catch (error: any) {
-            const tooMany = error.code === 'auth/too-many-requests';
+        } catch (error) {
+            const tooMany = getErrorCode(error) === 'auth/too-many-requests';
             toast({
                 variant: 'destructive',
                 title: 'Could not send the email',

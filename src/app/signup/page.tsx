@@ -17,6 +17,7 @@ import { createUserWithEmailAndPassword, sendEmailVerification, User as Firebase
 import SocialSignInButtons from '@/components/SocialSignInButtons';
 import TimezoneSelect from '@/components/TimezoneSelect';
 import { browserTimeZone } from '@/lib/timezones';
+import { getErrorMessage } from '@/lib/utils';
 
 function useDebounce(value: string, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -258,8 +259,8 @@ function SignupPageContent() {
       // show the finishing step again
       router.push(redirectUrl);
         
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Sign up failed", description: error.message });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Sign up failed", description: getErrorMessage(error) });
     } finally {
         setIsSubmitting(false);
     }
