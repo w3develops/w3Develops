@@ -14,6 +14,7 @@ import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import SocialSignInButtons from '@/components/SocialSignInButtons';
+import { getErrorCode } from '@/lib/utils';
 
 function LoginPageContent() {
   const auth = useAuth();
@@ -44,9 +45,9 @@ function LoginPageContent() {
     setIsSubmitting(true);
     try {
         await initiateEmailSignIn(auth, email, password);
-    } catch(error: any) {
+    } catch (error) {
         let description = "An unknown error occurred during sign in.";
-        switch(error.code) {
+        switch(getErrorCode(error)) {
             case 'auth/user-not-found':
             case 'auth/wrong-password':
             case 'auth/invalid-credential':
@@ -78,7 +79,7 @@ function LoginPageContent() {
         title: "Password Reset Email Sent",
         description: `If an account exists for ${email}, a password reset link has been sent.`,
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",

@@ -9,6 +9,19 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/** The code of a Firebase error, like "auth/wrong-password", or "" for anything else */
+export function getErrorCode(error: unknown): string {
+  if (typeof error === 'object' && error !== null && 'code' in error && typeof error.code === 'string') {
+    return error.code;
+  }
+  return '';
+}
+
+/** A caught error's message, or the fallback when there isn't one */
+export function getErrorMessage(error: unknown, fallback = 'An unexpected error occurred.'): string {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 export function formatTimestamp(timestamp: Timestamp | FieldValue | undefined | null, includeTime = false) {
   if (!timestamp || !(timestamp instanceof Timestamp)) {
     return 'N/A';

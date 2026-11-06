@@ -13,9 +13,10 @@ import { SoloProject } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import type { User } from 'firebase/auth';
 
 interface SubmitCompetitionEntryFormProps {
-  user: any;
+  user: User;
   competitionId: string;
   userSoloProjects: SoloProject[];
   onSuccess: () => void;

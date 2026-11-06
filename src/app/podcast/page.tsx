@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Podcast } from 'lucide-react';
 import Image from 'next/image';
+import { getErrorMessage } from '@/lib/utils';
 
 interface PodcastEpisode {
   title: string;
@@ -54,8 +55,8 @@ export default function PodcastPage() {
                 }
                 const data: PodcastEpisode[] = await res.json();
                 setEpisodes(data);
-            } catch (err: any) {
-                setError(err.message || 'An unexpected error occurred.');
+            } catch (err) {
+                setError(getErrorMessage(err, 'An unexpected error occurred.'));
             } finally {
                 setIsLoading(false);
             }

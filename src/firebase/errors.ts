@@ -2,7 +2,7 @@
 export type SecurityRuleContext = {
   path: string;
   operation: 'get' | 'list' | 'create' | 'update' | 'delete';
-  requestResourceData?: any;
+  requestResourceData?: unknown;
 };
 
 export class FirestorePermissionError extends Error {
@@ -14,9 +14,10 @@ export class FirestorePermissionError extends Error {
     this.name = 'FirestorePermissionError';
     this.context = context;
 
-    // This is to ensure the stack trace is captured correctly
-    if (typeof (Error as any).captureStackTrace === 'function') {
-      (Error as any).captureStackTrace(this, FirestorePermissionError);
+    // Point the stack trace at the caller, where the engine supports it
+    const ErrorWithCapture = Error as ErrorConstructor & { captureStackTrace?: (target: object, constructor: Function) => void };
+    if (ErrorWithCapture.captureStackTrace) {
+      ErrorWithCapture.captureStackTrace(this, FirestorePermissionError);
     } else {
       this.stack = (new Error(message)).stack;
     }

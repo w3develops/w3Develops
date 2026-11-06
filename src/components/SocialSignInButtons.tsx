@@ -6,6 +6,7 @@ import { Github } from 'lucide-react';
 import { useAuth } from '@/firebase';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
+import { getErrorCode } from '@/lib/utils';
 
 function GoogleIcon() {
     return (
@@ -54,9 +55,9 @@ export default function SocialSignInButtons({ disabled }: { disabled?: boolean }
         setPending(providerId);
         try {
             await signInWithPopup(auth, makeProvider(providerId)!);
-        } catch (error: any) {
-            if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                toast({ variant: 'destructive', title: 'Sign in failed', description: errorMessage(error.code, label) });
+        } catch (error) {
+            if (getErrorCode(error) !== 'auth/popup-closed-by-user' && getErrorCode(error) !== 'auth/cancelled-popup-request') {
+                toast({ variant: 'destructive', title: 'Sign in failed', description: errorMessage(getErrorCode(error), label) });
             }
         } finally {
             setPending(null);

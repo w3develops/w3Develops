@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { doc, DocumentReference, updateDoc } from 'firebase/firestore';
 import { NotificationSettings, UserProfile } from '@/lib/types';
 import { useToast } from '@/components/ui/use-toast';
+import { getErrorMessage } from '@/lib/utils';
 
 const notificationOptions: { id: keyof NotificationSettings, label: string, description: string }[] = [
     { id: 'dailyCodingNewsletter', label: 'Daily Coding Newsletter', description: 'Get a daily dose of coding challenges and insights.' },
@@ -48,8 +49,8 @@ function NotificationToggle({ id: optionId, label, description }: { id: keyof No
                     [`notificationSettings.${optionId}`]: newState
                 });
                 toast({ title: 'Settings Updated', description: `You will ${newState ? 'now' : 'no longer'} receive the ${label}.` });
-            } catch (error: any) {
-                toast({ variant: 'destructive', title: 'Update Failed', description: error.message });
+            } catch (error) {
+                toast({ variant: 'destructive', title: 'Update Failed', description: getErrorMessage(error) });
             }
         });
     };

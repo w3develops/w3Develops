@@ -13,6 +13,7 @@ import { formatTimestamp } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import GlobalPulse from '@/components/GlobalPulse';
 import { useToast } from '@/components/ui/use-toast';
+import type { User } from 'firebase/auth';
 
 interface Post {
   title: string;
@@ -35,7 +36,7 @@ function formatDate(dateString: string) {
     }
 }
 
-function NewsItem({ item, user, userProfile }: { item: Post, user: any, userProfile: UserProfile | null }) {
+function NewsItem({ item, user, userProfile }: { item: Post, user: User | null, userProfile: UserProfile | null }) {
     const { toast } = useToast();
     const firestore = useFirestore();
     const isHearted = userProfile?.starredSoloProjectIds?.includes(item.link) || false;
@@ -106,7 +107,7 @@ export default function NewsPage() {
     const { data: announcements, isLoading: isLoadingAnnouncements } = useCollection<GlobalAnnouncement>(announcementsQuery);
     
     const userDocRef = useMemo(() => user ? doc(firestore, 'users', user.uid) : null, [user, firestore]);
-    const { data: userProfile } = useDoc<UserProfile>(userDocRef as any);
+    const { data: userProfile } = useDoc<UserProfile>(userDocRef);
 
     useEffect(() => {
       const fetchNews = async () => {
