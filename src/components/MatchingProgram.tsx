@@ -5,7 +5,8 @@ import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { Button } from "@/components/ui/button";
 import { useUser, useFirestore, useDoc, useCollection } from '@/firebase';
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, type ReactNode } from "react";
+import { useDocsByIds } from "@/lib/hooks/useDocsByIds";
 import { LoadingSkeleton } from "@/components/layout/loading-skeleton";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -196,7 +197,14 @@ function SetupForm({ config, user, userProfile }: { config: MatchingConfig; user
     );
 }
 
-function Dashboard({ config, user, userProfile }: { config: MatchingConfig; user: User; userProfile: UserProfile }) {
+/** Incoming requests and current connections. Also shown on the account page. */
+export function MatchingDashboard({ config, user, userProfile, title, children }: {
+    config: MatchingConfig;
+    user: User;
+    userProfile: UserProfile;
+    title?: string;
+    children?: ReactNode;
+}) {
     const firestore = useFirestore();
     const { toast } = useToast();
     const { fields, offerer, seeker } = config;
@@ -264,14 +272,8 @@ function Dashboard({ config, user, userProfile }: { config: MatchingConfig; user
         }
     };
 
-    const offererIds = listOf(userProfile, fields.offererIds);
-    const seekerIds = listOf(userProfile, fields.seekerIds);
-    const { data: offerers } = useCollection<UserProfile>(
-        offererIds.length > 0 ? query(collection(firestore, 'users'), where(documentId(), 'in', offererIds.slice(0, 10))) : null
-    );
-    const { data: seekers } = useCollection<UserProfile>(
-        seekerIds.length > 0 ? query(collection(firestore, 'users'), where(documentId(), 'in', seekerIds.slice(0, 10))) : null
-    );
+    const { data: offerers } = useDocsByIds<UserProfile>('users', listOf(userProfile, fields.offererIds));
+    const { data: seekers } = useDocsByIds<UserProfile>('users', listOf(userProfile, fields.seekerIds));
 
     const connectionList = (people: UserProfile[] | null, role: Role) => (
         <div>
@@ -291,7 +293,7 @@ function Dashboard({ config, user, userProfile }: { config: MatchingConfig; user
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2"><GraduationCap />{config.dashboardTitle}</CardTitle>
+                <CardTitle className="flex items-center gap-2"><GraduationCap />{title ?? config.dashboardTitle}</CardTitle>
                 <CardDescription>Manage your {config.program.toLowerCase()} connections and requests.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -316,6 +318,7 @@ function Dashboard({ config, user, userProfile }: { config: MatchingConfig; user
                     {connectionList(offerers, offerer)}
                     {connectionList(seekers, seeker)}
                 </div>
+                {children}
             </CardContent>
         </Card>
     );
@@ -537,7 +540,7 @@ export default function MatchingProgram({ config }: { config: MatchingConfig }) 
                 <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">{config.intro}</p>
             </div>
             <SetupForm config={config} user={user} userProfile={userProfile} />
-            <Dashboard config={config} user={user} userProfile={userProfile} />
+            <MatchingDashboard config={config} user={user} userProfile={userProfile} />
             <Finder config={config} currentUserProfile={userProfile} />
         </div>
     );

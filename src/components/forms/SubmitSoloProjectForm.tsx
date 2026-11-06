@@ -10,8 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { UserProfile } from '@/lib/types';
+import type { User } from 'firebase/auth';
 
-export default function SubmitSoloProjectForm({ user, userProfile, onSuccess }: { user: any; userProfile: UserProfile, onSuccess: () => void }) {
+export default function SubmitSoloProjectForm({ user, userProfile, onSuccess }: { user: User; userProfile: UserProfile, onSuccess: () => void }) {
   const [name, setName] = useState('');
   const [projectUrl, setProjectUrl] = useState('');
   const [description, setDescription] = useState('');

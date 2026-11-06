@@ -131,33 +131,37 @@ service cloud.firestore {
              && !listAfter.hasAny([request.auth.uid]);
     }
     
-    function isAcceptingMentorship() {
-        // The person accepting (auth.uid) is adding themselves to the other person's list
-        let isAddingMentor = isBeingAddedToList(request.auth.uid, request.resource.data.get('mentorIds', []), resource.data.get('mentorIds', []));
-        let isAddingMentee = isBeingAddedToList(request.auth.uid, request.resource.data.get('menteeIds', []), resource.data.get('menteeIds', []));                     
-        let isAddingMentorshipId = isAddingSelfToList(request.resource.data.get('mentorshipIds', []), resource.data.get('mentorshipIds', []));
-        let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
-        
-        return (isAddingMentor && changedKeys.hasAll(['mentorIds', 'mentorshipIds']) && isAddingMentorshipId) ||
-               (isAddingMentee && changedKeys.hasAll(['menteeIds', 'mentorshipIds']) && isAddingMentorshipId);
+    // Mentorships, tutorships and pairings are named after both members' IDs,
+    // sorted and joined with "_", like "abc_xyz"
+    function connectionIdWith(otherId) {
+      return request.auth.uid < otherId
+        ? request.auth.uid + '_' + otherId
+        : otherId + '_' + request.auth.uid;
     }
-    
-    function isAcceptingTutorship() {
-        let isAddingTutor = isBeingAddedToList(request.auth.uid, request.resource.data.get('tutorIds', []), resource.data.get('tutorIds', []));
-        let isAddingStudent = isBeingAddedToList(request.auth.uid, request.resource.data.get('studentIds', []), resource.data.get('studentIds', []));
-        let isAddingTutorshipId = isAddingSelfToList(request.resource.data.get('tutorshipIds', []), resource.data.get('tutorshipIds', []));
-        let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
 
-        return (isAddingTutor && changedKeys.hasAll(['tutorIds', 'tutorshipIds']) && isAddingTutorshipId) ||
-               (isAddingStudent && changedKeys.hasAll(['studentIds', 'tutorshipIds']) && isAddingTutorshipId);
+    // When someone accepts a request, they also update the requester's profile:
+    // they add themselves to one list (like mentorIds) and add the shared
+    // connection's ID to another (like mentorshipIds), and change nothing else.
+    function isAddingConnection(otherId, peopleField, idsField) {
+      let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
+      return request.auth != null
+             && changedKeys.hasOnly([peopleField, idsField])
+             && isBeingAddedToList(request.auth.uid, request.resource.data.get(peopleField, []), resource.data.get(peopleField, []))
+             && isBeingAddedToList(connectionIdWith(otherId), request.resource.data.get(idsField, []), resource.data.get(idsField, []));
     }
-    
-    function isAcceptingPairing() {
-        let isAddingPartner = isBeingAddedToList(request.auth.uid, request.resource.data.get('pairPartnerIds', []), resource.data.get('pairPartnerIds', []));
-        let isAddingPairingId = isAddingSelfToList(request.resource.data.get('pairingIds', []), resource.data.get('pairingIds', []));
-        let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
 
-        return isAddingPartner && changedKeys.hasAll(['pairPartnerIds', 'pairingIds']) && isAddingPairingId;
+    function isAcceptingMentorship(userId) {
+        return isAddingConnection(userId, 'mentorIds', 'mentorshipIds')
+            || isAddingConnection(userId, 'menteeIds', 'mentorshipIds');
+    }
+
+    function isAcceptingTutorship(userId) {
+        return isAddingConnection(userId, 'tutorIds', 'tutorshipIds')
+            || isAddingConnection(userId, 'studentIds', 'tutorshipIds');
+    }
+
+    function isAcceptingPairing(userId) {
+        return isAddingConnection(userId, 'pairPartnerIds', 'pairingIds');
     }
 
     // Profiles are public, so they must never hold an email address.
@@ -173,7 +177,7 @@ service cloud.firestore {
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
           ((isVerified() && isAddingSelfToList(request.resource.data.followers, resource.data.get('followers', []))) ||
             isRemovingSelfFromList(request.resource.data.followers, resource.data.get('followers', [])))
-        ) || isAcceptingMentorship() || isAcceptingTutorship() || isAcceptingPairing()
+        ) || isAcceptingMentorship(userId) || isAcceptingTutorship(userId) || isAcceptingPairing(userId)
       );
     }
 
@@ -471,4 +475,3 @@ service cloud.firestore {
     }
   }
 }
-
