@@ -22,6 +22,7 @@ Started November 2, 2026. Updated November 3, 2026.
 - **Membership lives on the group.** Profiles no longer keep their own copy of which groups they're in; the dashboard, My Tasks and the activity feed read each group's member list. My Tasks and the activity feed also had broken links and field names.
 - **Verified email required** for joining, creating and posting. Google and GitHub sign-ins count as verified.
 - **Fake, spam and test accounts deleted**, along with their test groups and competitions. Backups are in `~/Documents/w3develops-admin/`.
+- **The account page is split up.** `account/page.tsx` went from 835 lines to about 100; its sections live in `src/components/account/`, and it uses the shared mentorship and pairing components instead of its own copies of the accept logic.
 
 ## Needs a decision from you
 
@@ -33,7 +34,6 @@ Started November 2, 2026. Updated November 3, 2026.
 ## Still to do
 
 - **`pair-programming`, `pairings` and `tutorships`/`mentorships` detail pages** follow the same pattern as the matching pages and could share code too.
-- **`account/page.tsx` is 835 lines.** It repeats the mentorship accept logic, and should be split into section components.
 - **The users doc is a grab bag.** Group membership now comes from the groups, but meetups (`joinedMeetupIds`) and mentorships (`mentorIds`, `menteeIds`, …) still keep hand-synced ID arrays on profiles.
 - **About 68 `any` types** remain.
 - **Next.js 14 → 16.** Next 14 will stop receiving security fixes. Plan this as its own project.
