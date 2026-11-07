@@ -1,18 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useDoc } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
-import { collection, serverTimestamp, doc, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, addDoc, Timestamp, DocumentReference } from 'firebase/firestore';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { UserProfile } from '@/lib/types';
+import { browserTimeZone, zonedTimeToDate } from '@/lib/timezones';
+import { Clock } from 'lucide-react';
 
 export default function CreateCompetitionPage() {
   const { user, isUserLoading } = useUser();
@@ -21,12 +25,16 @@ export default function CreateCompetitionPage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const userDocRef = useMemo(() => user ? doc(firestore, 'users', user.uid) as DocumentReference<UserProfile> : null, [user, firestore]);
+  const { data: profile } = useDoc<UserProfile>(userDocRef);
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [rules, setRules] = useState('');
   const [prize, setPrize] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [localStartTime, setLocalTime] = useState('12:00');
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -34,20 +42,23 @@ export default function CreateCompetitionPage() {
     }
   }, [user, isUserLoading, router]);
 
+  const ensureVerified = useVerifiedGuard();
   const handleCreateCompetition = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !firestore) {
+      if (!ensureVerified()) return;
+    if (!user || !firestore || !profile) {
         toast({ variant: "destructive", title: "Not Authenticated" });
         return;
     }
     
-    if (!name || !description || !startDate || !endDate) {
+    if (!name || !description || !startDate || !endDate || !localStartTime) {
       toast({ variant: "destructive", title: "Missing Fields", description: "Please fill out all required fields." });
       return;
     }
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    // Dates and the start time are read in the creator's own timezone
+    const start = zonedTimeToDate(startDate, localStartTime, browserTimeZone());
+    const end = zonedTimeToDate(endDate, '23:59', browserTimeZone());
     if (end <= start) {
         toast({ variant: "destructive", title: "Invalid Dates", description: "End date must be after the start date." });
         return;
@@ -115,6 +126,12 @@ export default function CreateCompetitionPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div className="grid gap-2"><Label htmlFor="startDate">Start Date</Label><Input id="startDate" type="date" value={startDate} min={today} onChange={e => setStartDate(e.target.value)} required /></div>
                 <div className="grid gap-2"><Label htmlFor="endDate">End Date</Label><Input id="endDate" type="date" value={endDate} min={startDate || today} onChange={e => setEndDate(e.target.value)} required /></div>
+            </div>
+
+            <div className="grid gap-2">
+                <Label htmlFor="startTime" className="flex items-center gap-2"><Clock className="h-4 w-4" /> Start Time (In your local time)</Label>
+                <Input id="startTime" type="time" value={localStartTime} onChange={e => setLocalTime(e.target.value)} required />
+                <p className="text-[10px] text-muted-foreground">The competition will go live based on this time normalized to UTC.</p>
             </div>
             
             <div className="grid gap-2">

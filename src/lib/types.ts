@@ -1,3 +1,4 @@
+
 import { FieldValue, Timestamp } from 'firebase/firestore';
 
 export interface NotificationSettings {
@@ -20,11 +21,11 @@ export type PairProgrammingStatus = 'open' | 'closed';
 
 export interface UserProfile {
   id: string;
-  email?: string;
   username: string;
   username_lowercase?: string;
   profilePictureUrl?: string;
   bio?: string;
+  timezone?: string; // e.g. "America/New_York", detected from the browser
   socialLinks?: {
     github?: string;
     linkedin?: string;
@@ -37,12 +38,6 @@ export interface UserProfile {
   followers?: string[];
   following?: string[];
   followInfoPrivate?: boolean;
-  createdStudyGroupIds?: string[];
-  joinedStudyGroupIds?: string[];
-  createdGroupProjectIds?: string[];
-  joinedGroupProjectIds?: string[];
-  createdBookClubIds?: string[];
-  joinedBookClubIds?: string[];
   createdMeetupIds?: string[];
   joinedMeetupIds?: string[];
   soloProjectIds?: string[];
@@ -70,21 +65,20 @@ export interface UserProfile {
   pairingIds?: string[];
 }
 
-export interface GroupProject {
+export interface GlobalAnnouncement {
   id: string;
-  name: string;
-  name_lowercase: string;
-  creatorId: string;
-  description: string;
-  memberIds: string[];
-  githubUrl?: string;
-  topic: string;
-  commitment: string;
-  commitmentDays: string[];
+  title: string;
+  message: string;
+  type: 'info' | 'warning' | 'success' | 'alert';
+  link?: string;
+  startTime: Timestamp;
+  endTime: Timestamp;
+  isActive: boolean;
   createdAt: Timestamp;
 }
 
-export interface StudyGroup {
+// Study groups, group projects and book clubs share one shape; see src/lib/groups.ts
+export interface Group {
   id: string;
   name: string;
   name_lowercase: string;
@@ -92,23 +86,19 @@ export interface StudyGroup {
   description: string;
   memberIds: string[];
   topic: string;
-  commitment: string;
-  commitmentDays: string[];
+  commitment?: string; // e.g. "4hr/day"
+  commitmentHours?: string; // older book clubs only
+  commitmentDays: string[]; // days in the host's timezone
+  startTime?: string; // "HH:mm" in the host's timezone
+  timezone?: string; // the host's timezone, e.g. "America/New_York"
+  githubUrl?: string; // group projects only
   createdAt: Timestamp;
 }
+export type StudyGroup = Group;
+export type GroupProject = Group;
+export type BookClub = Group;
 
-export interface BookClub {
-  id: string;
-  name: string;
-  name_lowercase: string;
-  creatorId: string;
-  description: string;
-  memberIds: string[];
-  topic: string;
-  commitmentHours: string;
-  commitmentDays: string[];
-  createdAt: Timestamp;
-}
+
 
 export interface Meetup {
     id: string;
@@ -124,6 +114,32 @@ export interface Meetup {
     locationAddress?: string;
     virtualLink?: string;
     createdAt: Timestamp;
+}
+
+export interface Competition {
+  id: string;
+  name: string;
+  name_lowercase: string;
+  description: string;
+  rules: string;
+  prize: string;
+  creatorId: string;
+  startDate: Timestamp;
+  endDate: Timestamp;
+  winnerId?: string;
+  createdAt: Timestamp;
+}
+
+export interface CompetitionEntry {
+  id: string;
+  competitionId: string;
+  userId: string;
+  username: string;
+  projectUrl: string;
+  soloProjectId?: string | null;
+  description: string;
+  submittedAt: Timestamp;
+  voterIds: string[];
 }
 
 export interface MeetupUpdate {
@@ -144,26 +160,6 @@ export interface Task {
     createdAt: Timestamp;
     completedAt?: Timestamp | null;
     position: number;
-}
-
-export interface User {
-  email: string;
-  username: string;
-  username_lowercase: string;
-  createdAt: FieldValue;
-  lastLoginAt: FieldValue;
-  profilePictureUrl: string;
-  bio: string;
-  socialLinks: { [key: string]: string };
-  skills: string[];
-  followers: string[];
-  following: string[];
-  followInfoPrivate: boolean;
-  createdStudyGroupIds: string[];
-  joinedStudyGroupIds: string[];
-  createdGroupProjectIds: string[];
-  joinedGroupProjectIds: string[];
-  notificationSettings?: NotificationSettings;
 }
 
 export interface Notification {
@@ -190,6 +186,13 @@ export interface SoloProject {
   projectUrl: string;
   description: string;
   createdAt: Timestamp;
+}
+
+export interface SharedNote {
+  id: string;
+  content: string;
+  lastUpdatedBy: string;
+  lastUpdatedAt: Timestamp;
 }
 
 export interface MentorshipRequest {
@@ -246,32 +249,6 @@ export interface Pairing {
   createdAt: Timestamp;
 }
 
-export interface Competition {
-  id: string;
-  name: string;
-  name_lowercase: string;
-  description: string;
-  rules: string;
-  prize: string;
-  creatorId: string;
-  startDate: Timestamp;
-  endDate: Timestamp;
-  winnerId?: string;
-  createdAt: Timestamp;
-}
-
-export interface CompetitionEntry {
-  id: string;
-  competitionId: string;
-  userId: string;
-  username: string;
-  projectUrl: string;
-  soloProjectId?: string;
-  description?: string;
-  submittedAt: Timestamp;
-  voterIds: string[];
-}
-
 export interface Job {
   id: string;
   title: string;
@@ -282,5 +259,39 @@ export interface Job {
   applyUrl: string;
   postedById: string;
   postedByUsername: string;
+  createdAt: Timestamp;
+}
+
+export interface CareerApplication {
+  id: string;
+  userId: string;
+  username: string;
+  roleId: string;
+  roleTitle: string;
+  fullName: string;
+  email: string;
+  resumeUrl: string;
+  portfolioUrl?: string;
+  coverLetter: string;
+  status: 'pending' | 'reviewed' | 'rejected' | 'accepted';
+  createdAt: Timestamp;
+}
+
+export interface Feedback {
+  id: string;
+  feedback: string;
+  createdAt: Timestamp;
+  userId?: string;
+  username?: string;
+}
+
+export interface SupportRequest {
+  id: string;
+  userId: string;
+  username: string;
+  email: string;
+  subject: string;
+  description: string;
+  status: 'open' | 'in_progress' | 'closed';
   createdAt: Timestamp;
 }

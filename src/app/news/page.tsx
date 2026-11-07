@@ -1,10 +1,19 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Rss } from "lucide-react";
+import { Rss, Megaphone, History, ChevronLeft, ChevronRight, Heart, Share2, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
+import { collection, query, orderBy, limit, doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { GlobalAnnouncement, UserProfile } from '@/lib/types';
+import { formatTimestamp } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import GlobalPulse from '@/components/GlobalPulse';
+import { useToast } from '@/components/ui/use-toast';
+import type { User } from 'firebase/auth';
 
 interface Post {
   title: string;
@@ -12,6 +21,8 @@ interface Post {
   isoDate: string;
   source: string;
 }
+
+const ITEMS_PER_PAGE = 25;
 
 function formatDate(dateString: string) {
     if (!dateString) return 'No date';
@@ -25,80 +36,213 @@ function formatDate(dateString: string) {
     }
 }
 
+function NewsItem({ item, user, userProfile }: { item: Post, user: User | null, userProfile: UserProfile | null }) {
+    const { toast } = useToast();
+    const firestore = useFirestore();
+    const isHearted = userProfile?.starredSoloProjectIds?.includes(item.link) || false;
+
+    const handleHeart = async () => {
+        if (!user) {
+            toast({ title: "Sign in to heart articles", variant: "destructive" });
+            return;
+        }
+        const userRef = doc(firestore, 'users', user.uid);
+        await updateDoc(userRef, {
+            starredSoloProjectIds: isHearted ? arrayRemove(item.link) : arrayUnion(item.link)
+        });
+    };
+
+    const handleShare = () => {
+        const text = `Check out this article from w3Develops: ${item.title}`;
+        const url = item.link;
+        if (navigator.share) {
+            navigator.share({ title: item.title, text, url });
+        } else {
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`);
+        }
+    };
+
+    return (
+        <Card className="hover:shadow-md transition-all border-l-4 border-l-primary group">
+            <CardContent className="p-6">
+                <div className="flex justify-between items-start gap-4">
+                    <div className="space-y-2 flex-1">
+                        <p className="text-xs text-primary font-bold uppercase tracking-widest">{item.source}</p>
+                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="block text-xl md:text-2xl font-bold font-headline hover:text-primary transition-colors leading-tight">
+                            {item.title}
+                        </a>
+                        <p className="text-sm text-muted-foreground">
+                            {formatDate(item.isoDate)}
+                        </p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <Button variant="ghost" size="icon" onClick={handleHeart} className={isHearted ? 'text-red-500' : 'text-muted-foreground'}>
+                            <Heart className={`h-5 w-5 ${isHearted ? 'fill-current' : ''}`} />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={handleShare} className="text-muted-foreground">
+                            <Share2 className="h-5 w-5" />
+                        </Button>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
 export default function NewsPage() {
+    const firestore = useFirestore();
+    const { user } = useUser();
     const [newsItems, setNewsItems] = useState<Post[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingNews, setIsLoadingNews] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const announcementsQuery = useMemo(() => {
+        return query(
+            collection(firestore, 'announcements'),
+            orderBy('createdAt', 'desc'),
+            limit(5)
+        );
+    }, [firestore]);
+
+    const { data: announcements, isLoading: isLoadingAnnouncements } = useCollection<GlobalAnnouncement>(announcementsQuery);
+    
+    const userDocRef = useMemo(() => user ? doc(firestore, 'users', user.uid) : null, [user, firestore]);
+    const { data: userProfile } = useDoc<UserProfile>(userDocRef);
 
     useEffect(() => {
       const fetchNews = async () => {
         try {
-          setIsLoading(true);
+          setIsLoadingNews(true);
           const res = await fetch('/api/news');
-          if (!res.ok) {
-            throw new Error('Failed to fetch news');
-          }
+          if (!res.ok) throw new Error('Failed to fetch news');
           const data: Post[] = await res.json();
           setNewsItems(data);
         } catch (error) {
           console.error("Error fetching news:", error);
         } finally {
-          setIsLoading(false);
+          setIsLoadingNews(false);
         }
       };
       fetchNews();
     }, []);
 
+    const totalPages = Math.ceil(newsItems.length / ITEMS_PER_PAGE);
+    const paginatedNews = useMemo(() => {
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        return newsItems.slice(start, start + ITEMS_PER_PAGE);
+    }, [newsItems, currentPage]);
+
     return (
-        <div className="max-w-4xl mx-auto p-4 md:p-10">
-            <Card>
-                <CardHeader>
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <CardTitle className="font-headline text-3xl flex items-center gap-3">
-                                <Rss className="h-8 w-8" />
-                                Latest News
-                            </CardTitle>
-                            <CardDescription>
-                                Posts from the last 3 days, updated twice daily.
-                            </CardDescription>
-                        </div>
-                        <Button asChild variant="link">
-                           <Link href="/news/archive">View Archive</Link>
-                        </Button>
+        <div className="max-w-5xl mx-auto p-4 md:p-10 space-y-12">
+            <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                    <div>
+                        <h1 className="text-4xl font-headline font-bold flex items-center gap-3 text-foreground">
+                            <Rss className="h-10 w-10 text-primary" />
+                            Latest News
+                        </h1>
+                        <p className="text-muted-foreground mt-2 text-lg">
+                            Exciting new developments from the w3Develops ecosystem and beyond.
+                        </p>
                     </div>
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
-                        <div className="text-center py-12">
-                            <h3 className="text-xl font-semibold">Fetching latest articles...</h3>
-                            <p className="text-muted-foreground mt-2">
-                                This may take a moment.
-                            </p>
+                    <Button asChild variant="outline">
+                        <Link href="/news/archive">View Archive</Link>
+                    </Button>
+                </div>
+            </div>
+
+            {/* AI Briefing CTA Banner */}
+            <Card className="border-2 border-primary/20 bg-primary/5 mb-8 overflow-hidden group">
+                <CardContent className="p-0">
+                    <Link href="/news/ai-community-brief" className="flex flex-col sm:flex-row items-center justify-between p-6 gap-6 hover:bg-primary/10 transition-colors">
+                        <div className="flex items-center gap-4">
+                            <div className="bg-primary/20 p-3 rounded-full group-hover:scale-110 transition-transform">
+                                <Sparkles className="h-6 w-6 text-primary fill-primary" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold font-headline">Daily AI Community Briefing</h3>
+                                <p className="text-sm text-muted-foreground">Get today's synthesized state of the community insights.</p>
+                            </div>
                         </div>
-                    ) : newsItems.length > 0 ? (
-                        <div className="space-y-6">
-                            {newsItems.map((item, index) => (
-                                <div key={`${item.link}-${index}`} className="border-b pb-6 last:border-b-0 last:pb-0">
-                                    <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wider">{item.source}</p>
-                                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="block text-xl font-semibold hover:text-primary mt-1">
-                                        {item.title}
-                                    </a>
-                                     <p className="text-sm text-muted-foreground mt-2">
-                                        {formatDate(item.isoDate)}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                         <div className="text-center py-12">
-                            <h3 className="text-xl font-semibold">No Recent News Found</h3>
-                            <p className="text-muted-foreground mt-2">
-                                We couldn't find any articles from the last 3 days. Please check back later.
-                            </p>
-                        </div>
-                    )}
+                        <Button variant="outline" className="shrink-0 border-primary/50 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                            View Today's Briefing
+                        </Button>
+                    </Link>
                 </CardContent>
             </Card>
+
+            <section className="space-y-8">
+                {isLoadingNews ? (
+                    <div className="space-y-8 animate-pulse">
+                        {[...Array(5)].map((_, i) => (
+                            <div key={i} className="h-32 bg-muted rounded-xl"></div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="space-y-6">
+                        {paginatedNews.map((item, index) => (
+                            <NewsItem key={`${item.link}-${index}`} item={item} user={user} userProfile={userProfile} />
+                        ))}
+                    </div>
+                )}
+
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-4 pt-8 border-t">
+                        <Button variant="outline" size="sm" onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}>
+                            <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+                        </Button>
+                        <span className="text-sm font-medium">Page {currentPage} of {totalPages}</span>
+                        <Button variant="outline" size="sm" onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages}>
+                            Next <ChevronRight className="h-4 w-4 ml-2" />
+                        </Button>
+                    </div>
+                )}
+            </section>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-12 border-t">
+                <Card className="border-2 border-primary/10 h-full">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Megaphone className="h-5 w-5 text-primary" />
+                            Community Status
+                        </CardTitle>
+                        <CardDescription>Official announcements from w3Develops.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {isLoadingAnnouncements ? (
+                            <div className="space-y-4">
+                                {[...Array(2)].map((_, i) => <div key={i} className="h-20 bg-muted rounded animate-pulse" />)}
+                            </div>
+                        ) : announcements && announcements.length > 0 ? (
+                            announcements.map(announcement => (
+                                <div key={announcement.id} className="border-l-4 border-primary pl-4 py-2 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="font-bold text-lg leading-tight">{announcement.title}</h4>
+                                        <Badge>{announcement.type}</Badge>
+                                    </div>
+                                    <p className="text-muted-foreground text-sm leading-relaxed">{announcement.message}</p>
+                                    <span className="text-[10px] text-muted-foreground pt-1 block">{formatTimestamp(announcement.startTime, true)}</span>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-sm text-center text-muted-foreground py-4">No recent announcements.</p>
+                        )}
+                    </CardContent>
+                </Card>
+
+                <Card className="border-2 border-primary/10 h-full">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <History className="h-5 w-5 text-primary" />
+                            Global Pulse
+                        </CardTitle>
+                        <CardDescription>Live activity from the w3Develops website.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <GlobalPulse />
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 }

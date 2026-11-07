@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { useFirestore } from '@/firebase';
 import { collection, doc, writeBatch, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
@@ -9,8 +10,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { UserProfile } from '@/lib/types';
+import type { User } from 'firebase/auth';
+import { getErrorMessage } from '@/lib/utils';
 
-export default function SubmitSoloProjectForm({ user, userProfile, onSuccess }: { user: any; userProfile: UserProfile, onSuccess: () => void }) {
+export default function SubmitSoloProjectForm({ user, userProfile, onSuccess }: { user: User; userProfile: UserProfile, onSuccess: () => void }) {
   const [name, setName] = useState('');
   const [projectUrl, setProjectUrl] = useState('');
   const [description, setDescription] = useState('');
@@ -18,8 +21,10 @@ export default function SubmitSoloProjectForm({ user, userProfile, onSuccess }: 
   const { toast } = useToast();
   const firestore = useFirestore();
 
+  const ensureVerified = useVerifiedGuard();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+      if (!ensureVerified()) return;
     if (!name.trim() || !projectUrl.trim() || !description.trim()) {
       toast({ variant: 'destructive', title: 'Please fill all fields' });
       return;
@@ -53,9 +58,9 @@ export default function SubmitSoloProjectForm({ user, userProfile, onSuccess }: 
       setDescription('');
       onSuccess();
 
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error submitting project: ", error);
-      toast({ variant: 'destructive', title: 'Submission Failed', description: error.message });
+      toast({ variant: 'destructive', title: 'Submission Failed', description: getErrorMessage(error) });
     } finally {
       setIsSubmitting(false);
     }

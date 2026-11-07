@@ -1,105 +1,155 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Scale } from 'lucide-react';
+import { LegalPage, LegalSection } from '@/components/LegalPage';
 
-'use client';
+export const metadata: Metadata = {
+    title: 'Terms of Use | w3Develops',
+    description: 'The ground rules for using w3Develops, written in plain language: be kind, own your work, and help each other learn.',
+};
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+const linkClass = 'text-primary underline';
 
 export default function TermsPage() {
     return (
-        <div className="max-w-3xl mx-auto p-4 md:p-10">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Terms of Use for w3Develops</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <p className="text-sm text-muted-foreground">Effective Date: November 28, 2025</p>
+        <LegalPage
+            icon={<Scale className="h-10 w-10" />}
+            title="Terms of Use"
+            lastUpdated="November 2, 2026"
+            intro={
+                <>
+                    <p>
+                        w3Develops is a free community where developers learn, build and team up. These terms are the ground rules
+                        that keep it working. We've tried to keep them short and readable.
+                    </p>
+                    <p>
+                        By using w3Develops you agree to these terms and to our{' '}
+                        <Link href="/privacy" className={linkClass}>Privacy Policy</Link>.
+                    </p>
+                </>
+            }
+        >
+            <LegalSection
+                title="Your account"
+                summary="You need to be 13 or older. Use a real email address and keep your password to yourself."
+            >
+                <p>
+                    You need to be at least 13 years old to make an account. Please use an email address you can access, keep
+                    your password safe, and let us know if you think someone else is using your account. You're responsible for
+                    what happens on your account, so don't share it.
+                </p>
+            </LegalSection>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">1. Acceptance of Terms</h3>
-                        <p>Welcome to w3Develops ("Company", "we", "us", or "our"). By accessing or using our website located at w3develops.org (the "Site"), joining our study groups, participating in our competitions, or utilizing our educational resources (collectively, the "Services"), you agree to be bound by these Terms of Use ("Terms"). If you disagree with any part of these Terms, you may not access the Service.</p>
-                    </div>
+            <LegalSection
+                title="Be a good community member"
+                summary="Treat people with respect and help each other learn."
+            >
+                <p>People here are at every level, from writing their first line of code to leading teams. Please don't:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                    <li>Harass, threaten, bully or discriminate against anyone.</li>
+                    <li>Share someone's private information without their permission.</li>
+                    <li>Post spam, scams, malware, or anything illegal.</li>
+                    <li>Pretend to be someone you're not.</li>
+                    <li>Post other people's work as your own, or share content you don't have the right to share.</li>
+                    <li>Try to break into accounts, or disrupt the site for others.</li>
+                </ul>
+                <p>
+                    If someone breaks these rules, we may remove their content or suspend their account. We'll try to explain
+                    why, and if you think we got it wrong, email us and we'll take another look.
+                </p>
+            </LegalSection>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">2. Description of Service</h3>
-                        <p>w3Develops provides free coding education resources, community study groups, programming competitions, and career development support. We reserve the right to modify, suspend, or discontinue any part of the Service at any time without notice or liability.</p>
-                    </div>
+            <LegalSection
+                title="Your work is yours"
+                summary="You keep ownership of everything you create here. You just give us permission to show it on the site."
+            >
+                <p>
+                    You own the code, writing and projects you share on w3Develops. By posting them, you give us permission to
+                    store and display them on w3Develops so the community can see them and work with you. That permission ends
+                    when you delete your content or your account, except for copies other people have already made under an open
+                    license you chose.
+                </p>
+                <p>
+                    We encourage you to share your work under an open source or Creative Commons license so others can learn
+                    from it. Group projects follow whatever license the group picks.
+                </p>
+            </LegalSection>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">3. User Accounts</h3>
-                        <p>To access certain features (like study groups or competitions), you may be required to register for an account. You agree to:</p>
-                        <ul className="list-disc pl-6 text-muted-foreground">
-                            <li>Provide accurate, current, and complete information.</li>
-                            <li>Maintain the security of your password and identification.</li>
-                            <li>Accept all responsibility for any and all activities that occur under your account.</li>
-                        </ul>
-                        <p>We reserve the right to disable any user account at any time in our sole discretion for any or no reason, including if, in our opinion, you have failed to comply with any provision of these Terms.</p>
-                    </div>
+            <LegalSection
+                title="Building on w3Develops"
+                summary="You're welcome to build tools, bots and scripts that work with the site. Just don't overload it or misuse people's data."
+            >
+                <p>
+                    You're free to build your own tools that work with your own data or public community content, including
+                    apps, bots, browser extensions and scrapers. Please keep them polite: don't overload the site, don't get
+                    around privacy settings, and don't collect members' information to spam or track them. We won't use legal
+                    threats to stop people building tools that help others learn, or that help them take their data elsewhere.
+                </p>
+                <p>
+                    The w3Develops code is{' '}
+                    <a href="https://github.com/JonDevOps/w3Develops" className={linkClass}>open source on GitHub</a> under the BSD 3-Clause license, and
+                    contributions are welcome. The w3Develops name and logo are ours, so please don't use them in a way that
+                    suggests we endorse something we don't.
+                </p>
+            </LegalSection>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">4. Community Code of Conduct</h3>
-                        <p>Our community is built on collaboration and respect. By using our Services, you agree NOT to:</p>
-                        <ul className="list-disc pl-6 text-muted-foreground">
-                            <li>Harass, threaten, or intimidate other users.</li>
-                            <li>Post content that is hateful, violent, discriminatory, or sexually explicit.</li>
-                            <li>Disrupt study groups with spam, solicitations, or irrelevant content.</li>
-                            <li>Cheat, manipulate, or exploit bugs during coding competitions.</li>
-                            <li>Infringe upon the intellectual property rights of others.</li>
-                        </ul>
-                        <p>Violation of these rules will result in immediate termination of your account and ban from our community.</p>
-                    </div>
+            <LegalSection
+                title="Other websites and donations"
+                summary="Links to other sites and donation platforms follow those sites' own rules."
+            >
+                <p>
+                    w3Develops links to many outside resources, like news articles, job listings, tutorials and meetups we don't
+                    run. We aren't responsible for what's on those sites. Donations go through Open Collective, Patreon or PayPal
+                    under their terms. If you donated by mistake, email us and we'll do our best to help.
+                </p>
+            </LegalSection>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">5. User-Generated Content</h3>
-                        <p>You retain ownership of the code, text, and projects you submit to the Service ("User Content"). However, by submitting User Content, you grant w3Develops a worldwide, non-exclusive, royalty-free, perpetual, and transferable license to use, reproduce, distribute, display, and perform your User Content in connection with the Service (e.g., showcasing competition winners, displaying portfolio projects).</p>
-                        <p>You represent and warrant that you own or have the necessary rights to post your User Content and that it does not violate the rights of any third party.</p>
-                    </div>
+            <LegalSection
+                title="The fine print"
+                summary="w3Develops is free and run by volunteers, so we can't promise it will always be perfect."
+            >
+                <p>
+                    We work hard to keep w3Develops running smoothly, but we provide it "as is," without guarantees that it will
+                    always be available or error-free. Advice, code and opinions shared by members are their own, so use your own
+                    judgment before relying on them. To the extent the law allows, w3Develops and its volunteers aren't liable
+                    for indirect losses that come from using the site. Nothing in these terms takes away rights you have under
+                    the consumer protection laws where you live.
+                </p>
+            </LegalSection>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">6. Intellectual Property Rights</h3>
-                        <p>The Service and its original content (excluding User Content), features, and functionality are and will remain the exclusive property of w3Develops and its licensors. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of w3Develops.</p>
-                    </div>
+            <LegalSection
+                title="If we disagree"
+                summary="Let's talk first. If that doesn't work, you keep your right to go to court."
+            >
+                <p>
+                    If you have a problem with w3Develops, please email us first. Most things can be sorted out with a
+                    conversation. If they can't, you keep every right you have to take the matter to court, including joining a
+                    class action. We don't use forced arbitration.
+                </p>
+            </LegalSection>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">7. Competitions and Prizes</h3>
-                        <p>If you participate in our competitions:</p>
-                        <ul className="list-disc pl-6 text-muted-foreground">
-                            <li>You must abide by the specific rules posted for each contest.</li>
-                            <li>We reserve the right to disqualify any participant for cheating or unsportsmanlike conduct.</li>
-                            <li>Prizes are awarded at our sole discretion and are subject to availability. We are not responsible for lost or undelivered prizes.</li>
-                        </ul>
-                    </div>
+            <LegalSection
+                title="Leaving, and changes to these terms"
+                summary="You can leave whenever you like. If we change these terms, we'll tell you."
+            >
+                <p>
+                    You can stop using w3Develops at any time, and you can delete your account yourself from the{' '}
+                    <Link href="/security" className={linkClass}>Security page</Link>. If we ever have to shut the site down,
+                    we'll give members advance notice and a chance to download their data.
+                </p>
+                <p>
+                    If we change these terms, we'll update this page and the date at the top, and let members know about
+                    bigger changes before they take effect. You can see every past version{' '}
+                    <a href="https://github.com/JonDevOps/w3Develops/commits/main/src/app/terms/page.tsx" className={linkClass}>on GitHub</a>.
+                </p>
+            </LegalSection>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">8. Third-Party Links</h3>
-                        <p>Our Service may contain links to third-party web sites or services that are not owned or controlled by w3Develops. We have no control over, and assume no responsibility for, the content, privacy policies, or practices of any third-party web sites or services.</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">9. Disclaimer of Warranties</h3>
-                        <p>The Service is provided on an "AS IS" and "AS AVAILABLE" basis. w3Develops makes no representations or warranties of any kind, express or implied, regarding the operation of the Service or the information, content, or materials included therein. You expressly agree that your use of the Service is at your sole risk.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">10. Limitation of Liability</h3>
-                        <p>In no event shall w3Develops, its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">11. Governing Law</h3>
-                        <p>These Terms shall be governed and construed in accordance with the laws of the jurisdiction in which w3Develops is established, without regard to its conflict of law provisions.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">12. Changes to Terms</h3>
-                        <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. By continuing to access or use our Service after those revisions become effective, you agree to be bound by the revised terms.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">13. Contact Us</h3>
-                        <p>If you have any questions about these Terms, please contact us at:</p>
-                        <p>Email: <a href="mailto:contact@w3develops.org" className="text-primary underline">contact@w3develops.org</a></p>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
+            <LegalSection title="Questions">
+                <p>
+                    Email <a href="mailto:legal@w3develops.org" className={linkClass}>legal@w3develops.org</a> with any
+                    questions about these terms.
+                </p>
+            </LegalSection>
+        </LegalPage>
     );
 }

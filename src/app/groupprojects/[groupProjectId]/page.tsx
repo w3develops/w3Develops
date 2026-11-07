@@ -1,9 +1,10 @@
-import GroupProjectDashboardPage from './client';
+import GroupDashboard from '@/components/groups/GroupDashboard';
 
 export async function generateStaticParams() {
   return [];
 }
 
-export default function Page({ params }: { params: { groupProjectId: string } }) {
-  return <GroupProjectDashboardPage params={params} />;
+export default async function Page({ params }: { params: Promise<{ groupProjectId: string }> }) {
+  const resolvedParams = await params;
+  return <GroupDashboard kind="groupProject" groupId={resolvedParams.groupProjectId} />;
 }

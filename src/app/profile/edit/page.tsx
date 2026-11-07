@@ -17,6 +17,8 @@ import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Switch } from '@/components/ui/switch';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import TimezoneSelect from '@/components/TimezoneSelect';
+import { browserTimeZone, isValidTimeZone } from '@/lib/timezones';
 
 // Helper function to ensure a URL is absolute
 const ensureAbsoluteUrl = (url: string) => {
@@ -41,6 +43,7 @@ export default function EditProfilePage() {
   const [linkedin, setLinkedin] = useState('');
   const [twitter, setTwitter] = useState('');
   const [followInfoPrivate, setFollowInfoPrivate] = useState(false);
+  const [timezone, setTimezone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Pair Programming State
@@ -64,6 +67,7 @@ export default function EditProfilePage() {
       setLinkedin(userProfile.socialLinks?.linkedin || '');
       setTwitter(userProfile.socialLinks?.twitter || '');
       setFollowInfoPrivate(userProfile.followInfoPrivate || false);
+      setTimezone(isValidTimeZone(userProfile.timezone) ? userProfile.timezone : browserTimeZone());
       setPairProgrammingStatus(userProfile.pairProgrammingStatus || 'closed');
       setPairProgrammingSkills(userProfile.pairProgrammingSkills || []);
     }
@@ -111,6 +115,7 @@ export default function EditProfilePage() {
         twitter: ensureAbsoluteUrl(twitter),
       },
       followInfoPrivate,
+      timezone,
       pairProgrammingStatus,
       pairProgrammingSkills,
     };
@@ -161,6 +166,12 @@ export default function EditProfilePage() {
                 <Label htmlFor="username">Username</Label>
                 <Input id="username" value={username} disabled />
                 <p className="text-xs text-muted-foreground">Usernames cannot be changed after signup.</p>
+                </div>
+
+                <div className="grid gap-2">
+                <Label htmlFor="timezone">Timezone</Label>
+                <TimezoneSelect id="timezone" value={timezone} onChange={setTimezone} disabled={isSubmitting} />
+                <p className="text-xs text-muted-foreground">Used as the default when you create a group or meetup.</p>
                 </div>
 
                 <div className="grid gap-2">

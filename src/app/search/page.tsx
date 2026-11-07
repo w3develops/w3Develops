@@ -188,7 +188,7 @@ function SearchResults() {
                 {filteredGroups.length > 0 ? (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {filteredGroups.map(group => {
-                        const isNew = group.createdAt && (Date.now() - (group.createdAt as any).toMillis()) < ONE_WEEK_IN_MS;
+                        const isNew = group.createdAt && (Date.now() - group.createdAt.toMillis()) < ONE_WEEK_IN_MS;
                         return (
                             <Link href={`/studygroups/${group.id}`} key={group.id}>
                             <Card className="hover:bg-accent transition-colors h-full flex flex-col">
@@ -204,7 +204,7 @@ function SearchResults() {
                                     <div className="flex flex-col text-sm text-muted-foreground gap-2">
                                         <div className="flex items-center"><Users className="w-4 h-4 mr-2" />{group.memberIds.length} / 25 Members</div>
                                         <Badge variant="outline" className="w-fit">{group.commitment}</Badge>
-                                        <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(group.createdAt as any)}</div>
+                                        <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(group.createdAt)}</div>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -221,7 +221,7 @@ function SearchResults() {
                 {filteredBookClubs.length > 0 ? (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {filteredBookClubs.map(club => {
-                        const isNew = club.createdAt && (Date.now() - (club.createdAt as any).toMillis()) < ONE_WEEK_IN_MS;
+                        const isNew = club.createdAt && (Date.now() - club.createdAt.toMillis()) < ONE_WEEK_IN_MS;
                         return (
                             <Link href={`/book-clubs/${club.id}`} key={club.id}>
                             <Card className="hover:bg-accent transition-colors h-full flex flex-col">
@@ -237,7 +237,7 @@ function SearchResults() {
                                     <div className="flex flex-col text-sm text-muted-foreground gap-2">
                                         <div className="flex items-center"><Users className="w-4 h-4 mr-2" />{club.memberIds.length} / 25 Members</div>
                                         {club.commitmentHours && <Badge variant="outline" className="w-fit">{club.commitmentHours}hr/day</Badge>}
-                                        <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(club.createdAt as any)}</div>
+                                        <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(club.createdAt)}</div>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -254,7 +254,7 @@ function SearchResults() {
                 {filteredGroupProjects.length > 0 ? (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {filteredGroupProjects.map(groupProject => {
-                        const isNew = groupProject.createdAt && (Date.now() - (groupProject.createdAt as any).toMillis()) < ONE_WEEK_IN_MS;
+                        const isNew = groupProject.createdAt && (Date.now() - groupProject.createdAt.toMillis()) < ONE_WEEK_IN_MS;
                         return (
                         <Link href={`/groupprojects/${groupProject.id}`} key={groupProject.id}>
                             <Card className="hover:bg-accent transition-colors h-full flex flex-col">
@@ -270,7 +270,7 @@ function SearchResults() {
                                 <div className="flex flex-col text-sm text-muted-foreground gap-2">
                                     <div className="flex items-center"><Users className="w-4 h-4 mr-2" />{groupProject.memberIds.length} / 25 Members</div>
                                     <Badge variant="outline" className="w-fit">{groupProject.commitment}</Badge>
-                                    <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(groupProject.createdAt as any)}</div>
+                                    <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(groupProject.createdAt)}</div>
                                 </div>
                             </CardContent>
                             </Card>

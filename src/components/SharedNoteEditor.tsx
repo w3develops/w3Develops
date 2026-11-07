@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useFirestore, useUser, useDoc } from '@/firebase';
-import { doc, setDoc, serverTimestamp, DocumentReference } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, DocumentReference, type Timestamp, type FieldValue } from 'firebase/firestore';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { useDebounce } from '@/lib/hooks/useDebounce';
@@ -16,7 +16,7 @@ interface SharedNote {
   id: string;
   content: string;
   lastUpdatedBy: string;
-  lastUpdatedAt: any;
+  lastUpdatedAt: Timestamp | FieldValue;
 }
 
 interface SharedNoteEditorProps {
