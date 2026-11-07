@@ -1,5 +1,9 @@
 import Link from 'next/link';
 import { Shield, FileText, Mail, Lock } from 'lucide-react';
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site-pages';
+
+export const metadata: Metadata = pageMetadata('/contribute/security');
 
 export default function SecurityPage() {
     return (

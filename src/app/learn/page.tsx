@@ -8,6 +8,10 @@ import {
 import { Link2 } from "lucide-react";
 import Link from "next/link";
 import { programmingTheoryResources, webLearningResources, mobileLearningResources, backendLearningResources, databaseResources, cybersecurityResources, aiMachineLearningResources, web3LearningResources, systemsLearningResources, digitalMarketingResources } from "@/lib/learning-resources";
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site-pages';
+
+export const metadata: Metadata = pageMetadata('/learn');
 
 interface LearningResource {
     topic: string;

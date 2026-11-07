@@ -1,11 +1,9 @@
 import type { Metadata } from 'next';
 import { Bird } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { pageMetadata } from '@/lib/site-pages';
 
-export const metadata: Metadata = {
-    title: 'Warrant Canary | w3Develops',
-    description: 'A regularly updated statement that w3Develops has never received a secret legal order.',
-};
+export const metadata: Metadata = pageMetadata('/warrant-canary');
 
 // Update both dates every time the statement is renewed
 const lastUpdated = 'November 2, 2026';

@@ -9,6 +9,7 @@ import Header from "@/components/layout/header";
 import EmailVerificationBanner from "@/components/EmailVerificationBanner";
 import Footer from "@/components/layout/footer";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
+import { HOME_DESCRIPTION, HOME_TITLE, SITE_NAME, SITE_URL } from "@/lib/site-pages";
 
 
 const inter = Inter({ 
@@ -21,9 +22,12 @@ const spaceGrotesk = Space_Grotesk({
   variable: '--font-headline',
 });
 
+// Pages set their own title and description from src/lib/site-pages.ts;
+// a page title like "Meetups" is shown as "Meetups | w3Develops"
 export const metadata: Metadata = {
-  title: "Join w3Develops for a global free coding bootcamp alternative, remote coding study groups, collaborative coding projects, meetups, mentorships, hackathons, hackerspaces, and the latest tech news.",
-  description: "Elevate your skills at w3Develops. Our platform features a free coding bootcamp, engaging remote coding study groups, and hands-on collaborative coding projects. Start now.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: HOME_TITLE, template: `%s | ${SITE_NAME}` },
+  description: HOME_DESCRIPTION,
   manifest: '/manifest.json',
   icons: {
     icon: [

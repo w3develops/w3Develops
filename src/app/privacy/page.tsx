@@ -2,11 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ShieldCheck } from 'lucide-react';
 import { LegalPage, LegalSection } from '@/components/LegalPage';
+import { pageMetadata } from '@/lib/site-pages';
 
-export const metadata: Metadata = {
-    title: 'Privacy Policy | w3Develops',
-    description: 'What w3Develops collects, why, who it is shared with, and how to see, change or delete your information.',
-};
+export const metadata: Metadata = pageMetadata('/privacy');
 
 const linkClass = 'text-primary underline';
 

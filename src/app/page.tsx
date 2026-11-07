@@ -1,15 +1,11 @@
 
-'use client';
-
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useUser } from '@/firebase';
+import type { Metadata } from 'next';
+import SignedInRedirect from '@/components/SignedInRedirect';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import Image from "next/image";
 import { CheckCircle, Code, Users, BookOpen, ArrowRight, Hammer, Trophy, GitCommit, UsersRound, FileCheck, ShieldCheck, Milestone, SearchCheck } from "lucide-react";
-import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import placeholderImages from '@/app/lib/placeholder-images.json';
 
 const features = [
@@ -40,22 +36,14 @@ const features = [
 ];
 
 
+// Uses the site's default title and description from the root layout
+export const metadata: Metadata = { alternates: { canonical: '/' } };
+
+// Rendered on the server so search engines and AI crawlers can read it.
+// Members who are signed in are sent to their account page.
 export default function Home() {
-  const { user, isUserLoading } = useUser();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isUserLoading && user) {
-      router.push('/account');
-    }
-  }, [user, isUserLoading, router]);
-
-  if (isUserLoading || user) {
-    return <LoadingSkeleton />;
-  }
-
   return (
-    <>
+    <SignedInRedirect to="/account">
         {/* Hero Section */}
         <section className="relative w-full min-h-screen flex items-center justify-center text-center text-white">
             <Image
@@ -342,6 +330,6 @@ export default function Home() {
         </section>
         {/* END: New Content Sections */}
       </div>
-    </>
+    </SignedInRedirect>
   );
 }

@@ -3,6 +3,10 @@ import { Sparkles, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import AiNewsSummary from '@/components/AiNewsSummary';
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site-pages';
+
+export const metadata: Metadata = pageMetadata('/news/ai-community-brief');
 
 export default function AiCommunityBriefPage() {
     return (

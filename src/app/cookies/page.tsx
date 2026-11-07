@@ -2,11 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Cookie } from 'lucide-react';
 import { LegalPage, LegalSection } from '@/components/LegalPage';
+import { pageMetadata } from '@/lib/site-pages';
 
-export const metadata: Metadata = {
-    title: 'Cookies | w3Develops',
-    description: 'The few cookies and browser storage w3Develops uses, what each one is for, and how to turn them off.',
-};
+export const metadata: Metadata = pageMetadata('/cookies');
 
 const linkClass = 'text-primary underline';
 
