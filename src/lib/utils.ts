@@ -22,7 +22,8 @@ export function getErrorMessage(error: unknown, fallback = 'An unexpected error 
   return error instanceof Error && error.message ? error.message : fallback;
 }
 
-export function formatTimestamp(timestamp: Timestamp | FieldValue | undefined | null, includeTime = false) {
+/** `timeZone` defaults to the one the code runs in; pass one to name it next to the time */
+export function formatTimestamp(timestamp: Timestamp | FieldValue | undefined | null, includeTime = false, timeZone?: string) {
   if (!timestamp || !(timestamp instanceof Timestamp)) {
     return 'N/A';
   }
@@ -32,11 +33,13 @@ export function formatTimestamp(timestamp: Timestamp | FieldValue | undefined | 
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    timeZone,
   };
 
   if (includeTime) {
     options.hour = 'numeric';
     options.minute = '2-digit';
+    if (timeZone) options.timeZoneName = 'short';
   }
 
   return new Intl.DateTimeFormat('en-US', options).format(date);

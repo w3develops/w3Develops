@@ -1,11 +1,15 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site-pages';
+
+export const metadata: Metadata = pageMetadata('/marketplace');
 
 export default function MarketplacePage() {
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-10">
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline text-3xl">Marketplace</CardTitle>
+                    <CardTitle as="h1" className="font-headline text-3xl">Marketplace</CardTitle>
                     <CardDescription>
                         Community-driven marketplace for services and products.
                     </CardDescription>

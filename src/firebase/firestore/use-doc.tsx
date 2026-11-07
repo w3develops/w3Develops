@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   onSnapshot,
   DocumentData,
   FirestoreError,
   DocumentReference,
 } from 'firebase/firestore';
+import { fromPlain } from './plain';
 
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
@@ -39,13 +40,17 @@ export interface UseDocResult<T> {
  * @template T Optional type for document data. Defaults to any.
  * @param {DocumentReference<DocumentData> | null | undefined} docRef -
  * The Firestore DocumentReference. Waits if null/undefined.
+ * @param initialData - The document as the server fetched it (see plain.ts),
+ * shown until the live copy arrives so the page has content straight away.
  * @returns {UseDocResult<T>} Object with data, isLoading, error.
  */
 export function useDoc<T = any>(
-  docRef: DocumentReference<DocumentData> | null | undefined
+  docRef: DocumentReference<DocumentData> | null | undefined,
+  initialData?: unknown,
 ): UseDocResult<T> {
   // The latest document, and which reference it came from
   const [latest, setLatest] = useState<Latest<WithId<T>>>(NOTHING_YET);
+  const initial = useMemo(() => (initialData ? fromPlain<WithId<T>>(initialData) : null), [initialData]);
 
   // Forget the old document once there's nothing to listen to
   if (!docRef && latest.source !== null) {
@@ -71,7 +76,11 @@ export function useDoc<T = any>(
   }, [docRef]); // Re-run if the reference changes.
 
   if (!docRef) return { data: null, isLoading: false, error: null };
-  // Waiting on a new reference: keep showing the previous document meanwhile
-  if (latest.source !== docRef) return { data: latest.data, isLoading: true, error: null };
+  if (latest.source !== docRef) {
+    // Nothing live yet: show the server's copy, if there is one
+    if (latest.source === null && initial) return { data: initial, isLoading: false, error: null };
+    // Waiting on a new reference: keep showing the previous document meanwhile
+    return { data: latest.data, isLoading: true, error: null };
+  }
   return { data: latest.data, isLoading: false, error: latest.error };
 }

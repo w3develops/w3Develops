@@ -1,5 +1,9 @@
 import { Award } from 'lucide-react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site-pages';
+
+export const metadata: Metadata = pageMetadata('/contribute/security/hall-of-fame');
 
 const hallOfFameData = {
     "2026": [

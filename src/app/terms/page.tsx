@@ -2,11 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Scale } from 'lucide-react';
 import { LegalPage, LegalSection } from '@/components/LegalPage';
+import { pageMetadata } from '@/lib/site-pages';
 
-export const metadata: Metadata = {
-    title: 'Terms of Use | w3Develops',
-    description: 'The ground rules for using w3Develops, written in plain language: be kind, own your work, and help each other learn.',
-};
+export const metadata: Metadata = pageMetadata('/terms');
 
 const linkClass = 'text-primary underline';
 

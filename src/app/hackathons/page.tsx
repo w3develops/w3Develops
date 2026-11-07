@@ -2,6 +2,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { ExternalLink, Hammer } from 'lucide-react';
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site-pages';
+
+export const metadata: Metadata = pageMetadata('/hackathons');
 
 const hackathonPlatforms = [
     {
@@ -38,7 +42,7 @@ export default function HackathonsPage() {
                 <CardHeader>
                     <div className="flex items-center gap-3">
                         <Hammer className="h-8 w-8 text-primary" />
-                        <CardTitle className="font-headline text-3xl">Hackathon Platforms</CardTitle>
+                        <CardTitle as="h1" className="font-headline text-3xl">Hackathon Platforms</CardTitle>
                     </div>
                     <CardDescription>
                         Explore platforms where you can find, join, and compete in hackathons.

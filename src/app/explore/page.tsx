@@ -3,6 +3,10 @@ import Link from 'next/link';
 import {
     Users, Code, BookOpen, MessageSquare, GraduationCap, Hammer, Trophy, GitBranch, Rss, Briefcase, Podcast, Factory, School, PlusCircle
 } from "lucide-react";
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site-pages';
+
+export const metadata: Metadata = pageMetadata('/explore');
 
 const mainLinks = [
     { href: "/learn", label: "Learn", icon: School, description: "Curated resources to learn new skills." },

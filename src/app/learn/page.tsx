@@ -8,6 +8,10 @@ import {
 import { Link2 } from "lucide-react";
 import Link from "next/link";
 import { programmingTheoryResources, webLearningResources, mobileLearningResources, backendLearningResources, databaseResources, cybersecurityResources, aiMachineLearningResources, web3LearningResources, systemsLearningResources, digitalMarketingResources } from "@/lib/learning-resources";
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site-pages';
+
+export const metadata: Metadata = pageMetadata('/learn');
 
 interface LearningResource {
     topic: string;
@@ -18,7 +22,7 @@ interface LearningResource {
 const LearningSection = ({ title, description, resources }: { title: string, description: string, resources: LearningResource[] }) => (
     <Card>
         <CardHeader>
-            <CardTitle className="font-headline text-3xl">{title}</CardTitle>
+            <CardTitle as="h2" className="font-headline text-3xl">{title}</CardTitle>
             <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent>
@@ -49,6 +53,8 @@ const LearningSection = ({ title, description, resources }: { title: string, des
 export default function LearnPage() {
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-10 space-y-8">
+             {/* The sections share the page equally, so the main heading is for screen readers and search engines */}
+             <h1 className="sr-only">Learn to Code</h1>
              <LearningSection 
                 title="Programming Theory"
                 description="Start here to learn the fundamental concepts of programming that apply to any language."

@@ -23,6 +23,10 @@ import {
     ExternalLink
 } from 'lucide-react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site-pages';
+
+export const metadata: Metadata = pageMetadata('/contribute/guide');
 
 const steps = [
     {

@@ -2,6 +2,10 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Heart, Pencil, Languages, Search, Braces, Shield, BookOpen } from 'lucide-react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site-pages';
+
+export const metadata: Metadata = pageMetadata('/contribute');
 
 const contributionOptions = [
     {

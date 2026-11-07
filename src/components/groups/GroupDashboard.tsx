@@ -20,8 +20,9 @@ import { Group } from '@/lib/types';
 import { GROUP_KINDS, GroupKind, commitmentLabel, isOpenToJoin } from '@/lib/groups';
 import { timeZoneLabel } from '@/lib/timezones';
 import GroupSchedule from './GroupSchedule';
+import ZonedText from '@/components/ZonedText';
 
-export default function GroupDashboard({ kind, groupId }: { kind: GroupKind; groupId: string }) {
+export default function GroupDashboard({ kind, groupId, initialGroup }: { kind: GroupKind; groupId: string; initialGroup?: unknown }) {
   const config = GROUP_KINDS[kind];
   const { user } = useUser();
   const firestore = useFirestore();
@@ -31,7 +32,7 @@ export default function GroupDashboard({ kind, groupId }: { kind: GroupKind; gro
   const [isWorking, setIsWorking] = useState(false);
 
   const groupRef = useMemo(() => doc(firestore, config.collection, groupId) as DocumentReference<Group>, [firestore, config.collection, groupId]);
-  const { data: group, isLoading, error } = useDoc<Group>(groupRef);
+  const { data: group, isLoading, error } = useDoc<Group>(groupRef, initialGroup);
 
   if (isLoading) return <div className="text-center py-10 p-4 md:p-10">Loading...</div>;
   if (error) return <div className="text-center py-10 text-destructive p-4 md:p-10">Error loading this {config.noun}.</div>;
@@ -84,7 +85,7 @@ export default function GroupDashboard({ kind, groupId }: { kind: GroupKind; gro
         <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-start gap-4">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-4">
-              <CardTitle className="font-headline text-3xl">{group.name}</CardTitle>
+              <CardTitle as="h1" className="font-headline text-3xl">{group.name}</CardTitle>
               {isOpenToJoin(group) ? <Badge>New</Badge> : <Badge variant="secondary">In Progress</Badge>}
             </div>
             <CardDescription>{group.description}</CardDescription>
@@ -114,7 +115,7 @@ export default function GroupDashboard({ kind, groupId }: { kind: GroupKind; gro
             )}
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
-            <span className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" />Created on {formatTimestamp(group.createdAt)}</span>
+            <span className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" />Created on <ZonedText render={tz => formatTimestamp(group.createdAt, false, tz)} /></span>
             {group.timezone && <span>Host&apos;s timezone: {timeZoneLabel(group.timezone)}</span>}
           </div>
         </CardContent>

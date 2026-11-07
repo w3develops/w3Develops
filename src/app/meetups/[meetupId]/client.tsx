@@ -10,7 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Users, CalendarDays, ArrowLeft, MapPin, Video, User, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { formatTimestamp } from '@/lib/utils';
-import { browserTimeZone, formatDateTime } from '@/lib/timezones';
+import { formatDateTime } from '@/lib/timezones';
+import { useBrowserTimeZone } from '@/lib/hooks/useClientValues';
 import { useToast } from '@/components/ui/use-toast';
 import TaskList from '@/components/TaskList';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import { Textarea } from '@/components/ui/textarea';
 import JoinMeetupButton from '@/components/JoinMeetupButton';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import ZonedText from '@/components/ZonedText';
 
 function MeetupUpdates({ meetupId, creatorId }: { meetupId: string, creatorId: string }) {
   const { user } = useUser();
@@ -145,7 +147,7 @@ function AttendeeList({ attendeeIds }: { attendeeIds: string[] }) {
     )
 }
 
-export default function MeetupDashboardPage({ params }: { params: { meetupId: string } }) {
+export default function MeetupDashboardPage({ params, initialMeetup }: { params: { meetupId: string }; initialMeetup?: unknown }) {
   const { meetupId } = params;
   const { user } = useUser();
   const firestore = useFirestore();
@@ -153,13 +155,15 @@ export default function MeetupDashboardPage({ params }: { params: { meetupId: st
   const meetupDocRef = useMemo(() => doc(firestore, 'meetups', meetupId) as DocumentReference<Meetup>, [meetupId, firestore]);
   const userDocRef = useMemo(() => user ? doc(firestore, 'users', user.uid) as DocumentReference<UserProfile> : null, [user, firestore]);
 
-  const { data: meetup, isLoading, error } = useDoc<Meetup>(meetupDocRef);
+  const { data: meetup, isLoading, error } = useDoc<Meetup>(meetupDocRef, initialMeetup);
   const { data: currentUserProfile } = useDoc<UserProfile>(userDocRef);
 
   const creatorDocRef = useMemo(() => meetup ? doc(firestore, 'users', meetup.creatorId) as DocumentReference<UserProfile> : null, [meetup, firestore]);
   const { data: creator } = useDoc<UserProfile>(creatorDocRef);
 
   const isAttendee = user && meetup ? meetup.attendeeIds.includes(user.uid) : false;
+  // '' until the page is running in the browser, so the host's time shows in the page's HTML
+  const viewerTimeZone = useBrowserTimeZone();
 
   if (isLoading) return <div className="text-center py-10 p-4 md:p-10">Loading meetup...</div>;
   if (error) return <div className="text-center py-10 text-destructive p-4 md:p-10">Error loading meetup data.</div>;
@@ -175,7 +179,7 @@ export default function MeetupDashboardPage({ params }: { params: { meetupId: st
       <Card>
         <CardHeader>
             <div className="flex flex-wrap items-center gap-4">
-                <CardTitle className="font-headline text-3xl">{meetup.name}</CardTitle>
+                <CardTitle as="h1" className="font-headline text-3xl">{meetup.name}</CardTitle>
                 <Badge variant="secondary">{meetup.topic}</Badge>
             </div>
             <CardDescription>{meetup.description}</CardDescription>
@@ -186,8 +190,8 @@ export default function MeetupDashboardPage({ params }: { params: { meetupId: st
                     <div className="flex items-start gap-3">
                         <CalendarDays className="w-5 h-5 mt-1 flex-shrink-0 text-primary" />
                         <div>
-                            <p className="font-semibold text-primary">{formatDateTime(meetup.dateTime.toDate())}</p>
-                            {meetup.timezone && meetup.timezone !== browserTimeZone() && (
+                            <p className="font-semibold text-primary"><ZonedText render={tz => formatDateTime(meetup.dateTime.toDate(), tz)} /></p>
+                            {meetup.timezone && meetup.timezone !== viewerTimeZone && (
                                 <p className="text-xs text-muted-foreground">Host&apos;s time: {formatDateTime(meetup.dateTime.toDate(), meetup.timezone)}</p>
                             )}
                         </div>

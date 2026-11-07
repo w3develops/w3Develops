@@ -2,6 +2,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site-pages';
+
+export const metadata: Metadata = pageMetadata('/news/archive');
 
 export default function NewsArchivePage() {
     return (
@@ -13,7 +17,7 @@ export default function NewsArchivePage() {
                             <ArrowLeft className="h-4 w-4" /> Back to Latest News
                         </Link>
                     </Button>
-                    <CardTitle className="font-headline text-3xl pt-4">News Archive</CardTitle>
+                    <CardTitle as="h1" className="font-headline text-3xl pt-4">News Archive</CardTitle>
                     <CardDescription>
                         The main news page shows articles from the last 3 days. This archive will contain older posts.
                     </CardDescription>

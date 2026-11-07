@@ -2,6 +2,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { ExternalLink, ArrowLeft } from 'lucide-react';
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site-pages';
+
+export const metadata: Metadata = pageMetadata('/bug-bounties');
 
 const bountyPlatforms = [
     {
@@ -31,7 +35,7 @@ export default function BugBountiesPage() {
                             <ArrowLeft className="h-4 w-4" /> Back to Competitions
                         </Link>
                     </Button>
-                    <CardTitle className="font-headline text-3xl">Bug Bounty Platforms</CardTitle>
+                    <CardTitle as="h1" className="font-headline text-3xl">Bug Bounty Platforms</CardTitle>
                     <CardDescription>
                         Explore platforms where you can get rewarded for finding and reporting security vulnerabilities.
                     </CardDescription>
