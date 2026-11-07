@@ -27,13 +27,17 @@ const pagesBySection = () =>
     pages: Object.entries(SITE_PAGES as Record<string, SitePage>).filter(([, page]) => page.section === section),
   }));
 
-/** The FAQ's HTML answers as Markdown, with site links made absolute */
+/**
+ * The FAQ's HTML answers as Markdown, with site links made absolute. The
+ * answers only use links and <strong>, which become Markdown; any other
+ * angle bracket is then dropped, so no HTML tag can survive.
+ */
 function answerToMarkdown(html: string): string {
   return html
     .replace(/<a href='([^']+)'[^>]*>(.*?)<\/a>/g, (_, href: string, text: string) =>
       `[${text}](${href.startsWith('/') ? pageUrl(href) : href})`)
     .replace(/<strong>(.*?)<\/strong>/g, '**$1**')
-    .replace(/<[^>]+>/g, '');
+    .replace(/[<>]/g, '');
 }
 
 export function buildLlmsTxt(): string {
