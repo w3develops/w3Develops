@@ -1,6 +1,3 @@
-
-'use client';
-
 import { Award } from 'lucide-react';
 import Link from 'next/link';
 

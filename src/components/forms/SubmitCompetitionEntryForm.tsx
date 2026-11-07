@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
@@ -12,9 +13,10 @@ import { SoloProject } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import type { User } from 'firebase/auth';
 
 interface SubmitCompetitionEntryFormProps {
-  user: any;
+  user: User;
   competitionId: string;
   userSoloProjects: SoloProject[];
   onSuccess: () => void;
@@ -38,8 +40,10 @@ export default function SubmitCompetitionEntryForm({ user, competitionId, userSo
     }
   }, [soloProjectId, userSoloProjects]);
   
+  const ensureVerified = useVerifiedGuard();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+      if (!ensureVerified()) return;
     if (!projectUrl.trim()) {
       toast({ variant: 'destructive', title: 'Project URL is required' });
       return;

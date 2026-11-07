@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { useUser, useFirestore } from '@/firebase';
 import { arrayUnion, arrayRemove, doc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/components/ui/use-toast';
@@ -16,6 +17,7 @@ interface FollowButtonProps {
 
 export default function FollowButton({ targetUserId, targetUserFollowers }: FollowButtonProps) {
     const { user } = useUser();
+    const ensureVerified = useVerifiedGuard();
     const { toast } = useToast();
     const firestore = useFirestore();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,6 +29,7 @@ export default function FollowButton({ targetUserId, targetUserFollowers }: Foll
     const isFollowing = targetUserFollowers?.includes(user.uid);
 
     const handleFollowToggle = async () => {
+        if (!ensureVerified()) return;
         setIsSubmitting(true);
         const currentUserRef = doc(firestore, 'users', user.uid);
         const targetUserRef = doc(firestore, 'users', targetUserId);

@@ -1,5 +1,12 @@
 
 export const rssFeeds = [
+    // Official w3Develops Feeds - The "Easy" ones with public RSS
+    'https://mastodon.social/@w3develops.rss',
+    'https://medium.com/feed/w3develops',
+    'https://www.reddit.com/r/w3Develops/.rss',
+    'https://bsky.app/profile/w3develops.bsky.social/rss',
+    
+    // Tech & Community Feeds
     'https://www.theblock.co/rss.xml?feed=news.xml',
     'https://www.coindesk.com/arc/outboundfeeds/rss',
     'https://www.wired.com/feed/category/business/latest/rss',
@@ -12,7 +19,6 @@ export const rssFeeds = [
     'https://bitcoinist.com/feed/',
     'https://coincentral.com/feed/',
     'https://blockworks.co/feed',
-    'https://bitcoinmagazine.com/feed',
     'https://nypost.com/cryptocurrency/feed/',
     'https://cryptonews.com/feed/',
     'https://s3.coinmarketcap.com/generated/rss/alexandria/articles.xml',
@@ -26,7 +32,6 @@ export const rssFeeds = [
     'https://www.securityweek.com/feed/',
     'https://krebsonsecurity.com/feed/',
     'https://www.bleepingcomputer.com/feed/',
-    'https://www.developer-tech.com/feed/',
     'https://www.freecodecamp.org/news/rss/',
     'https://www.infoworld.com/feed/',
     'https://cprss.s3.amazonaws.com/javascriptweekly.com.xml',
@@ -49,15 +54,13 @@ export const rssFeeds = [
     'https://techcrunch.com/feed/',
     'https://news.ycombinator.com/rss',
     'https://itsfoss.com/rss/',
-    'https://www.tomshardware.com/feeds/all.xml',
+    'https://www.tomshardware.com/feeds.xml',
     'https://hackernoon.com/feed',
     'https://www.eff.org/rss/updates.xml',
     'https://future.forem.com/feed',
-    'https://searchengineland.com/feed',
     'https://moz.com/feeds/blog.rss',
     'https://neilpatel.com/feed/',
     'https://ahrefs.com/blog/feed/',
-    'https://www.marketingtechnews.net/feed/',
     'https://www.marketingweek.com/feed/',
     'https://www.tomferry.com/feed/',
 ];

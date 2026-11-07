@@ -14,6 +14,7 @@ import { UserProfile } from '@/lib/types';
 import Link from 'next/link';
 import { LifeBuoy } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { getErrorMessage } from '@/lib/utils';
 
 function SupportForm({ username, userId, email }: { username: string; userId: string, email: string }) {
   const [subject, setSubject] = useState('');
@@ -52,12 +53,12 @@ function SupportForm({ username, userId, email }: { username: string; userId: st
       setSubject('');
       setDescription('');
 
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error submitting support ticket: ", error);
       toast({
         variant: 'destructive',
         title: 'Submission Failed',
-        description: error.message || 'An unknown error occurred. Please try again.',
+        description: getErrorMessage(error, 'An unknown error occurred. Please try again.'),
       });
     } finally {
       setIsSubmitting(false);
@@ -143,8 +144,8 @@ export default function SupportPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {userProfile && userProfile.email ? (
-            <SupportForm username={userProfile.username} userId={user.uid} email={userProfile.email} />
+          {userProfile && user.email ? (
+            <SupportForm username={userProfile.username} userId={user.uid} email={user.email} />
           ) : (
              <div className="text-center py-12">
                 <LifeBuoy className="h-12 w-12 mx-auto text-muted-foreground" />

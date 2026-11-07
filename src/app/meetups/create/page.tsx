@@ -1,23 +1,26 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useDoc } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { collection, serverTimestamp, doc, writeBatch, arrayUnion, Timestamp } from 'firebase/firestore';
-import { topics, timezones } from '@/lib/constants';
+import { collection, serverTimestamp, doc, writeBatch, arrayUnion, Timestamp, DocumentReference } from 'firebase/firestore';
+import { topics } from '@/lib/constants';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose, DrawerFooter, DrawerDescription } from '@/components/ui/drawer';
 import { ChevronDown } from 'lucide-react';
 import NameSearchInput from '@/components/NameSearchInput';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { UserProfile } from '@/lib/types';
+import TimezoneSelect from '@/components/TimezoneSelect';
+import { browserTimeZone, zonedTimeToDate } from '@/lib/timezones';
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
+import { getErrorMessage } from '@/lib/utils';
 
 export default function CreateMeetupPage() {
   const { user, isUserLoading } = useUser();
@@ -26,13 +29,19 @@ export default function CreateMeetupPage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const userDocRef = useMemo(() => user ? doc(firestore, 'users', user.uid) as DocumentReference<UserProfile> : null, [user, firestore]);
+  const { data: profile } = useDoc<UserProfile>(userDocRef);
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [topic, setTopic] = useState('');
   const [customTopic, setCustomTopic] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  const [timezone, setTimezone] = useState('');
+  const ensureVerified = useVerifiedGuard();
+
+  useEffect(() => setTimezone(browserTimeZone()), []);
   const [locationType, setLocationType] = useState<'Online' | 'In-Person' | 'Hybrid'>('Online');
   const [locationAddress, setLocationAddress] = useState('');
   const [virtualLink, setVirtualLink] = useState('');
@@ -46,7 +55,7 @@ export default function CreateMeetupPage() {
 
   const handleCreateMeetup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !firestore) {
+    if (!user || !firestore || !profile) {
         toast({ variant: "destructive", title: "Not Authenticated" });
         return;
     }
@@ -67,11 +76,12 @@ export default function CreateMeetupPage() {
        return;
     }
 
+    if (!ensureVerified()) return;
     setIsSubmitting(true);
     
     try {
-      const dateTimeString = `${date}T${time}`;
-      const dateTime = new Date(dateTimeString);
+      // The date and time are read in the chosen timezone, not the browser's
+      const dateTime = zonedTimeToDate(date, time, timezone);
 
       const batch = writeBatch(firestore);
       const newMeetupRef = doc(collection(firestore, 'meetups'));
@@ -100,8 +110,8 @@ export default function CreateMeetupPage() {
 
       toast({ title: "Success!", description: "Your new meetup has been created." });
       router.push(`/meetups/${newMeetupRef.id}`);
-    } catch (error: any) {
-        toast({ variant: "destructive", title: "Could Not Create Meetup", description: error.message || "An unexpected error occurred." });
+    } catch (error) {
+        toast({ variant: "destructive", title: "Could Not Create Meetup", description: getErrorMessage(error, "An unexpected error occurred.") });
     } finally {
         setIsSubmitting(false);
     }
@@ -163,16 +173,11 @@ export default function CreateMeetupPage() {
             </div>
              <div className="grid gap-2">
                 <Label htmlFor="timezone">Time Zone</Label>
-                <Select value={timezone} onValueChange={setTimezone}>
-                    <SelectTrigger><SelectValue placeholder="Select a timezone" /></SelectTrigger>
-                    <SelectContent>
-                        {timezones.map(tz => <SelectItem key={tz.value} value={tz.value}>{tz.label}</SelectItem>)}
-                    </SelectContent>
-                </Select>
+                <TimezoneSelect id="timezone" value={timezone} onChange={setTimezone} />
             </div>
              <div className="grid gap-2">
                 <Label>Location Type</Label>
-                <RadioGroup value={locationType} onValueChange={(v: any) => setLocationType(v)} className="flex gap-4">
+                <RadioGroup value={locationType} onValueChange={v => setLocationType(v as typeof locationType)} className="flex gap-4">
                     <div className="flex items-center space-x-2"><RadioGroupItem value="Online" id="loc-online" /><Label htmlFor="loc-online">Online</Label></div>
                     <div className="flex items-center space-x-2"><RadioGroupItem value="In-Person" id="loc-person" /><Label htmlFor="loc-person">In-Person</Label></div>
                     <div className="flex items-center space-x-2"><RadioGroupItem value="Hybrid" id="loc-hybrid" /><Label htmlFor="loc-hybrid">Hybrid</Label></div>

@@ -7,16 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUser, useAuth, useFirestore } from '@/firebase';
+import { useUser, useAuth } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
 import { LoadingSkeleton } from "@/components/layout/loading-skeleton";
 import { sendPasswordResetEmail, updateEmail, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
-import { doc, updateDoc } from 'firebase/firestore';
+import AccountDataControls from '@/components/AccountDataControls';
+import { getErrorCode } from '@/lib/utils';
 
 export default function SecurityPage() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
-  const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -48,7 +48,7 @@ export default function SecurityPage() {
         title: "Password Reset Email Sent",
         description: `A password reset link has been sent to ${user.email}.`,
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -79,10 +79,6 @@ export default function SecurityPage() {
       
       // If re-authentication is successful, update email
       await updateEmail(user, newEmail);
-
-      // Update email in Firestore profile document
-      const userDocRef = doc(firestore, "users", user.uid);
-      await updateDoc(userDocRef, { email: newEmail });
       
       toast({
         title: "Email Change Successful",
@@ -91,9 +87,9 @@ export default function SecurityPage() {
       setNewEmail('');
       setCurrentPassword('');
 
-    } catch (error: any) {
+    } catch (error) {
       let description = "An unknown error occurred.";
-      switch (error.code) {
+      switch (getErrorCode(error)) {
         case 'auth/invalid-credential':
         case 'auth/wrong-password':
           description = "The password you entered is incorrect.";
@@ -119,6 +115,10 @@ export default function SecurityPage() {
   };
 
 
+  // Google and GitHub members manage their password and email with that provider
+  const hasPassword = !!user?.providerData.some(p => p.providerId === 'password');
+  const providerName = user?.providerData.some(p => p.providerId === 'github.com') ? 'GitHub' : 'Google';
+
   if (isUserLoading || !user) {
     return (
         <div className="p-4 md:p-10">
@@ -129,6 +129,18 @@ export default function SecurityPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 p-4 md:p-10">
+      {!hasPassword && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Sign-in</CardTitle>
+            <CardDescription>
+              You sign in with {providerName}{user.email ? ` as ${user.email}` : ''}. Your password and email are managed there.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
+      {hasPassword && <>
       <Card>
         <CardHeader>
           <CardTitle>Change Password</CardTitle>
@@ -185,7 +197,9 @@ export default function SecurityPage() {
           </form>
         </CardContent>
       </Card>
+      </>}
 
+      <AccountDataControls user={user} />
     </div>
   );
 }
