@@ -139,6 +139,68 @@ service cloud.firestore {
         : otherId + '_' + request.auth.uid;
     }
 
+    // Requests are only ever changed by the person they were sent to, and only
+    // to accept or decline them, once.
+    function isAnsweringRequest() {
+      return request.auth != null
+             && request.auth.uid == resource.data.toUid
+             && resource.data.status == 'pending'
+             && changedKeys().hasOnly(['status'])
+             && request.resource.data.status in ['accepted', 'declined'];
+    }
+
+    // True when `fromId` sent the caller this request and the save being
+    // checked is the one accepting it: it was pending before and is accepted
+    // after.
+    function isAcceptingRequest(requestsCollection, requestId, fromId) {
+      let before = get(/databases/$(database)/documents/$(requestsCollection)/$(requestId)).data;
+      let after = getAfter(/databases/$(database)/documents/$(requestsCollection)/$(requestId)).data;
+      return before.fromUid == fromId
+             && before.toUid == request.auth.uid
+             && before.status == 'pending'
+             && after.status == 'accepted';
+    }
+
+    // A mentorship, tutorship or pairing is saved by the person accepting the
+    // request, in the same save that accepts it. It names the request, holds
+    // exactly the two people on it, and nothing the app doesn't write.
+    // `roleKeys` are the extra fields, like ['mentorId', 'menteeId'].
+    function isStartingConnection(connectionId, requestsCollection, roleKeys) {
+      let data = request.resource.data;
+      let fromId = get(/databases/$(database)/documents/$(requestsCollection)/$(data.requestId)).data.fromUid;
+      return isVerified()
+             && data.keys().hasOnly(['id', 'memberIds', 'requestId', 'createdAt'].concat(roleKeys))
+             && connectionId == connectionIdWith(fromId)
+             && data.id == connectionId
+             && data.memberIds.size() == 2
+             && data.memberIds.hasAll([request.auth.uid, fromId])
+             && data.createdAt == request.time
+             && isAcceptingRequest(requestsCollection, data.requestId, fromId);
+    }
+
+    // Mentorship and tutorship requests say which role the sender wants
+    // filled: "seeking_mentor" means the person accepting becomes the mentor.
+    function hasRolesFromRequest(requestsCollection, offerer, seeker) {
+      let data = request.resource.data;
+      let sent = get(/databases/$(database)/documents/$(requestsCollection)/$(data.requestId)).data;
+      return (sent.type == 'seeking_' + offerer
+              && data[offerer + 'Id'] == request.auth.uid
+              && data[seeker + 'Id'] == sent.fromUid)
+          || (sent.type == 'seeking_' + seeker
+              && data[offerer + 'Id'] == sent.fromUid
+              && data[seeker + 'Id'] == request.auth.uid);
+    }
+
+    function isStartingRoleConnection(connectionId, requestsCollection, offerer, seeker) {
+      return isStartingConnection(connectionId, requestsCollection, [offerer + 'Id', seeker + 'Id'])
+             && hasRolesFromRequest(requestsCollection, offerer, seeker);
+    }
+
+    // The shared connection as it will be once the save being checked is done
+    function connectionAfter(kind, otherId) {
+      return getAfter(/databases/$(database)/documents/$(kind)/$(connectionIdWith(otherId))).data;
+    }
+
     // When someone accepts a request, they also update the requester's profile:
     // they add themselves to one list (like mentorIds) and add the shared
     // connection's ID to another (like mentorshipIds), and change nothing else.
@@ -150,18 +212,33 @@ service cloud.firestore {
              && isBeingAddedToList(connectionIdWith(otherId), request.resource.data.get(idsField, []), resource.data.get(idsField, []));
     }
 
+    // ...and only while accepting a request the profile's owner sent them,
+    // which the connection saved alongside names
+    function isAcceptingRequestFrom(userId, kind, requestsCollection) {
+      return isAcceptingRequest(requestsCollection, connectionAfter(kind, userId).requestId, userId);
+    }
+
     function isAcceptingMentorship(userId) {
-        return isAddingConnection(userId, 'mentorIds', 'mentorshipIds')
-            || isAddingConnection(userId, 'menteeIds', 'mentorshipIds');
+        return (
+            (isAddingConnection(userId, 'mentorIds', 'mentorshipIds')
+              && connectionAfter('mentorships', userId).mentorId == request.auth.uid)
+            || (isAddingConnection(userId, 'menteeIds', 'mentorshipIds')
+              && connectionAfter('mentorships', userId).menteeId == request.auth.uid)
+          ) && isAcceptingRequestFrom(userId, 'mentorships', 'mentorshipRequests');
     }
 
     function isAcceptingTutorship(userId) {
-        return isAddingConnection(userId, 'tutorIds', 'tutorshipIds')
-            || isAddingConnection(userId, 'studentIds', 'tutorshipIds');
+        return (
+            (isAddingConnection(userId, 'tutorIds', 'tutorshipIds')
+              && connectionAfter('tutorships', userId).tutorId == request.auth.uid)
+            || (isAddingConnection(userId, 'studentIds', 'tutorshipIds')
+              && connectionAfter('tutorships', userId).studentId == request.auth.uid)
+          ) && isAcceptingRequestFrom(userId, 'tutorships', 'tutorRequests');
     }
 
     function isAcceptingPairing(userId) {
-        return isAddingConnection(userId, 'pairPartnerIds', 'pairingIds');
+        return isAddingConnection(userId, 'pairPartnerIds', 'pairingIds')
+            && isAcceptingRequestFrom(userId, 'pairings', 'pairRequests');
     }
 
     // Profiles are public, so they must never hold an email address.
@@ -200,13 +277,13 @@ service cloud.firestore {
         allow create: if isVerified() && request.auth.uid == request.resource.data.fromUid
                       && request.resource.data.status == 'pending'
                       && request.resource.data.fromUid != request.resource.data.toUid;
-        allow update: if request.auth.uid == resource.data.toUid;
+        allow update: if isAnsweringRequest();
     }
 
     match /mentorships/{mentorshipId} {
       allow read: if isMentorshipMember(mentorshipId);
-      allow create: if isVerified() && request.resource.data.memberIds.hasAny([request.auth.uid]);
-      allow update: if request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
+      // Saved again if the two reconnect later
+      allow create, update: if isStartingRoleConnection(mentorshipId, 'mentorshipRequests', 'mentor', 'mentee');
       allow delete: if false;
 
       match /tasks/{taskId} {
@@ -236,13 +313,13 @@ service cloud.firestore {
         allow create: if isVerified() && request.auth.uid == request.resource.data.fromUid
                       && request.resource.data.status == 'pending'
                       && request.resource.data.fromUid != request.resource.data.toUid;
-        allow update: if request.auth.uid == resource.data.toUid;
+        allow update: if isAnsweringRequest();
     }
 
     match /tutorships/{tutorshipId} {
       allow read: if isTutorshipMember(tutorshipId);
-      allow create: if isVerified() && request.resource.data.memberIds.hasAny([request.auth.uid]);
-      allow update: if request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
+      // Saved again if the two reconnect later
+      allow create, update: if isStartingRoleConnection(tutorshipId, 'tutorRequests', 'tutor', 'student');
       allow delete: if false;
 
       match /tasks/{taskId} {
@@ -272,13 +349,13 @@ service cloud.firestore {
         allow create: if isVerified() && request.auth.uid == request.resource.data.fromUid
                       && request.resource.data.status == 'pending'
                       && request.resource.data.fromUid != request.resource.data.toUid;
-        allow update: if request.auth.uid == resource.data.toUid;
+        allow update: if isAnsweringRequest();
     }
 
     match /pairings/{pairingId} {
       allow read: if isPairingMember(pairingId);
-      allow create: if isVerified() && request.resource.data.memberIds.hasAny([request.auth.uid]);
-      allow update: if request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
+      // Saved again if the two reconnect later
+      allow create, update: if isStartingConnection(pairingId, 'pairRequests', []);
       allow delete: if false;
 
       match /tasks/{taskId} {

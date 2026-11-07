@@ -47,6 +47,8 @@ export default function PairingDashboard({ user, userProfile, title = 'Pairing D
       batch.update(doc(firestore, 'users', user.uid), { pairingIds: arrayUnion(pairingId), pairPartnerIds: arrayUnion(request.fromUid) });
       batch.set(doc(firestore, 'pairings', pairingId), {
         id: pairingId,
+        // The rules check the pairing against the request it came from
+        requestId: request.id,
         memberIds: sortedUserIds,
         createdAt: serverTimestamp()
       });
