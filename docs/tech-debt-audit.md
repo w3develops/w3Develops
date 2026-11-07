@@ -32,7 +32,6 @@ Started November 2, 2026. Updated November 3, 2026.
 
 ## Still to do
 
-- **`pair-programming`, `pairings` and `tutorships`/`mentorships` detail pages** follow the same pattern as the matching pages and could share code too.
 - **`account/page.tsx` is 835 lines.** It repeats the mentorship accept logic, and should be split into section components.
 - **The users doc is a grab bag.** Group membership now comes from the groups, but meetups (`joinedMeetupIds`) and mentorships (`mentorIds`, `menteeIds`, …) still keep hand-synced ID arrays on profiles.
 - **About 68 `any` types** remain.

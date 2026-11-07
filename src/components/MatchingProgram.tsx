@@ -7,15 +7,15 @@ import { useUser, useFirestore, useDoc, useCollection } from '@/firebase';
 import { useState, useMemo, type ReactNode } from "react";
 import { useDocsByIds } from "@/lib/hooks/useDocsByIds";
 import { LoadingSkeleton } from "@/components/layout/loading-skeleton";
-import { HowItWorks, SignInToJoin } from "@/components/ProgramPublicInfo";
+import { HowItWorks, SignInToJoin, type ProgramStep } from "@/components/ProgramPublicInfo";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { X, Search, GraduationCap } from "lucide-react";
+import { X, Search, GraduationCap, GitBranch } from "lucide-react";
 import { UserProfile } from "@/lib/types";
-import { doc, DocumentReference, updateDoc, writeBatch, serverTimestamp, collection, addDoc, query, where, documentId, arrayUnion } from "firebase/firestore";
+import { doc, DocumentReference, updateDoc, writeBatch, serverTimestamp, collection, addDoc, query, where, arrayUnion } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { useToast } from "@/components/ui/use-toast";
 import { topics } from "@/lib/constants";
@@ -26,33 +26,68 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { useDebounce } from "@/lib/hooks/useDebounce";
 
-type Role = { singular: string; plural: string; title: string };
 type ProfileList = 'mentoringSkills' | 'seekingSkills' | 'mentorIds' | 'menteeIds' | 'mentorshipIds'
-    | 'tutoringSkills' | 'seekingTutoringSkills' | 'tutorIds' | 'studentIds' | 'tutorshipIds';
+    | 'tutoringSkills' | 'seekingTutoringSkills' | 'tutorIds' | 'studentIds' | 'tutorshipIds'
+    | 'pairProgrammingSkills' | 'pairPartnerIds' | 'pairingIds';
 
-// Mentorship and tutoring work the same way: people offer or seek help,
-// send requests, and accepted requests become a shared space. Only the
-// names of the collections, profile fields and words differ.
-export interface MatchingConfig {
+/** A kind of person you can connect with: a mentor, a mentee, a pairing partner... */
+interface Side {
+    singular: string;
+    plural: string;
+    title: string;
+    skills: ProfileList;   // the skills people list for this side
+    ids: ProfileList;      // the people you're connected with on this side
+}
+
+// Mentorship, tutoring and pair programming work the same way: people open
+// their profile to requests, send requests, and accepted requests become a
+// shared space. Only the names of the collections, profile fields and words
+// differ, and whether members pick a role.
+//
+// The pages are server components that pass this config along, so it must
+// stay plain data (the icon is a name, not a component).
+interface ConfigBase {
     program: string;            // "Mentorship", used in headings and messages
+    heading: string;            // the page's main heading
+    icon: 'graduation-cap' | 'git-branch';
     dashboardTitle: string;
     intro: string;
     pageRoute: string;          // where this page lives, for the login redirect
-    offerer: Role;              // e.g. mentor
-    seeker: Role;               // e.g. mentee
     requestsCollection: string;
     connectionsCollection: string;
     connectionsRoute: string;
-    fields: {
-        role: 'mentorshipRole' | 'tutorRole';
-        status: 'mentorshipStatus' | 'tutorStatus';
-        offerSkills: ProfileList;
-        seekSkills: ProfileList;
-        offererIds: ProfileList;
-        seekerIds: ProfileList;
-        connectionIds: ProfileList;
+    statusField: 'mentorshipStatus' | 'tutorStatus' | 'pairProgrammingStatus';
+    connectionIdsField: ProfileList;
+}
+
+/**
+ * Members offer help, look for it, or both. Each request says which role the
+ * sender wants filled, and the connection records who has which role.
+ */
+export interface RolesConfig extends ConfigBase {
+    roleField: 'mentorshipRole' | 'tutorRole';
+    offerer: Side;              // e.g. mentor
+    seeker: Side;               // e.g. mentee
+}
+
+/** Everyone is alike, so there are no roles: you're open to requests or not. */
+export interface PartnersConfig extends ConfigBase {
+    partner: Side;
+    text: {
+        profileTitle: string;
+        openLabel: string;      // the switch that opens your profile to requests
+        openHint: string;
+        skillsLabel: string;
+        skillsPlaceholder: string;
+        incomingRequest: string;  // follows the sender's name
+        finderHint: string;
+        requestButton: string;
+        requestName: string;    // as in "Your pairing request has been sent"
+        howItWorks: ProgramStep[];
     };
 }
+
+export type MatchingConfig = RolesConfig | PartnersConfig;
 
 interface MatchingRequest {
     id: string;
@@ -60,51 +95,57 @@ interface MatchingRequest {
     fromUsername: string;
     toUid: string;
     toUsername: string;
-    type: string;
+    type?: string;              // only in programs with roles
     status: 'pending' | 'accepted' | 'declined';
 }
 
 type Status = 'open' | 'closed';
 
+const icons = { 'graduation-cap': GraduationCap, 'git-branch': GitBranch };
+
+const hasRoles = (config: MatchingConfig): config is RolesConfig => 'roleField' in config;
+const sidesOf = (config: MatchingConfig): Side[] => hasRoles(config) ? [config.offerer, config.seeker] : [config.partner];
 const listOf = (profile: UserProfile, field: ProfileList) => (profile[field] as string[] | undefined) || [];
 const connectionIdFor = (a: string, b: string) => [a, b].sort().join('_');
 
 function SetupForm({ config, user, userProfile }: { config: MatchingConfig; user: User; userProfile: UserProfile }) {
     const firestore = useFirestore();
     const { toast } = useToast();
-    const { fields, offerer, seeker } = config;
-    const role = userProfile[fields.role] as string | undefined;
+    const sides = sidesOf(config);
+    const role = hasRoles(config) ? userProfile[config.roleField] as string | undefined : undefined;
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const [isOffering, setIsOffering] = useState(role === offerer.singular || role === 'both');
-    const [isSeeking, setIsSeeking] = useState(role === seeker.singular || role === 'both');
-    const [status, setStatus] = useState<Status>((userProfile[fields.status] as Status | undefined) || 'closed');
-    const [offerSkills, setOfferSkills] = useState<string[]>(listOf(userProfile, fields.offerSkills));
-    const [seekSkills, setSeekSkills] = useState<string[]>(listOf(userProfile, fields.seekSkills));
-    const [currentOfferSkill, setCurrentOfferSkill] = useState('');
-    const [currentSeekSkill, setCurrentSeekSkill] = useState('');
+    // Which sides the member takes, in programs with roles
+    const [taking, setTaking] = useState(sides.map(side => role === side.singular || role === 'both'));
+    const [status, setStatus] = useState<Status>((userProfile[config.statusField] as Status | undefined) || 'closed');
+    const [skills, setSkills] = useState(sides.map(side => listOf(userProfile, side.skills)));
+    const [currentSkills, setCurrentSkills] = useState(sides.map(() => ''));
 
-    const userDocRef = useMemo(() => doc(firestore, 'users', user.uid) as DocumentReference<UserProfile>, [user, firestore]);
+    // Without roles, being open to requests is what makes your skills count
+    const isActive = (index: number) => hasRoles(config) ? taking[index] : status === 'open';
+
+    const userDocRef = useMemo(() => doc(firestore, 'users', user.uid), [user, firestore]);
 
     const handleUpdate = async () => {
         setIsSubmitting(true);
 
-        let newRole = 'none';
-        if (isOffering && isSeeking) {
-            newRole = 'both';
-        } else if (isOffering) {
-            newRole = offerer.singular;
-        } else if (isSeeking) {
-            newRole = seeker.singular;
+        const updateData: Record<string, unknown> = {};
+        if (hasRoles(config)) {
+            let newRole = 'none';
+            if (taking[0] && taking[1]) {
+                newRole = 'both';
+            } else if (taking[0]) {
+                newRole = config.offerer.singular;
+            } else if (taking[1]) {
+                newRole = config.seeker.singular;
+            }
+            updateData[config.roleField] = newRole;
         }
-
-        const updateData = {
-            [fields.role]: newRole,
-            [fields.status]: status,
-            [fields.offerSkills]: isOffering ? offerSkills : [],
-            [fields.seekSkills]: isSeeking ? seekSkills : [],
-            skills: Array.from(new Set([...(userProfile.skills || []), ...offerSkills, ...seekSkills])),
-        };
+        updateData[config.statusField] = status;
+        sides.forEach((side, index) => {
+            updateData[side.skills] = isActive(index) ? skills[index] : [];
+        });
+        updateData.skills = Array.from(new Set([...(userProfile.skills || []), ...skills.flat()]));
 
         try {
             await updateDoc(userDocRef, updateData);
@@ -122,27 +163,26 @@ function SetupForm({ config, user, userProfile }: { config: MatchingConfig; user
         }
     };
 
-    const skillEditor = (
-        label: string,
-        placeholder: string,
-        skills: string[],
-        setSkills: (skills: string[]) => void,
-        current: string,
-        setCurrent: (value: string) => void,
-    ) => {
+    const replaceAt = <T,>(list: T[], index: number, value: T) => list.map((item, i) => i === index ? value : item);
+
+    const skillEditor = (index: number, label: string, placeholder: string) => {
+        const sideSkills = skills[index];
+        const current = currentSkills[index];
+        const setSideSkills = (value: string[]) => setSkills(replaceAt(skills, index, value));
+        const setCurrent = (value: string) => setCurrentSkills(replaceAt(currentSkills, index, value));
         const add = () => {
-            if (current && !skills.includes(current)) {
-                setSkills([...skills, current]);
+            if (current && !sideSkills.includes(current)) {
+                setSideSkills([...sideSkills, current]);
                 setCurrent('');
             }
         };
         return (
-            <div className="space-y-2">
+            <div key={sides[index].skills} className="space-y-2">
                 <Label>{label}</Label>
                 <div className="flex flex-wrap gap-2">
-                    {skills.map(skill => (
+                    {sideSkills.map(skill => (
                         <Badge key={skill} variant="secondary" className="flex items-center gap-1">{skill}
-                            <button onClick={() => setSkills(skills.filter(s => s !== skill))}><X className="h-3 w-3"/></button>
+                            <button onClick={() => setSideSkills(sideSkills.filter(s => s !== skill))}><X className="h-3 w-3"/></button>
                         </Badge>
                     ))}
                 </div>
@@ -154,43 +194,66 @@ function SetupForm({ config, user, userProfile }: { config: MatchingConfig; user
         );
     };
 
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Your {config.program} Profile</CardTitle>
-                <CardDescription>Set up your profile to start connecting with others.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+    const statusSwitch = (label: string, hint: string) => (
+        <div className="flex items-center justify-between rounded-lg border p-4">
+            <div className="space-y-0.5">
+                <Label htmlFor="status-switch" className="text-base">{label}</Label>
+                <p className="text-sm text-muted-foreground">{hint}</p>
+            </div>
+            <Switch id="status-switch" checked={status === 'open'} onCheckedChange={(checked) => setStatus(checked ? 'open' : 'closed')} />
+        </div>
+    );
+
+    let fields: ReactNode;
+    if (hasRoles(config)) {
+        const { offerer } = config;
+        fields = (
+            <>
                 <div className="space-y-4">
                     <div className="flex items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
                             <Label htmlFor="offering-switch" className="text-base">Offer {config.program}</Label>
                             <p className="text-sm text-muted-foreground">Make yourself available as a {offerer.singular} for others.</p>
                         </div>
-                        <Switch id="offering-switch" checked={isOffering} onCheckedChange={setIsOffering} />
+                        <Switch id="offering-switch" checked={taking[0]} onCheckedChange={(checked) => setTaking(replaceAt(taking, 0, checked))} />
                     </div>
                     <div className="flex items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
                             <Label htmlFor="seeking-switch" className="text-base">Seek {config.program}</Label>
                             <p className="text-sm text-muted-foreground">Indicate that you are looking for a {offerer.singular}.</p>
                         </div>
-                        <Switch id="seeking-switch" checked={isSeeking} onCheckedChange={setIsSeeking} />
+                        <Switch id="seeking-switch" checked={taking[1]} onCheckedChange={(checked) => setTaking(replaceAt(taking, 1, checked))} />
                     </div>
                 </div>
 
-                {(isOffering || isSeeking) && (
-                    <div className="flex items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                            <Label htmlFor="status-switch" className="text-base">Accepting New Requests</Label>
-                            <p className="text-sm text-muted-foreground">Allow others to send you {config.program.toLowerCase()} requests.</p>
-                        </div>
-                        <Switch id="status-switch" checked={status === 'open'} onCheckedChange={(checked) => setStatus(checked ? 'open' : 'closed')} />
-                    </div>
-                )}
+                {(taking[0] || taking[1]) && statusSwitch('Accepting New Requests', `Allow others to send you ${config.program.toLowerCase()} requests.`)}
 
-                {isOffering && skillEditor(`Skills You Can ${offerer.title} In`, 'e.g., React', offerSkills, setOfferSkills, currentOfferSkill, setCurrentOfferSkill)}
-                {isSeeking && skillEditor('Skills You Want to Learn', 'e.g., Python', seekSkills, setSeekSkills, currentSeekSkill, setCurrentSeekSkill)}
+                {taking[0] && skillEditor(0, `Skills You Can ${offerer.title} In`, 'e.g., React')}
+                {taking[1] && skillEditor(1, 'Skills You Want to Learn', 'e.g., Python')}
+            </>
+        );
+    } else {
+        const { text } = config;
+        fields = (
+            <>
+                {statusSwitch(text.openLabel, text.openHint)}
+                {status === 'open' && skillEditor(0, text.skillsLabel, text.skillsPlaceholder)}
+            </>
+        );
+    }
 
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>{hasRoles(config) ? `Your ${config.program} Profile` : config.text.profileTitle}</CardTitle>
+                <CardDescription>
+                    {hasRoles(config)
+                        ? 'Set up your profile to start connecting with others.'
+                        : `Set up your profile to start connecting with others for ${config.program.toLowerCase()}.`}
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {fields}
                 <Button onClick={handleUpdate} disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Save Profile'}</Button>
             </CardContent>
         </Card>
@@ -207,7 +270,8 @@ export function MatchingDashboard({ config, user, userProfile, title, children }
 }) {
     const firestore = useFirestore();
     const { toast } = useToast();
-    const { fields, offerer, seeker } = config;
+    const sides = sidesOf(config);
+    const Icon = icons[config.icon];
 
     const incomingRequestsQuery = useMemo(() => query(
         collection(firestore, config.requestsCollection),
@@ -226,32 +290,38 @@ export function MatchingDashboard({ config, user, userProfile, title, children }
 
         if (newStatus === 'accepted') {
             const connectionId = connectionIdFor(request.fromUid, user.uid);
-            const requesterUpdate: Record<string, unknown> = { [fields.connectionIds]: arrayUnion(connectionId) };
-            const currentUserUpdate: Record<string, unknown> = { [fields.connectionIds]: arrayUnion(connectionId) };
-
-            // The requester asked me to be their offerer, or offered to be mine
-            const iAmOfferer = request.type === `seeking_${offerer.singular}`;
-            const offererId = iAmOfferer ? user.uid : request.fromUid;
-            const seekerId = iAmOfferer ? request.fromUid : user.uid;
-            if (iAmOfferer) {
-                requesterUpdate[fields.offererIds] = arrayUnion(user.uid);
-                currentUserUpdate[fields.seekerIds] = arrayUnion(request.fromUid);
-            } else {
-                requesterUpdate[fields.seekerIds] = arrayUnion(user.uid);
-                currentUserUpdate[fields.offererIds] = arrayUnion(request.fromUid);
-            }
-
-            batch.update(doc(firestore, 'users', request.fromUid), requesterUpdate);
-            batch.update(doc(firestore, 'users', user.uid), currentUserUpdate);
-            batch.set(doc(firestore, config.connectionsCollection, connectionId), {
+            const requesterUpdate: Record<string, unknown> = { [config.connectionIdsField]: arrayUnion(connectionId) };
+            const currentUserUpdate: Record<string, unknown> = { [config.connectionIdsField]: arrayUnion(connectionId) };
+            const connection: Record<string, unknown> = {
                 id: connectionId,
                 // The rules check the connection against the request it came from
                 requestId: request.id,
                 memberIds: [request.fromUid, user.uid].sort(),
-                [`${offerer.singular}Id`]: offererId,
-                [`${seeker.singular}Id`]: seekerId,
                 createdAt: serverTimestamp()
-            });
+            };
+
+            if (hasRoles(config)) {
+                const { offerer, seeker } = config;
+                // The requester asked me to be their offerer, or offered to be mine
+                const iAmOfferer = request.type === `seeking_${offerer.singular}`;
+                if (iAmOfferer) {
+                    requesterUpdate[offerer.ids] = arrayUnion(user.uid);
+                    currentUserUpdate[seeker.ids] = arrayUnion(request.fromUid);
+                } else {
+                    requesterUpdate[seeker.ids] = arrayUnion(user.uid);
+                    currentUserUpdate[offerer.ids] = arrayUnion(request.fromUid);
+                }
+                connection[`${offerer.singular}Id`] = iAmOfferer ? user.uid : request.fromUid;
+                connection[`${seeker.singular}Id`] = iAmOfferer ? request.fromUid : user.uid;
+            } else {
+                // Partners are alike, so each simply gains the other
+                requesterUpdate[config.partner.ids] = arrayUnion(user.uid);
+                currentUserUpdate[config.partner.ids] = arrayUnion(request.fromUid);
+            }
+
+            batch.update(doc(firestore, 'users', request.fromUid), requesterUpdate);
+            batch.update(doc(firestore, 'users', user.uid), currentUserUpdate);
+            batch.set(doc(firestore, config.connectionsCollection, connectionId), connection);
             batchUpdateData = { requesterUpdate, currentUserUpdate };
         }
 
@@ -274,12 +344,19 @@ export function MatchingDashboard({ config, user, userProfile, title, children }
         }
     };
 
-    const { data: offerers } = useDocsByIds<UserProfile>('users', listOf(userProfile, fields.offererIds));
-    const { data: seekers } = useDocsByIds<UserProfile>('users', listOf(userProfile, fields.seekerIds));
+    const describeRequest = (request: MatchingRequest) => {
+        if (!hasRoles(config)) return config.text.incomingRequest;
+        const { offerer, seeker } = config;
+        return `wants to be your ${request.type === `seeking_${offerer.singular}` ? seeker.singular : offerer.singular}.`;
+    };
 
-    const connectionList = (people: UserProfile[] | null, role: Role) => (
-        <div>
-            <h3 className="font-semibold mb-2">Your {role.title}s</h3>
+    // A program has one or two sides, so the second may load nothing
+    const { data: firstSide } = useDocsByIds<UserProfile>('users', listOf(userProfile, sides[0].ids));
+    const { data: secondSide } = useDocsByIds<UserProfile>('users', sides[1] ? listOf(userProfile, sides[1].ids) : []);
+
+    const connectionList = (people: UserProfile[] | null, side: Side) => (
+        <div key={side.ids}>
+            <h3 className="font-semibold mb-2">Your {side.title}s</h3>
             {people && people.length > 0 ? (
                 <ul className="divide-y">
                     {people.map(person => (
@@ -288,14 +365,14 @@ export function MatchingDashboard({ config, user, userProfile, title, children }
                         </li>
                     ))}
                 </ul>
-            ) : <p className="text-sm text-muted-foreground">You have no {role.plural} yet.</p>}
+            ) : <p className="text-sm text-muted-foreground">You have no {side.plural} yet.</p>}
         </div>
     );
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2"><GraduationCap />{title ?? config.dashboardTitle}</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Icon />{title ?? config.dashboardTitle}</CardTitle>
                 <CardDescription>Manage your {config.program.toLowerCase()} connections and requests.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -306,7 +383,7 @@ export function MatchingDashboard({ config, user, userProfile, title, children }
                     <div className="space-y-2">
                         {incomingRequests?.map(req => (
                             <div key={req.id} className="flex items-center justify-between p-2 border rounded-md">
-                                <p className="text-sm">{req.fromUsername} wants to be your {req.type === `seeking_${offerer.singular}` ? seeker.singular : offerer.singular}.</p>
+                                <p className="text-sm">{req.fromUsername} {describeRequest(req)}</p>
                                 <div className="flex gap-2">
                                     <Button size="sm" onClick={() => handleRequest(req, 'accepted')}>Accept</Button>
                                     <Button size="sm" variant="outline" onClick={() => handleRequest(req, 'declined')}>Decline</Button>
@@ -316,10 +393,12 @@ export function MatchingDashboard({ config, user, userProfile, title, children }
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {connectionList(offerers, offerer)}
-                    {connectionList(seekers, seeker)}
-                </div>
+                {sides[1] ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {connectionList(firstSide, sides[0])}
+                        {connectionList(secondSide, sides[1])}
+                    </div>
+                ) : connectionList(firstSide, sides[0])}
                 {children}
             </CardContent>
         </Card>
@@ -329,27 +408,27 @@ export function MatchingDashboard({ config, user, userProfile, title, children }
 function Finder({ config, currentUserProfile }: { config: MatchingConfig; currentUserProfile: UserProfile }) {
     const firestore = useFirestore();
     const { toast } = useToast();
-    const { fields, offerer, seeker } = config;
+    const sides = sidesOf(config);
     const [skillFilter, setSkillFilter] = useState('');
     const [nameSearch, setNameSearch] = useState('');
     const debouncedNameSearch = useDebounce(nameSearch, 300);
 
-    const peopleQuery = (role: Role, skillsField: ProfileList) => {
-        const baseQuery = query(
-            collection(firestore, 'users'),
-            where(fields.status, '==', 'open'),
-            where(fields.role, 'in', [role.singular, 'both'])
-        );
-        return skillFilter ? query(baseQuery, where(skillsField, 'array-contains', skillFilter)) : baseQuery;
+    const peopleQuery = (side: Side) => {
+        let peopleQuery = query(collection(firestore, 'users'), where(config.statusField, '==', 'open'));
+        if (hasRoles(config)) {
+            peopleQuery = query(peopleQuery, where(config.roleField, 'in', [side.singular, 'both']));
+        }
+        return skillFilter ? query(peopleQuery, where(side.skills, 'array-contains', skillFilter)) : peopleQuery;
     };
 
+    // A program has one or two sides, so the second may load nothing
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const offerersQuery = useMemo(() => peopleQuery(offerer, fields.offerSkills), [firestore, skillFilter, config]);
+    const firstQuery = useMemo(() => peopleQuery(sides[0]), [firestore, skillFilter, config]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const seekersQuery = useMemo(() => peopleQuery(seeker, fields.seekSkills), [firestore, skillFilter, config]);
+    const secondQuery = useMemo(() => sides[1] ? peopleQuery(sides[1]) : null, [firestore, skillFilter, config]);
 
-    const { data: allOfferers, isLoading: offerersLoading } = useCollection<UserProfile>(offerersQuery);
-    const { data: allSeekers, isLoading: seekersLoading } = useCollection<UserProfile>(seekersQuery);
+    const { data: allFirst, isLoading: firstLoading } = useCollection<UserProfile>(firstQuery);
+    const { data: allSecond, isLoading: secondLoading } = useCollection<UserProfile>(secondQuery);
 
     const byName = (people: UserProfile[] | null) => {
         if (!people || !debouncedNameSearch) return people;
@@ -377,7 +456,7 @@ function Finder({ config, currentUserProfile }: { config: MatchingConfig; curren
     }, [sentRequests, receivedRequests]);
 
     const ensureVerified = useVerifiedGuard();
-    const sendRequest = async (targetUser: UserProfile, type: string) => {
+    const sendRequest = async (targetUser: UserProfile, side: Side) => {
         if (!ensureVerified()) return;
         const requestsCollection = collection(firestore, config.requestsCollection);
         const requestData = {
@@ -385,14 +464,16 @@ function Finder({ config, currentUserProfile }: { config: MatchingConfig; curren
             fromUsername: currentUserProfile.username,
             toUid: targetUser.id,
             toUsername: targetUser.username,
-            type,
+            // Which role the sender wants filled, in programs with roles
+            ...(hasRoles(config) ? { type: `seeking_${side.singular}` } : {}),
             status: 'pending' as const,
             createdAt: serverTimestamp()
         };
+        const requestName = hasRoles(config) ? config.program.toLowerCase() : config.text.requestName;
 
         try {
             await addDoc(requestsCollection, requestData);
-            toast({ title: "Request Sent!", description: `Your ${config.program.toLowerCase()} request has been sent to ${targetUser.username}.` });
+            toast({ title: "Request Sent!", description: `Your ${requestName} request has been sent to ${targetUser.username}.` });
         } catch {
             const permissionError = new FirestorePermissionError({
                 path: requestsCollection.path,
@@ -408,9 +489,9 @@ function Finder({ config, currentUserProfile }: { config: MatchingConfig; curren
         }
     };
 
-    const userList = (people: UserProfile[] | null, role: Role, skillsField: ProfileList) => {
+    const userList = (people: UserProfile[] | null, side: Side) => {
         if (!people || people.length === 0) {
-            return <p className="text-muted-foreground text-center py-8">No {role.plural} found matching your criteria.</p>;
+            return <p className="text-muted-foreground text-center py-8">No {side.plural} found matching your criteria.</p>;
         }
 
         return (
@@ -421,8 +502,7 @@ function Finder({ config, currentUserProfile }: { config: MatchingConfig; curren
                         (req.fromUid === person.id && req.toUid === currentUserProfile.id)
                     );
                     const connectionId = connectionIdFor(currentUserProfile.id, person.id);
-                    const isConnected = listOf(currentUserProfile, fields.connectionIds).includes(connectionId);
-                    const requestType = `seeking_${role.singular}`;
+                    const isConnected = listOf(currentUserProfile, config.connectionIdsField).includes(connectionId);
 
                     let button;
                     if (isConnected) {
@@ -438,7 +518,11 @@ function Finder({ config, currentUserProfile }: { config: MatchingConfig; curren
                     } else if (relevantRequest?.status === 'declined') {
                         button = <Button className="w-full" disabled variant="outline">Declined</Button>;
                     } else {
-                        button = <Button className="w-full" onClick={() => sendRequest(person, requestType)}>Request</Button>;
+                        button = (
+                            <Button className="w-full" onClick={() => sendRequest(person, side)}>
+                                {hasRoles(config) ? 'Request' : config.text.requestButton}
+                            </Button>
+                        );
                     }
 
                     return (
@@ -448,7 +532,7 @@ function Finder({ config, currentUserProfile }: { config: MatchingConfig; curren
                                 <div>
                                     <Link href={`/users/${person.id}`}><CardTitle className="text-base line-clamp-1">{person.username}</CardTitle></Link>
                                     <div className="flex flex-wrap gap-1 mt-2">
-                                        {listOf(person, skillsField).slice(0, 3).map(skill => <Badge key={skill} variant="secondary">{skill}</Badge>)}
+                                        {listOf(person, side.skills).slice(0, 3).map(skill => <Badge key={skill} variant="secondary">{skill}</Badge>)}
                                     </div>
                                 </div>
                             </CardHeader>
@@ -462,13 +546,36 @@ function Finder({ config, currentUserProfile }: { config: MatchingConfig; curren
         );
     };
 
-    const isLoading = offerersLoading || seekersLoading || sentLoading || receivedLoading;
+    const isLoading = firstLoading || secondLoading || sentLoading || receivedLoading;
+
+    let results: ReactNode;
+    if (hasRoles(config)) {
+        const { offerer, seeker } = config;
+        results = (
+            <Tabs defaultValue="offerers">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="offerers">Find a {offerer.title}</TabsTrigger>
+                    <TabsTrigger value="seekers">Find a {seeker.title}</TabsTrigger>
+                </TabsList>
+                <TabsContent value="offerers" className="pt-4">
+                    {isLoading ? <p>Loading {offerer.plural}...</p> : userList(byName(allFirst), offerer)}
+                </TabsContent>
+                <TabsContent value="seekers" className="pt-4">
+                    {isLoading ? <p>Loading {seeker.plural}...</p> : userList(byName(allSecond), seeker)}
+                </TabsContent>
+            </Tabs>
+        );
+    } else {
+        results = isLoading ? <p>Loading potential {config.partner.plural}...</p> : userList(byName(allFirst), config.partner);
+    }
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Find a Connection</CardTitle>
-                <CardDescription>Browse and filter to find the right person to connect with.</CardDescription>
+                <CardTitle>{hasRoles(config) ? 'Find a Connection' : `Find a ${config.partner.title}`}</CardTitle>
+                <CardDescription>
+                    {hasRoles(config) ? 'Browse and filter to find the right person to connect with.' : config.text.finderHint}
+                </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
@@ -491,18 +598,7 @@ function Finder({ config, currentUserProfile }: { config: MatchingConfig; curren
                         </SelectContent>
                     </Select>
                 </div>
-                <Tabs defaultValue="offerers">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="offerers">Find a {offerer.title}</TabsTrigger>
-                        <TabsTrigger value="seekers">Find a {seeker.title}</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="offerers" className="pt-4">
-                        {isLoading ? <p>Loading {offerer.plural}...</p> : userList(byName(allOfferers), offerer, fields.offerSkills)}
-                    </TabsContent>
-                    <TabsContent value="seekers" className="pt-4">
-                        {isLoading ? <p>Loading {seeker.plural}...</p> : userList(byName(allSeekers), seeker, fields.seekSkills)}
-                    </TabsContent>
-                </Tabs>
+                {results}
             </CardContent>
         </Card>
     );
@@ -511,6 +607,7 @@ function Finder({ config, currentUserProfile }: { config: MatchingConfig; curren
 export default function MatchingProgram({ config }: { config: MatchingConfig }) {
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
+    const Icon = icons[config.icon];
 
     const userDocRef = useMemo(() => {
         if (!user) return null;
@@ -518,13 +615,36 @@ export default function MatchingProgram({ config }: { config: MatchingConfig }) 
     }, [user, firestore]);
 
     const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
-    const { offerer, seeker } = config;
+
+    let signInAction: string;
+    let steps: ProgramStep[];
+    if (hasRoles(config)) {
+        const { offerer, seeker } = config;
+        signInAction = `find a ${offerer.singular} or ${seeker.singular}`;
+        steps = [
+            {
+                title: `Set up your ${config.program.toLowerCase()} profile`,
+                text: `Choose whether you want to be a ${offerer.singular}, a ${seeker.singular} or both, list the skills you can share or want to learn, and open your profile to requests.`,
+            },
+            {
+                title: 'Find a match',
+                text: `Browse members by skill and send a request to the ${offerer.singular} or ${seeker.singular} you'd like to work with.`,
+            },
+            {
+                title: 'Work together',
+                text: 'Once your request is accepted, you share a private dashboard with real-time notes, a task list and check-ins. It\'s all free.',
+            },
+        ];
+    } else {
+        signInAction = `find a ${config.program.toLowerCase()} ${config.partner.singular}`;
+        steps = config.text.howItWorks;
+    }
 
     // The heading and "How it works" don't depend on who is signed in, so they
     // are always rendered, which lets search engines read the page too
     let memberTools: ReactNode;
     if (!isUserLoading && !user) {
-        memberTools = <SignInToJoin action={`find a ${offerer.singular} or ${seeker.singular}`} returnTo={config.pageRoute} />;
+        memberTools = <SignInToJoin action={signInAction} returnTo={config.pageRoute} />;
     } else if (isUserLoading || isProfileLoading || !user || !userProfile) {
         memberTools = <LoadingSkeleton />;
     } else {
@@ -540,25 +660,12 @@ export default function MatchingProgram({ config }: { config: MatchingConfig }) 
     return (
         <div className="max-w-7xl mx-auto p-4 md:p-10 space-y-8">
             <div className="text-center">
-                <GraduationCap className="mx-auto h-12 w-12 text-primary" />
-                <h1 className="text-3xl font-headline mt-4">{config.program} Program</h1>
+                <Icon className="mx-auto h-12 w-12 text-primary" />
+                <h1 className="text-3xl font-headline mt-4">{config.heading}</h1>
                 <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">{config.intro}</p>
             </div>
             {memberTools}
-            <HowItWorks steps={[
-                {
-                    title: `Set up your ${config.program.toLowerCase()} profile`,
-                    text: `Choose whether you want to be a ${offerer.singular}, a ${seeker.singular} or both, list the skills you can share or want to learn, and open your profile to requests.`,
-                },
-                {
-                    title: 'Find a match',
-                    text: `Browse members by skill and send a request to the ${offerer.singular} or ${seeker.singular} you'd like to work with.`,
-                },
-                {
-                    title: 'Work together',
-                    text: 'Once your request is accepted, you share a private dashboard with real-time notes, a task list and check-ins. It\'s all free.',
-                },
-            ]} />
+            <HowItWorks steps={steps} />
         </div>
     );
 }
