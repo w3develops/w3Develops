@@ -197,7 +197,9 @@ function PairingFinder({ currentUserProfile }: { currentUserProfile: UserProfile
         }
     };
     
-    const UserList = ({ users, allRequests }: { users: UserProfile[] | null, allRequests: PairingRequest[] }) => {
+    // A plain function rather than a component defined in here, which React
+    // would treat as a brand-new component on every render
+    const renderUserList = (users: UserProfile[] | null, allRequests: PairingRequest[]) => {
         if (!users || users.length === 0) {
             return <p className="text-muted-foreground text-center py-8">No partners found matching your criteria.</p>
         }
@@ -271,7 +273,7 @@ function PairingFinder({ currentUserProfile }: { currentUserProfile: UserProfile
                         </SelectContent>
                     </Select>
                  </div>
-                {isLoading ? <p>Loading potential partners...</p> : <UserList users={partners} allRequests={allRequests} />}
+                {isLoading ? <p>Loading potential partners...</p> : renderUserList(partners, allRequests)}
             </CardContent>
         </Card>
     )

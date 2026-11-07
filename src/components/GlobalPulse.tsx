@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useNow } from '@/lib/hooks/useClientValues';
 import { useFirestore } from '@/firebase';
 import { collection, query, orderBy, limit, getDocs, Timestamp } from 'firebase/firestore';
 import { timeAgo } from '@/lib/utils';
@@ -120,12 +121,9 @@ export default function GlobalPulse() {
 }
 
 function PulseItemRow({ item, icon }: { item: PulseItem, icon: React.ReactNode }) {
-    const [ago, setAgo] = useState('');
-
-    useEffect(() => {
-        // Defer timeAgo to avoid hydration mismatch
-        setAgo(timeAgo(item.createdAt));
-    }, [item.createdAt]);
+    // Blank until the page runs in the browser, then updated every minute
+    const now = useNow();
+    const ago = now === null ? '' : timeAgo(item.createdAt, now);
 
     return (
         <Link href={item.link} className="block group">

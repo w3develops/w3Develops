@@ -100,7 +100,9 @@ export default function TaskList({ parentId, collectionPath, memberIds }: TaskLi
   const [newTask, setNewTask] = useState('');
   const [newPriority, setNewPriority] = useState<'low' | 'medium' | 'high' | ''>('');
   const [userProfiles, setUserProfiles] = useState<Map<string, UserProfile>>(new Map());
-  const [activeTasks, setActiveTasks] = useState<Task[]>([]);
+  // The order shown while a drag-and-drop reorder is being saved; dropped as
+  // soon as Firestore sends the tasks again
+  const [optimisticOrder, setOptimisticOrder] = useState<{ basedOn: Task[] | null; tasks: Task[] } | null>(null);
 
   const tasksCollectionRef = useMemo(() => 
     collection(firestore, collectionPath, parentId, 'tasks'),
@@ -113,12 +115,7 @@ export default function TaskList({ parentId, collectionPath, memberIds }: TaskLi
   );
   
   const { data: tasks, isLoading: tasksLoading } = useCollection<Task>(tasksQuery);
-  
-  useEffect(() => {
-    if (tasks) {
-        setActiveTasks(tasks);
-    }
-  }, [tasks]);
+  const activeTasks = optimisticOrder && optimisticOrder.basedOn === tasks ? optimisticOrder.tasks : (tasks ?? []);
   
   const isMember = user ? memberIds.includes(user.uid) : false;
 
@@ -224,7 +221,7 @@ export default function TaskList({ parentId, collectionPath, memberIds }: TaskLi
         const newIndex = oldItems.findIndex(item => item.id === over.id);
         const newOrder = arrayMove(oldItems, oldIndex, newIndex);
         
-        setActiveTasks(newOrder); // Optimistic update
+        setOptimisticOrder({ basedOn: tasks, tasks: newOrder }); // Optimistic update
 
         const batch = writeBatch(firestore);
         newOrder.forEach((task, index) => {
@@ -234,7 +231,7 @@ export default function TaskList({ parentId, collectionPath, memberIds }: TaskLi
 
         batch.commit()
           .catch(async (serverError) => {
-            setActiveTasks(oldItems); // Revert on failure
+            setOptimisticOrder(null); // Revert on failure
             const permissionError = new FirestorePermissionError({
               path: tasksCollectionRef.path,
               operation: 'update',

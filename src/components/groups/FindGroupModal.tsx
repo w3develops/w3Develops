@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { topics, ONE_WEEK_IN_MS } from '@/lib/constants';
+import { topics } from '@/lib/constants';
+import { useOneWeekAgo } from '@/lib/hooks/useClientValues';
 import { Group } from '@/lib/types';
 import { GROUP_KINDS, GroupKind, MAX_MEMBERS, commitmentLabel, isFull } from '@/lib/groups';
 import JoinButton from '@/components/JoinButton';
@@ -26,13 +27,14 @@ export default function FindGroupModal({ kind, isOpen, onClose }: { kind: GroupK
   const router = useRouter();
   const [topic, setTopic] = useState(ANY_TOPIC);
 
+  const oneWeekAgo = useOneWeekAgo();
   const openGroupsQuery = useMemo(() => {
-    if (!isOpen) return null;
-    const oneWeekAgo = Timestamp.fromMillis(Date.now() - ONE_WEEK_IN_MS);
-    return query(collection(firestore, config.collection), where('createdAt', '>', oneWeekAgo), orderBy('createdAt', 'desc')) as Query<Group>;
-  }, [isOpen, firestore, config.collection]);
+    if (!isOpen || oneWeekAgo === null) return null;
+    return query(collection(firestore, config.collection), where('createdAt', '>', Timestamp.fromMillis(oneWeekAgo)), orderBy('createdAt', 'desc')) as Query<Group>;
+  }, [isOpen, oneWeekAgo, firestore, config.collection]);
 
-  const { data: openGroups, isLoading } = useCollection<Group>(openGroupsQuery);
+  const { data: openGroups, isLoading: isQueryLoading } = useCollection<Group>(openGroupsQuery);
+  const isLoading = isQueryLoading || oneWeekAgo === null;
 
   const matches = useMemo(() => (openGroups || []).filter(g =>
     !isFull(g) && (!user || !g.memberIds.includes(user.uid)) && (topic === ANY_TOPIC || g.topic === topic)
