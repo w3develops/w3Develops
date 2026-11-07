@@ -9,6 +9,7 @@ import { ArrowLeft, Briefcase, MapPin, Calendar, ExternalLink } from 'lucide-rea
 import Link from 'next/link';
 import { formatTimestamp } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import ZonedText from '@/components/ZonedText';
 
 function JobDetailsSkeleton() {
     return (
@@ -37,12 +38,12 @@ function JobDetailsSkeleton() {
     )
 }
 
-export default function JobDetailsPageClient({ params }: { params: { jobId: string } }) {
+export default function JobDetailsPageClient({ params, initialJob }: { params: { jobId: string }; initialJob?: unknown }) {
   const { jobId } = params;
   const firestore = useFirestore();
 
   const jobDocRef = useMemo(() => doc(firestore, 'jobs', jobId) as DocumentReference<Job>, [jobId, firestore]);
-  const { data: job, isLoading, error } = useDoc<Job>(jobDocRef);
+  const { data: job, isLoading, error } = useDoc<Job>(jobDocRef, initialJob);
 
   if (isLoading) {
     return (
@@ -63,12 +64,12 @@ export default function JobDetailsPageClient({ params }: { params: { jobId: stri
       
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline text-3xl">{job.title}</CardTitle>
+                <CardTitle as="h1" className="font-headline text-3xl">{job.title}</CardTitle>
                 <CardDescription className="text-lg">{job.companyName}</CardDescription>
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-muted-foreground pt-4 text-sm">
                     <div className="flex items-center gap-2"><Briefcase className="h-4 w-4" />{job.companyName}</div>
                     <div className="flex items-center gap-2"><MapPin className="h-4 w-4" />{job.location}</div>
-                    <div className="flex items-center gap-2"><Calendar className="h-4 w-4" />Posted {formatTimestamp(job.createdAt)} by {job.postedByUsername}</div>
+                    <div className="flex items-center gap-2"><Calendar className="h-4 w-4" />Posted <ZonedText render={tz => formatTimestamp(job.createdAt, false, tz)} /> by {job.postedByUsername}</div>
                 </div>
             </CardHeader>
             <CardContent>

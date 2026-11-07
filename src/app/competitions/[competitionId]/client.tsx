@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import SubmitCompetitionEntryForm from '@/components/forms/SubmitCompetitionEntryForm';
 import VoteButton from '@/components/VoteButton';
+import ZonedText from '@/components/ZonedText';
 
 function CompetitionDashboardPageSkeleton() {
     return (
@@ -81,7 +82,7 @@ function EntryCard({ entry, competitionId, isActive }: { entry: CompetitionEntry
 }
 
 
-export default function CompetitionDashboardPage({ params }: { params: { competitionId: string } }) {
+export default function CompetitionDashboardPage({ params, initialCompetition }: { params: { competitionId: string }; initialCompetition?: unknown }) {
   const { competitionId } = params;
   const { user } = useUser();
   const firestore = useFirestore();
@@ -91,7 +92,7 @@ export default function CompetitionDashboardPage({ params }: { params: { competi
   const competitionDocRef = useMemo(() => doc(firestore, 'competitions', competitionId) as DocumentReference<Competition>, [competitionId, firestore]);
   const userDocRef = useMemo(() => user ? doc(firestore, 'users', user.uid) as DocumentReference<UserProfile> : null, [user, firestore]);
 
-  const { data: competition, isLoading, error } = useDoc<Competition>(competitionDocRef);
+  const { data: competition, isLoading, error } = useDoc<Competition>(competitionDocRef, initialCompetition);
   const { data: currentUserProfile } = useDoc<UserProfile>(userDocRef);
 
   const entriesCollectionRef = useMemo(() => collection(firestore, 'competitions', competitionId, 'entries'), [competitionId, firestore]);
@@ -129,15 +130,15 @@ export default function CompetitionDashboardPage({ params }: { params: { competi
       <Card>
         <CardHeader>
             <div className="flex flex-wrap items-center gap-4">
-                <CardTitle className="font-headline text-3xl">{competition.name}</CardTitle>
+                <CardTitle as="h1" className="font-headline text-3xl">{competition.name}</CardTitle>
                 <Badge variant={isActive ? 'default' : 'secondary'}>{isActive ? 'Active' : (now > competition.endDate ? 'Past' : 'Upcoming')}</Badge>
             </div>
             <CardDescription className="pt-2">{competition.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
            <div className="grid md:grid-cols-2 gap-x-6 gap-y-4 text-sm md:text-base">
-                <div className="flex items-start gap-3"><Calendar className="w-5 h-5 mt-1 flex-shrink-0" /><p><span className="font-semibold">Starts:</span> {formatTimestamp(competition.startDate, true)}</p></div>
-                <div className="flex items-start gap-3"><Clock className="w-5 h-5 mt-1 flex-shrink-0" /><p><span className="font-semibold">Ends:</span> {formatTimestamp(competition.endDate, true)}</p></div>
+                <div className="flex items-start gap-3"><Calendar className="w-5 h-5 mt-1 flex-shrink-0" /><p><span className="font-semibold">Starts:</span> <ZonedText render={tz => formatTimestamp(competition.startDate, true, tz)} /></p></div>
+                <div className="flex items-start gap-3"><Clock className="w-5 h-5 mt-1 flex-shrink-0" /><p><span className="font-semibold">Ends:</span> <ZonedText render={tz => formatTimestamp(competition.endDate, true, tz)} /></p></div>
                 <div className="flex items-start gap-3"><Trophy className="w-5 h-5 mt-1 flex-shrink-0" /><p><span className="font-semibold">Prize:</span> {competition.prize}</p></div>
                 {creator && <div className="flex items-start gap-3"><User className="w-5 h-5 mt-1 flex-shrink-0" /><p><span className="font-semibold">Hosted by:</span> <Link href={`/users/${creator.id}`} className="font-semibold hover:underline">{creator.username}</Link></p></div>}
            </div>

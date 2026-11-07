@@ -222,14 +222,18 @@ export type SitePath = keyof typeof SITE_PAGES;
 
 /**
  * The title, description and preferred address for one of the pages above.
- * Pass `canonical: false` from a layout whose folder has other pages under
- * it (like /meetups/[meetupId]), which would otherwise inherit the address
- * and look like copies of the list page.
+ * From a layout whose folder has other pages under it (like
+ * /meetups/[meetupId]), pass `layout: true`, and `canonical: false` unless
+ * every page under it sets its own address, so they don't look like copies
+ * of the list page.
  */
-export function pageMetadata(path: SitePath, { canonical = true } = {}): Metadata {
+export function pageMetadata(path: SitePath, { canonical = true, layout = false } = {}): Metadata {
   const page: SitePage = SITE_PAGES[path];
   return {
-    title: page.title,
+    // A layout that sets its own title must pass the site's "| w3Develops"
+    // pattern on itself, or the pages under it lose it (the root layout's
+    // pattern still adds it to the layout's own title)
+    title: layout ? { default: page.title, template: `%s | ${SITE_NAME}` } : page.title,
     description: page.description,
     ...(canonical && { alternates: { canonical: path } }),
     ...(page.noindex && { robots: { index: false } }),
