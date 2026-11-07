@@ -1,4 +1,5 @@
 import Parser from 'rss-parser';
+import { unstable_cache } from 'next/cache';
 import { rssFeeds } from '@/lib/rss-feeds';
 
 export interface Post {
@@ -9,7 +10,9 @@ export interface Post {
 }
 
 const parser = new Parser({
-    timeout: 15000, // 15 seconds timeout for each feed
+    // The first visitor after each refresh time waits for the slowest feed.
+    // Working feeds answer within about 2 seconds; this cuts off ones that hang.
+    timeout: 6000,
 });
 
 /**
@@ -61,3 +64,24 @@ export async function fetchRecentPosts(): Promise<Post[]> {
 
   return allPosts;
 }
+
+// Editions last three hours (four on the night clocks go back), so an entry
+// is never this old while its edition is still showing
+const EDITION_CACHE_SECONDS = 6 * 60 * 60;
+
+/**
+ * The posts for one news edition (see news-schedule.ts). Every feed is read
+ * once per edition, and the feed and the brief share the result. Throws when
+ * no feed could be read, so an empty list is never cached.
+ */
+export const getEditionPosts = unstable_cache(
+  async (editionId: string): Promise<Post[]> => {
+    const posts = await fetchRecentPosts();
+    if (posts.length === 0) {
+      throw new Error(`None of the news feeds could be read for the ${editionId} edition`);
+    }
+    return posts;
+  },
+  ['news-edition-posts'],
+  { revalidate: EDITION_CACHE_SECONDS },
+);
