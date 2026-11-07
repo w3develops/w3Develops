@@ -245,6 +245,8 @@ export function MatchingDashboard({ config, user, userProfile, title, children }
             batch.update(doc(firestore, 'users', user.uid), currentUserUpdate);
             batch.set(doc(firestore, config.connectionsCollection, connectionId), {
                 id: connectionId,
+                // The rules check the connection against the request it came from
+                requestId: request.id,
                 memberIds: [request.fromUid, user.uid].sort(),
                 [`${offerer.singular}Id`]: offererId,
                 [`${seeker.singular}Id`]: seekerId,
