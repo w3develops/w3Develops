@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { formatTimestamp } from '@/lib/utils';
-import { ONE_WEEK_IN_MS } from '@/lib/constants';
+import { useOneWeekAgo } from '@/lib/hooks/useClientValues';
 import { Group } from '@/lib/types';
 import { GROUP_KINDS, GroupKind, MAX_MEMBERS, commitmentLabel, isOpenToJoin } from '@/lib/groups';
 import JoinButton from '@/components/JoinButton';
@@ -77,17 +77,18 @@ export default function GroupListPage({ kind }: { kind: GroupKind }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const oneWeekAgo = useMemo(() => Timestamp.fromMillis(Date.now() - ONE_WEEK_IN_MS), []);
-  const newQuery = useMemo(() => query(
-    collection(firestore, config.collection), where('createdAt', '>', oneWeekAgo), orderBy('createdAt', 'desc'), limit(25)
+  // Groups younger than a week are "New"; unknown until the page runs in the browser
+  const oneWeekAgo = useOneWeekAgo();
+  const newQuery = useMemo(() => oneWeekAgo === null ? null : query(
+    collection(firestore, config.collection), where('createdAt', '>', Timestamp.fromMillis(oneWeekAgo)), orderBy('createdAt', 'desc'), limit(25)
   ) as Query<Group>, [firestore, config.collection, oneWeekAgo]);
-  const inProgressQuery = useMemo(() => query(
-    collection(firestore, config.collection), where('createdAt', '<=', oneWeekAgo), orderBy('createdAt', 'desc'), limit(50)
+  const inProgressQuery = useMemo(() => oneWeekAgo === null ? null : query(
+    collection(firestore, config.collection), where('createdAt', '<=', Timestamp.fromMillis(oneWeekAgo)), orderBy('createdAt', 'desc'), limit(50)
   ) as Query<Group>, [firestore, config.collection, oneWeekAgo]);
 
   const { data: newGroups, isLoading: isLoadingNew } = useCollection<Group>(newQuery);
   const { data: inProgressGroups, isLoading: isLoadingInProgress } = useCollection<Group>(inProgressQuery);
-  const isLoading = isLoadingNew || isLoadingInProgress;
+  const isLoading = oneWeekAgo === null || isLoadingNew || isLoadingInProgress;
 
   const term = searchTerm.toLowerCase();
   const matches = (g: Group) => !term || g.name_lowercase.includes(term) || g.topic.toLowerCase().includes(term);

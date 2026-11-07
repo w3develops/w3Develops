@@ -42,14 +42,15 @@ export function formatTimestamp(timestamp: Timestamp | FieldValue | undefined | 
   return new Intl.DateTimeFormat('en-US', options).format(date);
 }
 
-export function timeAgo(timestamp: Timestamp | FieldValue | undefined | null): string {
+export function timeAgo(timestamp: Timestamp | FieldValue | undefined | null, now: number = Date.now()): string {
   if (!timestamp || !(timestamp instanceof Timestamp)) return '';
-  
-  const now = new Date();
-  const secondsPast = (now.getTime() - timestamp.toDate().getTime()) / 1000;
 
+  const secondsPast = (now - timestamp.toDate().getTime()) / 1000;
+
+  // Callers may pass a clock that only ticks every minute, so anything newer
+  // than that (even slightly "in the future") is just now
   if (secondsPast < 60) {
-    return `${Math.round(secondsPast)}s ago`;
+    return 'just now';
   }
   if (secondsPast < 3600) {
     return `${Math.round(secondsPast / 60)}m ago`;

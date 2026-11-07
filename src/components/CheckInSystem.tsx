@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { useNow } from '@/lib/hooks/useClientValues';
 import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { CheckIn, UserProfile } from '@/lib/types';
@@ -37,15 +38,8 @@ function UserCheckInsDisplay({ memberId, memberProfiles, allCheckins, isLoading,
         return userCheckins[0]; // Already sorted by most recent
     }, [userCheckins]);
     
-    const [timeAgoString, setTimeAgoString] = useState('');
-
-    useEffect(() => {
-      if (lastCheckin) {
-        setTimeAgoString(timeAgo(lastCheckin.createdAt));
-      } else {
-        setTimeAgoString('');
-      }
-    }, [lastCheckin]);
+    const now = useNow();
+    const timeAgoString = lastCheckin && now !== null ? timeAgo(lastCheckin.createdAt, now) : '';
 
 
     if (isLoading) {

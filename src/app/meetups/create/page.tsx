@@ -18,7 +18,8 @@ import { ChevronDown } from 'lucide-react';
 import NameSearchInput from '@/components/NameSearchInput';
 import { UserProfile } from '@/lib/types';
 import TimezoneSelect from '@/components/TimezoneSelect';
-import { browserTimeZone, zonedTimeToDate } from '@/lib/timezones';
+import { zonedTimeToDate } from '@/lib/timezones';
+import { useBrowserTimeZone } from '@/lib/hooks/useClientValues';
 import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { getErrorMessage } from '@/lib/utils';
 
@@ -38,10 +39,12 @@ export default function CreateMeetupPage() {
   const [customTopic, setCustomTopic] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [timezone, setTimezone] = useState('');
+  // The browser's timezone until the member picks another
+  const [chosenTimezone, setTimezone] = useState<string | null>(null);
+  const browserTz = useBrowserTimeZone();
+  const timezone = chosenTimezone ?? browserTz;
   const ensureVerified = useVerifiedGuard();
 
-  useEffect(() => setTimezone(browserTimeZone()), []);
   const [locationType, setLocationType] = useState<'Online' | 'In-Person' | 'Hybrid'>('Online');
   const [locationAddress, setLocationAddress] = useState('');
   const [virtualLink, setVirtualLink] = useState('');

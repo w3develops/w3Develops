@@ -11,6 +11,14 @@ import {
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
 
+/** The latest document Firestore sent, tagged with the reference it answers */
+interface Latest<D> {
+  source: unknown;
+  data: D | null;
+  error: FirestoreError | Error | null;
+}
+const NOTHING_YET = { source: null, data: null, error: null };
+
 /**
  * Interface for the return value of the useDoc hook.
  * @template T Type of the document data.
@@ -36,41 +44,34 @@ export interface UseDocResult<T> {
 export function useDoc<T = any>(
   docRef: DocumentReference<DocumentData> | null | undefined
 ): UseDocResult<T> {
-  const [data, setData] = useState<WithId<T> | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<FirestoreError | Error | null>(null);
+  // The latest document, and which reference it came from
+  const [latest, setLatest] = useState<Latest<WithId<T>>>(NOTHING_YET);
+
+  // Forget the old document once there's nothing to listen to
+  if (!docRef && latest.source !== null) {
+    setLatest(NOTHING_YET);
+  }
 
   useEffect(() => {
-    if (!docRef) {
-      setData(null);
-      setIsLoading(false);
-      setError(null);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
+    if (!docRef) return;
 
     const unsubscribe = onSnapshot(
       docRef,
       (docSnap) => {
-        if (docSnap.exists()) {
-          setData({ ...(docSnap.data() as T), id: docSnap.id });
-        } else {
-          setData(null); // Document does not exist
-        }
-        setError(null);
-        setIsLoading(false);
+        // null when the document does not exist
+        const data = docSnap.exists() ? { ...(docSnap.data() as T), id: docSnap.id } : null;
+        setLatest({ source: docRef, data, error: null });
       },
       (err: FirestoreError) => {
-        setError(err);
-        setData(null);
-        setIsLoading(false);
+        setLatest({ source: docRef, data: null, error: err });
       }
     );
 
     return () => unsubscribe();
   }, [docRef]); // Re-run if the reference changes.
 
-  return { data, isLoading, error };
+  if (!docRef) return { data: null, isLoading: false, error: null };
+  // Waiting on a new reference: keep showing the previous document meanwhile
+  if (latest.source !== docRef) return { data: latest.data, isLoading: true, error: null };
+  return { data: latest.data, isLoading: false, error: latest.error };
 }

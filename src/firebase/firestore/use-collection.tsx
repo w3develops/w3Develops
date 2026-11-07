@@ -13,6 +13,14 @@ import {
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
 
+/** The latest data Firestore sent, tagged with the query or reference it answers */
+interface Latest<D> {
+  source: unknown;
+  data: D | null;
+  error: FirestoreError | Error | null;
+}
+const NOTHING_YET = { source: null, data: null, error: null };
+
 /**
  * Interface for the return value of the useCollection hook.
  * @template T Type of the document data.
@@ -41,20 +49,16 @@ export function useCollection<T = any>(
     targetRefOrQuery: (CollectionReference<DocumentData> | Query<DocumentData>) | null | undefined,
 ): UseCollectionResult<WithId<T>> {
   
-  const [data, setData] = useState<WithId<T>[] | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<FirestoreError | Error | null>(null);
+  // The latest results, and which query they came from
+  const [latest, setLatest] = useState<Latest<WithId<T>[]>>(NOTHING_YET);
+
+  // Forget old results once there's nothing to listen to
+  if (!targetRefOrQuery && latest.source !== null) {
+    setLatest(NOTHING_YET);
+  }
 
   useEffect(() => {
-    if (!targetRefOrQuery) {
-      setData(null);
-      setIsLoading(false);
-      setError(null);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
+    if (!targetRefOrQuery) return;
 
     const unsubscribe = onSnapshot(
       targetRefOrQuery,
@@ -63,25 +67,23 @@ export function useCollection<T = any>(
         // This avoids errors if a DocumentReference is accidentally passed here.
         if (!snapshot || !('docs' in snapshot)) {
           console.warn('useCollection received a snapshot that is not a QuerySnapshot. Expected a collection or query.');
-          setData([]);
-          setIsLoading(false);
+          setLatest({ source: targetRefOrQuery, data: [], error: null });
           return;
         }
-        
+
         const results = snapshot.docs.map(doc => ({ ...(doc.data() as T), id: doc.id }));
-        setData(results);
-        setError(null);
-        setIsLoading(false);
+        setLatest({ source: targetRefOrQuery, data: results, error: null });
       },
       (err: FirestoreError) => {
-        setError(err);
-        setData(null);
-        setIsLoading(false);
+        setLatest({ source: targetRefOrQuery, data: null, error: err });
       }
     );
 
     return () => unsubscribe();
   }, [targetRefOrQuery]); // Re-run if the target query/reference changes.
 
-  return { data, isLoading, error };
+  if (!targetRefOrQuery) return { data: null, isLoading: false, error: null };
+  // Waiting on a new query: keep showing the previous results meanwhile
+  if (latest.source !== targetRefOrQuery) return { data: latest.data, isLoading: true, error: null };
+  return { data: latest.data, isLoading: false, error: latest.error };
 }

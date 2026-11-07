@@ -49,12 +49,14 @@ export default function CareerApplyPage() {
 
     const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
-    useEffect(() => {
-        if (userProfile) {
-            setEmail(user?.email || '');
-            setFullName(userProfile.username || '');
-        }
-    }, [userProfile, user]);
+    // Fill in the member's name and email once, when their profile first loads,
+    // so later profile updates don't overwrite what they've typed
+    const [prefilledFor, setPrefilledFor] = useState<string | null>(null);
+    if (userProfile && prefilledFor !== userProfile.id) {
+        setPrefilledFor(userProfile.id);
+        setEmail(user?.email || '');
+        setFullName(userProfile.username || '');
+    }
 
     useEffect(() => {
         if (!isUserLoading && !user) {

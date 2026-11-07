@@ -21,6 +21,7 @@ import { topics } from '@/lib/constants';
 import { Group, UserProfile } from '@/lib/types';
 import { GROUP_KINDS, GroupKind, commitmentLabel } from '@/lib/groups';
 import { DAYS_OF_WEEK, browserTimeZone, describeSchedule, isValidTimeZone } from '@/lib/timezones';
+import { useBrowserTimeZone } from '@/lib/hooks/useClientValues';
 import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 
 const KEEP = 'keep';
@@ -53,16 +54,16 @@ export default function GroupForm({ kind, groupId }: { kind: GroupKind; groupId?
   const [customHours, setCustomHours] = useState('');
   const [days, setDays] = useState<string[]>([]);
   const [startTime, setStartTime] = useState('18:00');
-  const [timezone, setTimezone] = useState('');
+  // New groups default to the member's saved timezone, else the browser's;
+  // editing loads the group's own timezone below
+  const [chosenTimezone, setTimezone] = useState<string | null>(null);
+  const browserTz = useBrowserTimeZone();
+  const defaultTimezone = isEditing ? '' : isValidTimeZone(profile?.timezone) ? profile.timezone : browserTz;
+  const timezone = chosenTimezone ?? defaultTimezone;
 
   useEffect(() => {
     if (!isUserLoading && !user) router.push(`/login?redirect=${encodeURIComponent(config.path + '/create')}`);
   }, [user, isUserLoading, router, config.path]);
-
-  // New groups default to the member's saved timezone, else the browser's
-  useEffect(() => {
-    if (!timezone && !isEditing) setTimezone(isValidTimeZone(profile?.timezone) ? profile!.timezone! : browserTimeZone());
-  }, [profile, timezone, isEditing]);
 
   useEffect(() => {
     if (!groupId) return;

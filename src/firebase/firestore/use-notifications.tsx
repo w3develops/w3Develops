@@ -17,7 +17,8 @@ import { useUser, useFirestore } from '@/firebase/provider';
 export function useNotifications(): number {
   const { user } = useUser();
   const firestore = useFirestore();
-  const [unreadCount, setUnreadCount] = useState<number>(0);
+  // The latest count, and which query it came from
+  const [latest, setLatest] = useState<{ source: unknown; count: number }>({ source: null, count: 0 });
 
   const notificationsQuery = useMemo(() => {
     if (!user) return null;
@@ -28,24 +29,22 @@ export function useNotifications(): number {
   }, [user, firestore]);
 
   useEffect(() => {
-    if (!notificationsQuery) {
-      setUnreadCount(0);
-      return;
-    }
+    if (!notificationsQuery) return;
 
     const unsubscribe = onSnapshot(
       notificationsQuery,
       (snapshot) => {
-        setUnreadCount(snapshot.size);
+        setLatest({ source: notificationsQuery, count: snapshot.size });
       },
       (error: FirestoreError) => {
         console.error("useNotifications error:", error);
-        setUnreadCount(0);
+        setLatest({ source: notificationsQuery, count: 0 });
       }
     );
 
     return () => unsubscribe();
   }, [notificationsQuery]);
 
-  return unreadCount;
+  // 0 when signed out or while the first count loads
+  return notificationsQuery && latest.source === notificationsQuery ? latest.count : 0;
 }

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,15 +35,13 @@ const cities = [
   { name: "Azores", offset: -1 },
 ];
 
+const neverChanges = () => () => {};
+const browserUtcOffset = () => -new Date().getTimezoneOffset() / 60;
+
 export default function TimeConverterPage() {
   const [search, setSearch] = useState('');
-  const [detectedOffset, setDetectedOffset] = useState<number | null>(null);
-
-  useEffect(() => {
-    // Detect offset from browser
-    const offset = -new Date().getTimezoneOffset() / 60;
-    setDetectedOffset(offset);
-  }, []);
+  // The browser's UTC offset in hours; null until the page runs in the browser
+  const detectedOffset = useSyncExternalStore(neverChanges, browserUtcOffset, () => null);
 
   const filteredCities = cities.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase())

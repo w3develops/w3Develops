@@ -56,6 +56,12 @@ export interface UserHookResult { // Renamed from UserAuthHookResult for consist
   userError: Error | null;
 }
 
+const MISSING_SERVICES: UserAuthState = {
+  user: null,
+  isUserLoading: false,
+  userError: new Error("Auth or Firestore service not provided."),
+};
+
 // React Context
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
 
@@ -69,20 +75,17 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   auth,
   analytics,
 }) => {
-  const [userAuthState, setUserAuthState] = useState<UserAuthState>({
+  // The latest auth event, and which Auth instance sent it
+  const [latestAuth, setLatestAuth] = useState<UserAuthState & { source: Auth | null }>({
+    source: null,
     user: null,
-    isUserLoading: true, // Start loading until first auth event
+    isUserLoading: true,
     userError: null,
   });
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
-    if (!auth || !firestore) { // If no Auth service instance, cannot determine user state
-      setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth or Firestore service not provided.") });
-      return;
-    }
-
-    setUserAuthState({ user: null, isUserLoading: true, userError: null }); // Reset on auth instance change
+    if (!auth || !firestore) return; // Without both services the user state can't be known
 
     const unsubscribe = onAuthStateChanged(
       auth,
@@ -110,15 +113,21 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                   });
             }
         }
-        setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+        setLatestAuth({ source: auth, user: firebaseUser, isUserLoading: false, userError: null });
       },
       (error) => { // Auth listener error
         console.error("FirebaseProvider: onAuthStateChanged error:", error);
-        setUserAuthState({ user: null, isUserLoading: false, userError: error });
+        setLatestAuth({ source: auth, user: null, isUserLoading: false, userError: error });
       }
     );
     return () => unsubscribe(); // Cleanup
   }, [auth, firestore]); // Depends on the auth instance
+
+  // Loading until this Auth instance reports the first sign-in state
+  const userAuthState: UserAuthState =
+    !auth || !firestore ? MISSING_SERVICES
+    : latestAuth.source === auth ? latestAuth
+    : { user: null, isUserLoading: true, userError: null };
 
   const servicesAvailable = !!(firebaseApp && firestore && auth);
   const contextValue: FirebaseContextState = {

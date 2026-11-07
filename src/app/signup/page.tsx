@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import { createUserWithEmailAndPassword, sendEmailVerification, User as Firebase
 import SocialSignInButtons from '@/components/SocialSignInButtons';
 import TimezoneSelect from '@/components/TimezoneSelect';
 import { browserTimeZone } from '@/lib/timezones';
+import { useBrowserTimeZone } from '@/lib/hooks/useClientValues';
 import { getErrorMessage } from '@/lib/utils';
 
 function useDebounce(value: string, delay: number) {
@@ -91,7 +92,10 @@ function SignupPageContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const [timezone, setTimezone] = useState('');
+  // The browser's timezone until the member picks another
+  const [chosenTimezone, setTimezone] = useState<string | null>(null);
+  const browserTz = useBrowserTimeZone();
+  const timezone = chosenTimezone ?? browserTz;
   
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [isUsernameChecking, setIsUsernameChecking] = useState(false);
@@ -100,7 +104,6 @@ function SignupPageContent() {
 
   const debouncedUsername = useDebounce(username, 500);
 
-  useEffect(() => setTimezone(browserTimeZone()), []);
 
   // Signed-in members finish here when something required is missing: new
   // Google or GitHub members have no profile yet, and older members may be
@@ -114,8 +117,14 @@ function SignupPageContent() {
   const isFinishing = !!user && profile !== undefined && !isComplete;
   const isReturning = isFinishing && !!profile;
 
-  useEffect(() => {
+  // Forget the last member's profile as soon as a different member signs in
+  const [profileUid, setProfileUid] = useState(user?.uid);
+  if (profileUid !== user?.uid) {
+    setProfileUid(user?.uid);
     setProfile(undefined);
+  }
+
+  useEffect(() => {
     if (!user) return;
     let cancelled = false;
     getDoc(doc(firestore, 'users', user.uid))
@@ -124,47 +133,39 @@ function SignupPageContent() {
     return () => { cancelled = true; };
   }, [user, firestore, toast]);
 
-  useEffect(() => {
+  // Suggest a username from the Google or GitHub name when the finishing step appears
+  const [wasFinishing, setWasFinishing] = useState(isFinishing);
+  if (wasFinishing !== isFinishing) {
+    setWasFinishing(isFinishing);
     if (isFinishing && needsUsername && !username && user?.displayName) {
       setUsername(user.displayName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 24));
     }
-  // Only suggest a username once, when the finishing step first appears
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFinishing]);
+  }
 
-  const checkUsername = useCallback(async (usernameToCheck: string) => {
-    setIsUsernameChecking(true);
-    const validationError = validateUsername(usernameToCheck);
+  // Each time the typed username settles, check its format straight away and
+  // then whether it's taken
+  const [checkedUsername, setCheckedUsername] = useState('');
+  if (checkedUsername !== debouncedUsername) {
+    setCheckedUsername(debouncedUsername);
+    const validationError = debouncedUsername ? validateUsername(debouncedUsername) : null;
     setUsernameError(validationError);
-
-    if (validationError) {
-        setIsUsernameChecking(false);
-        setIsUsernameAvailable(null);
-        return;
-    }
-
-    const usernameLower = usernameToCheck.toLowerCase();
-    try {
-        const usernameDocRef = doc(firestore, 'usernames', usernameLower);
-        const docSnap = await getDoc(usernameDocRef);
-        setIsUsernameAvailable(!docSnap.exists());
-    } catch (err) {
-        setUsernameError("Couldn't check username.");
-        setIsUsernameAvailable(null);
-    } finally {
-        setIsUsernameChecking(false);
-    }
-  }, [firestore]);
+    setIsUsernameAvailable(null);
+    setIsUsernameChecking(!!debouncedUsername && !validationError);
+  }
 
   useEffect(() => {
-    if (debouncedUsername) {
-      checkUsername(debouncedUsername);
-    } else {
-      setUsernameError(null);
-      setIsUsernameAvailable(null);
-      setIsUsernameChecking(false);
-    }
-  }, [debouncedUsername, checkUsername]);
+    if (!debouncedUsername || validateUsername(debouncedUsername)) return;
+    let cancelled = false;
+    getDoc(doc(firestore, 'usernames', debouncedUsername.toLowerCase()))
+      .then(snap => { if (!cancelled) setIsUsernameAvailable(!snap.exists()); })
+      .catch(() => {
+        if (cancelled) return;
+        setUsernameError("Couldn't check username.");
+        setIsUsernameAvailable(null);
+      })
+      .finally(() => { if (!cancelled) setIsUsernameChecking(false); });
+    return () => { cancelled = true; };
+  }, [debouncedUsername, firestore]);
 
   useEffect(() => {
     if (!isUserLoading && user && isComplete) {

@@ -58,8 +58,11 @@ export default function EditProfilePage() {
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
-  useEffect(() => {
-    if (userProfile) {
+  // Fill the form once, when the profile first loads, so later updates to the
+  // profile (like the last-login time) don't wipe what the member has typed
+  const [filledFor, setFilledFor] = useState<string | null>(null);
+  if (userProfile && filledFor !== userProfile.id) {
+      setFilledFor(userProfile.id);
       setUsername(userProfile.username || '');
       setBio(userProfile.bio || '');
       setSkills(userProfile.skills || []);
@@ -70,8 +73,7 @@ export default function EditProfilePage() {
       setTimezone(isValidTimeZone(userProfile.timezone) ? userProfile.timezone : browserTimeZone());
       setPairProgrammingStatus(userProfile.pairProgrammingStatus || 'closed');
       setPairProgrammingSkills(userProfile.pairProgrammingSkills || []);
-    }
-  }, [userProfile]);
+  }
   
   useEffect(() => {
     if (!isUserLoading && !user) {

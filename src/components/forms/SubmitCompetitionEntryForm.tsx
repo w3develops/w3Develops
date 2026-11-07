@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -30,15 +30,15 @@ export default function SubmitCompetitionEntryForm({ user, competitionId, userSo
   const { toast } = useToast();
   const firestore = useFirestore();
 
-  useEffect(() => {
-    if (soloProjectId) {
-      const selectedProject = userSoloProjects.find(p => p.id === soloProjectId);
-      if (selectedProject) {
-        setProjectUrl(selectedProject.projectUrl);
-        setDescription(selectedProject.description);
-      }
+  // Picking one of the member's projects fills in its link and description
+  const selectProject = (projectId: string) => {
+    setSoloProjectId(projectId);
+    const selectedProject = userSoloProjects.find(p => p.id === projectId);
+    if (selectedProject) {
+      setProjectUrl(selectedProject.projectUrl);
+      setDescription(selectedProject.description);
     }
-  }, [soloProjectId, userSoloProjects]);
+  };
   
   const ensureVerified = useVerifiedGuard();
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,7 +87,7 @@ export default function SubmitCompetitionEntryForm({ user, competitionId, userSo
       {userSoloProjects.length > 0 && (
         <div className="space-y-2">
             <Label htmlFor="soloProjectSelect">Or use an existing Solo Project</Label>
-            <Select value={soloProjectId} onValueChange={setSoloProjectId}>
+            <Select value={soloProjectId} onValueChange={selectProject}>
                 <SelectTrigger>
                     <SelectValue placeholder="Select a project..." />
                 </SelectTrigger>

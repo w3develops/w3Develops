@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useNow } from '@/lib/hooks/useClientValues';
 import { useFirestore } from '@/firebase';
 import { CheckIn, Task } from '@/lib/types';
 import { GROUP_KINDS } from '@/lib/groups';
@@ -29,16 +30,9 @@ interface ActivityFeedProps {
 }
 
 const ActivityItemCard = ({ item }: { item: ActivityItem }) => {
-    const [ago, setAgo] = useState('');
-
-    useEffect(() => {
-        // Deferred until after client-side hydration to avoid mismatches
-        setAgo(timeAgo(item.createdAt));
-        const interval = setInterval(() => {
-            setAgo(timeAgo(item.createdAt));
-        }, 60000); // Update every minute
-        return () => clearInterval(interval);
-    }, [item.createdAt]);
+    // Blank until the page runs in the browser, then updated every minute
+    const now = useNow();
+    const ago = now === null ? '' : timeAgo(item.createdAt, now);
 
     const icon = item.activityType === 'check-in' 
         ? <MessageSquare className="h-5 w-5 text-blue-500" /> 

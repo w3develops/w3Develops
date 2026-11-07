@@ -35,22 +35,26 @@ export default function SharedNoteEditor({ collectionPath, sessionId }: SharedNo
   );
 
   const { data: note, isLoading: isNoteLoading } = useDoc<SharedNote>(noteRef);
-  const { data: lastEditorProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(
-      note?.lastUpdatedBy ? doc(firestore, 'users', note.lastUpdatedBy) : null
+  const lastEditorId = note?.lastUpdatedBy;
+  const lastEditorRef = useMemo(
+    () => lastEditorId ? doc(firestore, 'users', lastEditorId) as DocumentReference<UserProfile> : null,
+    [firestore, lastEditorId]
   );
+  const { data: lastEditorProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(lastEditorRef);
 
   const [content, setContent] = useState('');
   const debouncedContent = useDebounce(content, 1000); // Save after 1s of inactivity
 
-  // Sync firestore data to local state, but only if it's different
-  useEffect(() => {
+  // Each time Firestore sends the note, show its text if it differs from ours
+  const [seenNote, setSeenNote] = useState<{ note: typeof note; isLoading: boolean } | null>(null);
+  if (!seenNote || seenNote.note !== note || seenNote.isLoading !== isNoteLoading) {
+    setSeenNote({ note, isLoading: isNoteLoading });
     if (note && note.content !== content) {
       setContent(note.content);
     } else if (!note && !isNoteLoading) {
-        setContent('');
+      setContent('');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [note, isNoteLoading]);
+  }
 
   // Save debounced content to firestore
   useEffect(() => {
