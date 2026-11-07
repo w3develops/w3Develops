@@ -1,5 +1,6 @@
 import GroupForm from '@/components/groups/GroupForm';
 
-export default function Page({ params }: { params: { groupId: string } }) {
-  return <GroupForm kind="studyGroup" groupId={params.groupId} />;
+export default async function Page({ params }: { params: Promise<{ groupId: string }> }) {
+  const resolvedParams = await params;
+  return <GroupForm kind="studyGroup" groupId={resolvedParams.groupId} />;
 }

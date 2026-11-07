@@ -4,6 +4,7 @@ export async function generateStaticParams() {
   return [];
 }
 
-export default function Page({ params }: { params: { bookClubId: string } }) {
-  return <GroupDashboard kind="bookClub" groupId={params.bookClubId} />;
+export default async function Page({ params }: { params: Promise<{ bookClubId: string }> }) {
+  const resolvedParams = await params;
+  return <GroupDashboard kind="bookClub" groupId={resolvedParams.bookClubId} />;
 }

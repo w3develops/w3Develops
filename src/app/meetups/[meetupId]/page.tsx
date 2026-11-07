@@ -5,6 +5,7 @@ export async function generateStaticParams() {
   return [];
 }
 
-export default function Page({ params }: { params: { meetupId: string } }) {
-  return <MeetupDashboardPage params={params} />;
+export default async function Page({ params }: { params: Promise<{ meetupId: string }> }) {
+  const resolvedParams = await params;
+  return <MeetupDashboardPage params={resolvedParams} />;
 }

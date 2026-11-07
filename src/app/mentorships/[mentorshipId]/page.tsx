@@ -4,6 +4,7 @@ export async function generateStaticParams() {
   return [];
 }
 
-export default function Page({ params }: { params: { mentorshipId: string } }) {
-  return <ConnectionSpace kind="mentorship" id={params.mentorshipId} />;
+export default async function Page({ params }: { params: Promise<{ mentorshipId: string }> }) {
+  const resolvedParams = await params;
+  return <ConnectionSpace kind="mentorship" id={resolvedParams.mentorshipId} />;
 }
