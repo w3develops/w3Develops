@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import type { ReactNode } from 'react';
 import { FAQ_SECTIONS, type FaqSection } from '@/lib/faq';
+import JsonLd from '@/components/JsonLd';
+import { SITE_URL } from '@/lib/site-pages';
 import { HelpCircle, Sparkles, Users, Code, ShieldCheck, Globe } from "lucide-react";
 import type { Metadata } from 'next';
 import { pageMetadata } from '@/lib/site-pages';
@@ -23,9 +25,25 @@ const ICONS: Record<FaqSection['icon'], ReactNode> = {
   globe: <Globe className="h-5 w-5 text-primary" />,
 };
 
+// Lets search engines show the questions and answers directly
+const FAQ_STRUCTURED_DATA = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQ_SECTIONS.flatMap(section => section.items).map(item => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      // Links in the answers point at this site, so make them absolute
+      text: item.answer.replace(/href='\//g, `href='${SITE_URL}/`),
+    },
+  })),
+};
+
 export default function FAQPage() {
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-10 space-y-12">
+      <JsonLd data={FAQ_STRUCTURED_DATA} />
       <div className="text-center space-y-4">
         <h1 className="text-4xl md:text-5xl font-headline font-bold">Frequently Asked Questions</h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">

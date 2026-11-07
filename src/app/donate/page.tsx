@@ -52,7 +52,7 @@ export default function DonatePage() {
         <div className="max-w-3xl mx-auto p-4 md:p-10">
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline text-3xl">Donate to w3Develops</CardTitle>
+                    <CardTitle as="h1" className="font-headline text-3xl">Donate to w3Develops</CardTitle>
                     <CardDescription>
                         Your contributions help us grow our community and continue to provide free learning resources and collaborative opportunities for developers worldwide.
                     </CardDescription>

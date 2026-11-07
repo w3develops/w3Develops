@@ -4,10 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { Button } from "@/components/ui/button";
 import { useUser, useFirestore, useDoc, useCollection } from '@/firebase';
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useMemo, type ReactNode } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import { useDocsByIds } from "@/lib/hooks/useDocsByIds";
 import { LoadingSkeleton } from "@/components/layout/loading-skeleton";
+import { HowItWorks, SignInToJoin } from "@/components/ProgramPublicInfo";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -511,7 +511,6 @@ function Finder({ config, currentUserProfile }: { config: MatchingConfig; curren
 export default function MatchingProgram({ config }: { config: MatchingConfig }) {
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
-    const router = useRouter();
 
     const userDocRef = useMemo(() => {
         if (!user) return null;
@@ -519,18 +518,22 @@ export default function MatchingProgram({ config }: { config: MatchingConfig }) 
     }, [user, firestore]);
 
     const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
+    const { offerer, seeker } = config;
 
-    useEffect(() => {
-        if (!isUserLoading && !user) {
-            router.push(`/login?redirect=${config.pageRoute}`);
-        }
-    }, [user, isUserLoading, router, config.pageRoute]);
-
-    if (isUserLoading || isProfileLoading || !user || !userProfile) {
-        return (
-            <div className="p-4 md:p-10">
-                <LoadingSkeleton />
-            </div>
+    // The heading and "How it works" don't depend on who is signed in, so they
+    // are always rendered, which lets search engines read the page too
+    let memberTools: ReactNode;
+    if (!isUserLoading && !user) {
+        memberTools = <SignInToJoin action={`find a ${offerer.singular} or ${seeker.singular}`} returnTo={config.pageRoute} />;
+    } else if (isUserLoading || isProfileLoading || !user || !userProfile) {
+        memberTools = <LoadingSkeleton />;
+    } else {
+        memberTools = (
+            <>
+                <SetupForm config={config} user={user} userProfile={userProfile} />
+                <MatchingDashboard config={config} user={user} userProfile={userProfile} />
+                <Finder config={config} currentUserProfile={userProfile} />
+            </>
         );
     }
 
@@ -541,9 +544,21 @@ export default function MatchingProgram({ config }: { config: MatchingConfig }) 
                 <h1 className="text-3xl font-headline mt-4">{config.program} Program</h1>
                 <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">{config.intro}</p>
             </div>
-            <SetupForm config={config} user={user} userProfile={userProfile} />
-            <MatchingDashboard config={config} user={user} userProfile={userProfile} />
-            <Finder config={config} currentUserProfile={userProfile} />
+            {memberTools}
+            <HowItWorks steps={[
+                {
+                    title: `Set up your ${config.program.toLowerCase()} profile`,
+                    text: `Choose whether you want to be a ${offerer.singular}, a ${seeker.singular} or both, list the skills you can share or want to learn, and open your profile to requests.`,
+                },
+                {
+                    title: 'Find a match',
+                    text: `Browse members by skill and send a request to the ${offerer.singular} or ${seeker.singular} you'd like to work with.`,
+                },
+                {
+                    title: 'Work together',
+                    text: 'Once your request is accepted, you share a private dashboard with real-time notes, a task list and check-ins. It\'s all free.',
+                },
+            ]} />
         </div>
     );
 }

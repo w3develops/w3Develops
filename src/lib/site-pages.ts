@@ -11,11 +11,24 @@ export const HOME_TITLE = 'w3Develops: Free Remote Coding Study Groups, Projects
 export const HOME_DESCRIPTION =
   'A free, global developer community. Join remote coding study groups and team projects, find a mentor or pair programming partner, and build a real portfolio.';
 
+// Shown when a page is shared on Discord, LinkedIn, X and similar
+export const SHARE_IMAGE = { url: '/newheader.jpg', width: 1900, height: 1250, alt: 'w3Develops community' };
+
+/** Link-preview details; a page's own Open Graph replaces the layout's, so each page needs all of them */
+export function sharePreview(title: string, description: string, path: string): Pick<Metadata, 'openGraph' | 'twitter'> {
+  return {
+    openGraph: { type: 'website', siteName: SITE_NAME, title, description, url: path, images: [SHARE_IMAGE] },
+    twitter: { card: 'summary_large_image', site: '@w3develops', title, description, images: [SHARE_IMAGE.url] },
+  };
+}
+
 export interface SitePage {
   title: string;
   description: string;
   /** Heading the page is listed under in /llms.txt; left out of it when absent */
   section?: SiteSection;
+  /** Members-only or unfinished: kept out of search results and the sitemap */
+  noindex?: boolean;
 }
 
 export const SITE_SECTIONS = [
@@ -82,7 +95,7 @@ export const SITE_PAGES = {
   '/chat': {
     title: 'Discord Community',
     description: 'Join the conversation with w3Develops members on our official Discord server.',
-    section: 'Find people to work with',
+    noindex: true,
   },
   '/competitions': {
     title: 'Coding Competitions',
@@ -117,6 +130,7 @@ export const SITE_PAGES = {
   '/news/archive': {
     title: 'News Archive',
     description: 'Past w3Develops news and announcements.',
+    noindex: true,
   },
   '/podcast': {
     title: 'Podcast',
@@ -151,7 +165,7 @@ export const SITE_PAGES = {
   '/marketplace': {
     title: 'Marketplace',
     description: 'A community-driven marketplace for services and products from w3Develops members.',
-    section: 'Get involved',
+    noindex: true,
   },
   '/donate': {
     title: 'Donate',
@@ -166,12 +180,12 @@ export const SITE_PAGES = {
   '/support': {
     title: 'Support',
     description: 'Get help with your w3Develops account or report a technical issue.',
-    section: 'About and policies',
+    noindex: true,
   },
   '/feedback': {
     title: 'Feedback',
     description: 'Tell us how we can improve the w3Develops community.',
-    section: 'About and policies',
+    noindex: true,
   },
   '/contribute/security': {
     title: 'Security Disclosure Policy',
@@ -218,5 +232,12 @@ export function pageMetadata(path: SitePath, { canonical = true } = {}): Metadat
     title: page.title,
     description: page.description,
     ...(canonical && { alternates: { canonical: path } }),
+    ...(page.noindex && { robots: { index: false } }),
+    ...sharePreview(`${page.title} | ${SITE_NAME}`, page.description, path),
   };
 }
+
+/** Public pages that belong in the sitemap */
+export const INDEXABLE_PATHS = ['/', ...Object.entries(SITE_PAGES as Record<string, SitePage>)
+  .filter(([, page]) => !page.noindex)
+  .map(([path]) => path)];

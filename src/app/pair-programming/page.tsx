@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { Button } from "@/components/ui/button";
 import { useUser, useFirestore, useDoc, useCollection } from '@/firebase';
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import { LoadingSkeleton } from "@/components/layout/loading-skeleton";
+import { HowItWorks, SignInToJoin } from "@/components/ProgramPublicInfo";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -282,7 +282,6 @@ function PairingFinder({ currentUserProfile }: { currentUserProfile: UserProfile
 export default function PairProgrammingPage() {
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
-    const router = useRouter();
 
     const userDocRef = useMemo(() => {
         if (!user) return null;
@@ -291,17 +290,20 @@ export default function PairProgrammingPage() {
 
     const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
-    useEffect(() => {
-        if (!isUserLoading && !user) {
-            router.push('/login?redirect=/pair-programming');
-        }
-    }, [user, isUserLoading, router]);
-    
-    if (isUserLoading || isProfileLoading || !user || !userProfile) {
-        return (
-            <div className="p-4 md:p-10">
-                <LoadingSkeleton />
-            </div>
+    // The heading and "How it works" don't depend on who is signed in, so they
+    // are always rendered, which lets search engines read the page too
+    let memberTools: ReactNode;
+    if (!isUserLoading && !user) {
+        memberTools = <SignInToJoin action="find a pair programming partner" returnTo="/pair-programming" />;
+    } else if (isUserLoading || isProfileLoading || !user || !userProfile) {
+        memberTools = <LoadingSkeleton />;
+    } else {
+        memberTools = (
+            <>
+                <PairingSetupForm user={user} userProfile={userProfile} />
+                <PairingDashboard user={user} userProfile={userProfile} />
+                <PairingFinder currentUserProfile={userProfile} />
+            </>
         );
     }
 
@@ -314,9 +316,21 @@ export default function PairProgrammingPage() {
                     Find a partner, share knowledge, and build together in real-time.
                 </p>
             </div>
-            <PairingSetupForm user={user} userProfile={userProfile} />
-            <PairingDashboard user={user} userProfile={userProfile} />
-            <PairingFinder currentUserProfile={userProfile} />
+            {memberTools}
+            <HowItWorks steps={[
+                {
+                    title: 'Set up your pairing profile',
+                    text: 'Set your status to open to pairing and list the skills you want to practise or can help with.',
+                },
+                {
+                    title: 'Find a partner',
+                    text: 'Browse and filter members by skill, then send a pairing request to someone you\'d like to code with.',
+                },
+                {
+                    title: 'Code together',
+                    text: 'Once your request is accepted, you share a private pairing space with a real-time shared editor, a task list and check-ins. It\'s all free.',
+                },
+            ]} />
         </div>
     );
 }

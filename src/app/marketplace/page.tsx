@@ -9,7 +9,7 @@ export default function MarketplacePage() {
         <div className="max-w-4xl mx-auto p-4 md:p-10">
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline text-3xl">Marketplace</CardTitle>
+                    <CardTitle as="h1" className="font-headline text-3xl">Marketplace</CardTitle>
                     <CardDescription>
                         Community-driven marketplace for services and products.
                     </CardDescription>

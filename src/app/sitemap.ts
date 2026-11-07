@@ -1,65 +1,10 @@
+import type { MetadataRoute } from 'next';
+import { INDEXABLE_PATHS, SITE_URL } from '@/lib/site-pages';
 
-import { MetadataRoute } from 'next';
-
-const URL = 'https://w3develops.org';
-
+// Only public pages: no account, sign-in, "create" or members-only pages,
+// which search engines can't usefully show. Built from src/lib/site-pages.ts.
+// No last-modified dates, since a deploy date for every page would be wrong
+// and teaches search engines to ignore them.
 export default function sitemap(): MetadataRoute.Sitemap {
-  const staticRoutes = [
-    '',
-    '/account',
-    '/account/my-tasks',
-    '/account/notifications',
-    '/book-clubs',
-    '/book-clubs/create',
-    '/bug-bounties',
-    '/careers',
-    '/chat',
-    '/competitions',
-    '/competitions/create',
-    '/cookies',
-    '/contribute',
-    '/contribute/guide',
-    '/contribute/security',
-    '/contribute/security/hall-of-fame',
-    '/donate',
-    '/explore',
-    '/faq',
-    '/feedback',
-    '/groupprojects',
-    '/groupprojects/create',
-    '/hackathons',
-    '/hackerspaces',
-    '/job-board',
-    '/job-board/create',
-    '/learn',
-    '/login',
-    '/marketplace',
-    '/mentorship',
-    '/meetups',
-    '/meetups/create',
-    '/news',
-    '/news/archive',
-    '/newsletter',
-    '/notifications',
-    '/pair-programming',
-    '/podcast',
-    '/privacy',
-    '/profile/edit',
-    '/search',
-    '/security',
-    '/settings',
-    '/signup',
-    '/solo-projects',
-    '/studygroups',
-    '/studygroups/create',
-    '/support',
-    '/terms',
-    '/tutor',
-    '/warrant-canary',
-  ];
-
-  return staticRoutes.map((route) => ({
-    url: `${URL}${route}`,
-    lastModified: new Date(),
-  }));
+  return INDEXABLE_PATHS.map(path => ({ url: `${SITE_URL}${path === '/' ? '' : path}` }));
 }

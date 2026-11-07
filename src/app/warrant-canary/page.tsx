@@ -17,7 +17,7 @@ export default function WarrantCanaryPage() {
                     <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4">
                         <Bird className="h-16 w-16 text-primary" />
                     </div>
-                    <CardTitle className="font-headline text-4xl">Warrant Canary</CardTitle>
+                    <CardTitle as="h1" className="font-headline text-4xl">Warrant Canary</CardTitle>
                     <CardDescription className="text-lg">
                         Last updated: {lastUpdated}
                     </CardDescription>

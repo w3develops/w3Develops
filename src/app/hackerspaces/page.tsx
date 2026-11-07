@@ -32,7 +32,7 @@ export default function HackerspacesPage() {
                 <CardHeader>
                     <div className="flex items-center gap-3">
                         <Factory className="h-8 w-8 text-primary" />
-                        <CardTitle className="font-headline text-3xl">Hackerspaces & Makerspaces</CardTitle>
+                        <CardTitle as="h1" className="font-headline text-3xl">Hackerspaces & Makerspaces</CardTitle>
                     </div>
                     <CardDescription>
                         Explore platforms to find local communities for building, making, and learning.

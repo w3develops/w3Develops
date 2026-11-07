@@ -9,7 +9,8 @@ import Header from "@/components/layout/header";
 import EmailVerificationBanner from "@/components/EmailVerificationBanner";
 import Footer from "@/components/layout/footer";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
-import { HOME_DESCRIPTION, HOME_TITLE, SITE_NAME, SITE_URL } from "@/lib/site-pages";
+import { HOME_DESCRIPTION, HOME_TITLE, SITE_NAME, SITE_URL, sharePreview } from "@/lib/site-pages";
+import JsonLd from "@/components/JsonLd";
 
 
 const inter = Inter({ 
@@ -28,6 +29,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: HOME_TITLE, template: `%s | ${SITE_NAME}` },
   description: HOME_DESCRIPTION,
+  // Pages without their own preview use the site's
+  ...sharePreview(HOME_TITLE, HOME_DESCRIPTION, '/'),
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -55,6 +58,46 @@ export const viewport: Viewport = {
   themeColor: '#ffffff',
 }
 
+// Tells search engines and AI tools who runs the site, where else to find
+// w3Develops, and how to search it
+const SITE_STRUCTURED_DATA = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: `${SITE_URL}/logo.png`,
+      description: HOME_DESCRIPTION,
+      sameAs: [
+        'https://github.com/w3develops',
+        'https://x.com/w3develops',
+        'https://www.youtube.com/w3Develops',
+        'https://www.linkedin.com/company/w3develops',
+        'https://www.reddit.com/r/w3Develops/',
+        'https://www.instagram.com/w3develops/',
+        'https://www.facebook.com/groups/w3develops/',
+        'https://mastodon.social/@w3develops',
+        'https://bsky.app/profile/w3develops.bsky.social',
+        'https://discord.gg/ckQ52gA',
+      ],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${SITE_URL}/#website`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      publisher: { '@id': `${SITE_URL}/#organization` },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: `${SITE_URL}/search?q={search_term_string}`,
+        'query-input': 'required name=search_term_string',
+      },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -69,6 +112,7 @@ export default function RootLayout({
           spaceGrotesk.variable
         )}
       >
+        <JsonLd data={SITE_STRUCTURED_DATA} />
         <FirebaseClientProvider>
             <AnnouncementBanner />
             <Header />

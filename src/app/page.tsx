@@ -1,6 +1,7 @@
 
 import type { Metadata } from 'next';
 import SignedInRedirect from '@/components/SignedInRedirect';
+import { HOME_DESCRIPTION, HOME_TITLE, sharePreview } from '@/lib/site-pages';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
@@ -37,7 +38,7 @@ const features = [
 
 
 // Uses the site's default title and description from the root layout
-export const metadata: Metadata = { alternates: { canonical: '/' } };
+export const metadata: Metadata = { alternates: { canonical: '/' }, ...sharePreview(HOME_TITLE, HOME_DESCRIPTION, '/') };
 
 // Rendered on the server so search engines and AI crawlers can read it.
 // Members who are signed in are sent to their account page.
