@@ -5,12 +5,17 @@ import type { User } from 'firebase/auth';
 import { useUser } from '@/firebase';
 import { useToast } from '@/components/ui/use-toast';
 
-// Email sign-ups confirm their address before joining or posting. Google and
-// GitHub vouch for the email themselves, so those members never wait.
+// Firebase's IDs for Google and GitHub sign-in. They vouch for the email
+// themselves, so members who use them never wait.
+const TRUSTED_PROVIDER_IDS = new Set(['google.com', 'github.com']);
+
+// Email sign-ups confirm their address before joining or posting.
 export function needsEmailVerification(user: User | null): boolean {
   if (!user || user.emailVerified) return false;
-  const providers = user.providerData.map(p => p.providerId);
-  return providers.includes('password') && !providers.includes('google.com') && !providers.includes('github.com');
+  const providerIds = user.providerData.map(p => p.providerId);
+  const usesPassword = providerIds.some(id => id === 'password');
+  const usesTrustedProvider = providerIds.some(id => TRUSTED_PROVIDER_IDS.has(id));
+  return usesPassword && !usesTrustedProvider;
 }
 
 /** Returns a check to run before member-only actions; it explains why when it says no */
