@@ -4,6 +4,7 @@ export async function generateStaticParams() {
   return [];
 }
 
-export default function Page({ params }: { params: { groupProjectId: string } }) {
-  return <GroupDashboard kind="groupProject" groupId={params.groupProjectId} />;
+export default async function Page({ params }: { params: Promise<{ groupProjectId: string }> }) {
+  const resolvedParams = await params;
+  return <GroupDashboard kind="groupProject" groupId={resolvedParams.groupProjectId} />;
 }

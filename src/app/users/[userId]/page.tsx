@@ -4,6 +4,7 @@ export async function generateStaticParams() {
   return [];
 }
 
-export default function Page({ params }: { params: { userId: string } }) {
-  return <UserProfilePage params={params} />;
+export default async function Page({ params }: { params: Promise<{ userId: string }> }) {
+  const resolvedParams = await params;
+  return <UserProfilePage params={resolvedParams} />;
 }
