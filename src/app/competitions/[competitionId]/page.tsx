@@ -4,6 +4,7 @@ export async function generateStaticParams() {
   return [];
 }
 
-export default function Page({ params }: { params: { competitionId: string } }) {
-  return <CompetitionDashboardPage params={params} />;
+export default async function Page({ params }: { params: Promise<{ competitionId: string }> }) {
+  const resolvedParams = await params;
+  return <CompetitionDashboardPage params={resolvedParams} />;
 }

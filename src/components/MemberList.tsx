@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { UserProfile, UserStatus } from '@/lib/types';
 import { collection, query, where, getDocs, documentId, doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/components/ui/use-toast';
-import { getDerivedUserStatus } from '@/lib/utils';
+import { getDerivedUserStatus, getErrorMessage } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -66,9 +66,9 @@ export default function MemberList({ memberIds }: { memberIds: string[] }) {
             await updateDoc(userDocRef, { status });
             setMembers(prevMembers => prevMembers.map(m => m.id === memberId ? { ...m, status } : m));
             toast({ title: 'Status Updated', description: `Your status is now ${status}.`});
-        } catch (error: any) {
+        } catch (error) {
             console.error("Error updating status:", error);
-            toast({ variant: 'destructive', title: 'Update Failed', description: error.message });
+            toast({ variant: 'destructive', title: 'Update Failed', description: getErrorMessage(error) });
         }
     };
 

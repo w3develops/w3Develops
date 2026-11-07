@@ -14,6 +14,7 @@ import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { UserProfile } from '@/lib/types';
 import Link from 'next/link';
 import { MessageSquareQuote } from 'lucide-react';
+import { getErrorMessage } from '@/lib/utils';
 
 function FeedbackForm({ username, userId }: { username: string; userId: string }) {
   const [feedback, setFeedback] = useState('');
@@ -47,12 +48,12 @@ function FeedbackForm({ username, userId }: { username: string; userId: string }
       });
       setFeedback('');
 
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error submitting feedback: ", error);
       toast({
         variant: 'destructive',
         title: 'Feedback Submission Failed',
-        description: error.message || 'An unknown error occurred. Please try again.',
+        description: getErrorMessage(error, 'An unknown error occurred. Please try again.'),
       });
     } finally {
       setIsSubmitting(false);

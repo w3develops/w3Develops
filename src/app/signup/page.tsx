@@ -10,10 +10,14 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth, useUser, useFirestore } from '@/firebase';
 import { useToast } from "@/components/ui/use-toast";
-import { doc, getDoc, writeBatch, serverTimestamp, FieldValue } from 'firebase/firestore';
+import { doc, getDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { UserProfile, UserStatus } from '@/lib/types';
-import { EmailAuthProvider, linkWithCredential, createUserWithEmailAndPassword, User as FirebaseUser, UserCredential } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification, User as FirebaseUser } from 'firebase/auth';
+import SocialSignInButtons from '@/components/SocialSignInButtons';
+import TimezoneSelect from '@/components/TimezoneSelect';
+import { browserTimeZone } from '@/lib/timezones';
+import { getErrorMessage } from '@/lib/utils';
 
 function useDebounce(value: string, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -74,7 +78,6 @@ function validateUsername(username: string): string | null {
   return null;
 }
 
-
 function SignupPageContent() {
   const auth = useAuth();
   const firestore = useFirestore();
@@ -88,24 +91,55 @@ function SignupPageContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [timezone, setTimezone] = useState('');
+  
   const [usernameError, setUsernameError] = useState<string | null>(null);
-
   const [isUsernameChecking, setIsUsernameChecking] = useState(false);
   const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | null>(null);
-  
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const debouncedUsername = useDebounce(username, 500);
 
+  useEffect(() => setTimezone(browserTimeZone()), []);
+
+  // Signed-in members finish here when something required is missing: new
+  // Google or GitHub members have no profile yet, and older members may be
+  // missing a timezone. undefined means the profile is still loading.
+  const [profile, setProfile] = useState<Partial<UserProfile> | null | undefined>(undefined);
+  const needsUsername = !profile?.username;
+  // Only brand-new profiles pick a timezone here; the header fills in a
+  // missing one for older members from their browser
+  const needsTimezone = !profile;
+  const isComplete = !!profile && !needsUsername;
+  const isFinishing = !!user && profile !== undefined && !isComplete;
+  const isReturning = isFinishing && !!profile;
+
+  useEffect(() => {
+    setProfile(undefined);
+    if (!user) return;
+    let cancelled = false;
+    getDoc(doc(firestore, 'users', user.uid))
+      .then(snap => { if (!cancelled) setProfile(snap.exists() ? snap.data() as UserProfile : null); })
+      .catch(() => toast({ variant: "destructive", title: "Couldn't load your account", description: "Please refresh the page." }));
+    return () => { cancelled = true; };
+  }, [user, firestore, toast]);
+
+  useEffect(() => {
+    if (isFinishing && needsUsername && !username && user?.displayName) {
+      setUsername(user.displayName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 24));
+    }
+  // Only suggest a username once, when the finishing step first appears
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFinishing]);
+
   const checkUsername = useCallback(async (usernameToCheck: string) => {
     setIsUsernameChecking(true);
-    
     const validationError = validateUsername(usernameToCheck);
     setUsernameError(validationError);
 
     if (validationError) {
         setIsUsernameChecking(false);
-        setIsUsernameAvailable(null); // Don't check availability if format is invalid
+        setIsUsernameAvailable(null);
         return;
     }
 
@@ -115,129 +149,96 @@ function SignupPageContent() {
         const docSnap = await getDoc(usernameDocRef);
         setIsUsernameAvailable(!docSnap.exists());
     } catch (err) {
-        // Handle potential firestore errors, e.g. permissions
-        setUsernameError("Couldn't check username. Please try again.");
+        setUsernameError("Couldn't check username.");
         setIsUsernameAvailable(null);
     } finally {
         setIsUsernameChecking(false);
     }
   }, [firestore]);
 
-
   useEffect(() => {
     if (debouncedUsername) {
       checkUsername(debouncedUsername);
     } else {
-      // Clear all status when input is empty
       setUsernameError(null);
       setIsUsernameAvailable(null);
       setIsUsernameChecking(false);
     }
   }, [debouncedUsername, checkUsername]);
 
-
   useEffect(() => {
-    // Redirect if user is logged in
-    if (!isUserLoading && user) {
+    if (!isUserLoading && user && isComplete) {
       router.push(redirectUrl);
     }
-  }, [user, isUserLoading, router, redirectUrl]);
+  }, [user, isUserLoading, isComplete, router, redirectUrl]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !email || !password) {
-      toast({
-        variant: "destructive",
-        title: "Missing fields",
-        description: "Please fill out all fields.",
-      });
+    if ((needsUsername && !username) || (needsTimezone && !timezone) || (!isFinishing && (!email || !password))) {
+      toast({ variant: "destructive", title: "Missing fields", description: "Please fill out all fields." });
       return;
     }
     
-    if (usernameError) {
-      toast({
-        variant: "destructive",
-        title: "Invalid Username",
-        description: usernameError,
-      });
-      return;
-    }
-
-    if (isUsernameAvailable === false) {
-        toast({
-            variant: "destructive",
-            title: "Username taken",
-            description: "Please choose another username.",
-        });
-        return;
-    }
-
-    const passwordError = validatePassword(password);
-    if (passwordError) {
-        toast({
-            variant: "destructive",
-            title: "Weak Password",
-            description: passwordError,
-            duration: 7000,
-        });
-        return;
-    }
 
     setIsSubmitting(true);
-    let userCredential: UserCredential | null = null;
     
     try {
       const usernameLower = username.toLowerCase();
-      
-      // Final check on the public usernames collection before proceeding
-      const usernameDocRef = doc(firestore, 'usernames', usernameLower);
-      const usernameDoc = await getDoc(usernameDocRef);
-      if (usernameDoc.exists()) {
+      if (needsUsername && (await getDoc(doc(firestore, 'usernames', usernameLower))).exists()) {
         setIsUsernameAvailable(false);
-        throw new Error("This username is already in use. Please choose another one.");
+        throw new Error("This username is already in use.");
+      }
+
+      // Returning members only fill in what's missing from their profile
+      if (isReturning && user) {
+        const batch = writeBatch(firestore);
+        const missing: Partial<UserProfile> = {};
+        if (!profile?.timezone) missing.timezone = timezone || browserTimeZone();
+        if (needsUsername) {
+          missing.username = username;
+          missing.username_lowercase = usernameLower;
+          batch.set(doc(firestore, "usernames", usernameLower), { uid: user.uid });
+        }
+        batch.update(doc(firestore, "users", user.uid), missing);
+        await batch.commit();
+        setProfile({ ...profile, ...missing });
+        return;
       }
 
       let finalUser: FirebaseUser;
       const currentUser = auth.currentUser;
 
-      if (currentUser && currentUser.isAnonymous) {
-        // Scenario 1: Upgrade anonymous user
-        const credential = EmailAuthProvider.credential(email, password);
-        userCredential = await linkWithCredential(currentUser, credential);
-        finalUser = userCredential.user;
+      if (isFinishing && currentUser) {
+        finalUser = currentUser;
+        // Never overwrite a profile that was created in another tab
+        const existing = await getDoc(doc(firestore, 'users', currentUser.uid));
+        if (existing.exists()) {
+          setProfile(existing.data() as UserProfile);
+          return;
+        }
       } else {
-        // Scenario 2: Create a new user from scratch
-        userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         finalUser = userCredential.user;
+        // Google and GitHub confirm emails themselves; email sign-ups confirm here
+        sendEmailVerification(finalUser).catch(() => {});
       }
 
-      // Create user profile documents
       const batch = writeBatch(firestore);
-
       const userDocRef = doc(firestore, "users", finalUser.uid);
       const userData: Partial<UserProfile> = {
         id: finalUser.uid,
-        email: finalUser.email!,
         username: username,
         username_lowercase: usernameLower,
+        timezone,
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp(),
-        // Initialize empty fields
-        profilePictureUrl: '',
+        profilePictureUrl: finalUser.photoURL || '',
         bio: '',
-        socialLinks: {
-          github: '',
-          linkedin: '',
-          twitter: '',
-        },
+        socialLinks: { github: '', linkedin: '', twitter: '' },
         skills: [],
         followers: [],
         following: [],
         followInfoPrivate: false,
-        createdStudyGroupIds: [],
-        joinedStudyGroupIds: [],
-        createdGroupProjectIds: [],
-        joinedGroupProjectIds: [],
         notificationSettings: {
             dailyCodingNewsletter: false,
             dailyJsNewsletter: false,
@@ -248,67 +249,46 @@ function SignupPageContent() {
             surveys: false,
         },
         status: 'inactive' as UserStatus,
-        lastCheckInAt: null,
       };
       
       batch.set(userDocRef, userData, { merge: true }); 
-
-      const newUsernameDocRef = doc(firestore, "usernames", usernameLower);
-      batch.set(newUsernameDocRef, { uid: finalUser.uid });
-
+      batch.set(doc(firestore, "usernames", usernameLower), { uid: finalUser.uid });
       await batch.commit();
+      setProfile(userData);
+      // Go straight on, so a slow profile read from before the commit can't
+      // show the finishing step again
+      router.push(redirectUrl);
         
-    } catch (error: any) {
-      let description = "An unknown error occurred during sign up.";
-      if (error.message.includes("username is already in use")) {
-        description = error.message;
-      } else {
-        switch (error.code) {
-          case 'auth/email-already-in-use':
-          case 'auth/credential-already-in-use':
-            description = "This email address is already in use by another account.";
-            break;
-          case 'auth/weak-password':
-            description = "The password is too weak. Please use at least 6 characters.";
-            break;
-          case 'auth/invalid-email':
-            description = "The email address is not valid.";
-            break;
-          case 'permission-denied':
-            description = "You do not have permission for this action. This can happen if security rules and client-side queries are misaligned.";
-            break;
-          default:
-            description = `An unexpected error occurred: ${error.message}`;
-        }
-      }
-      toast({
-        variant: "destructive",
-        title: "Sign up failed",
-        description: description,
-      });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Sign up failed", description: getErrorMessage(error) });
     } finally {
         setIsSubmitting(false);
     }
   };
   
-  if (isUserLoading || user) {
+  if (isUserLoading || (user && !isFinishing && !isSubmitting)) {
     return <LoadingSkeleton />;
   }
 
-  const isSubmitDisabled = isSubmitting || !isUsernameAvailable || !!usernameError;
 
   return (
     <div className="p-4 md:p-10">
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle className="font-headline text-2xl">Create an Account</CardTitle>
+            <CardTitle className="font-headline text-2xl">{isFinishing ? 'Finish Your Account' : 'Create an Account'}</CardTitle>
             <CardDescription>
-              Join our community of developers.
+              {isReturning
+                ? 'Welcome back! Please pick a username so your profile shows correctly.'
+                : isFinishing
+                ? `Signed in as ${user?.email || 'your account'}. Pick a username and timezone to finish.`
+                : 'Join our global community of developers.'}
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {!isFinishing && <SocialSignInButtons disabled={isSubmitting} />}
             <form onSubmit={handleSignUp} className="grid gap-4">
+              {needsUsername && (
               <div className="grid gap-2">
                 <Label htmlFor="username">Username</Label>
                 <Input
@@ -319,68 +299,55 @@ function SignupPageContent() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={isSubmitting}
-                  className={(!!usernameError || isUsernameAvailable === false) ? 'border-destructive' : ''}
                   autoComplete="username"
                 />
                 <div className="h-4">
                   {isUsernameChecking && <p className="text-xs text-muted-foreground">Checking...</p>}
-                  {!isUsernameChecking && usernameError && (
-                    <p className="text-xs text-destructive">{usernameError}</p>
-                  )}
-                  {!isUsernameChecking && !usernameError && isUsernameAvailable === false && (
-                    <p className="text-xs text-destructive">Username is already taken.</p>
-                  )}
-                  {!isUsernameChecking && !usernameError && isUsernameAvailable === true && username.length > 0 && (
-                    <p className="text-xs text-green-600">Username is available!</p>
-                  )}
+                  {!isUsernameChecking && usernameError && <p className="text-xs text-destructive">{usernameError}</p>}
+                  {!isUsernameChecking && !usernameError && isUsernameAvailable === false && <p className="text-xs text-destructive">Taken.</p>}
+                  {!isUsernameChecking && !usernameError && isUsernameAvailable === true && username.length > 0 && <p className="text-xs text-green-600">Available!</p>}
                 </div>
               </div>
+              )}
+
+              {needsTimezone && (
+              <div className="grid gap-2">
+                <Label htmlFor="timezone">Your timezone</Label>
+                <TimezoneSelect id="timezone" value={timezone} onChange={setTimezone} disabled={isSubmitting} />
+                <p className="text-xs text-muted-foreground">We detected this from your browser. Group times are shown in it.</p>
+              </div>
+              )}
+
+              {!isFinishing && <>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isSubmitting}
-                  autoComplete="email"
-                />
+                <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={isSubmitting} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  required 
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isSubmitting}
-                  autoComplete="new-password"
-                />
-                <p className="text-xs text-muted-foreground">
-                    Must contain an uppercase letter, a lowercase letter, a number, a special character, and be at least 6 characters long.
-                </p>
+                <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} disabled={isSubmitting} />
               </div>
-              <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
-                {isSubmitting ? 'Creating Account...' : 'Create Account'}
+              </>}
+              <Button type="submit" className="w-full" disabled={isSubmitting || (needsUsername && !isUsernameAvailable) || (needsTimezone && !timezone)}>
+                {isSubmitting ? 'Creating Account...' : isFinishing ? 'Finish' : 'Create Account'}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="text-center text-sm">
-            Already have an account?&nbsp;
-            <Link href={`/login?redirect=${encodeURIComponent(redirectUrl)}`} className="underline">
-              Login
-            </Link>
+            {isFinishing ? (
+              <button type="button" onClick={() => auth.signOut()} className="underline">Use a different account</button>
+            ) : (
+              <>
+                Already have an account?&nbsp;
+                <Link href={`/login?redirect=${encodeURIComponent(redirectUrl)}`} className="underline">Login</Link>
+              </>
+            )}
           </CardFooter>
         </Card>
       </div>
     </div>
   );
 }
-
 
 export default function SignupPage() {
   return (

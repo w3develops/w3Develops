@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { useUser, useFirestore } from '@/firebase';
 import { arrayUnion, arrayRemove, doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/components/ui/use-toast';
@@ -19,6 +20,7 @@ interface VoteButtonProps {
 
 export default function VoteButton({ entry, competitionId, canVote }: VoteButtonProps) {
     const { user } = useUser();
+    const ensureVerified = useVerifiedGuard();
     const { toast } = useToast();
     const firestore = useFirestore();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,6 +46,7 @@ export default function VoteButton({ entry, competitionId, canVote }: VoteButton
     const isVoted = entry.voterIds?.includes(user.uid);
 
     const handleVoteToggle = async () => {
+        if (!ensureVerified()) return;
         setIsSubmitting(true);
         const entryRef = doc(firestore, 'competitions', competitionId, 'entries', entry.id);
 
@@ -53,7 +56,7 @@ export default function VoteButton({ entry, competitionId, canVote }: VoteButton
 
         try {
             await updateDoc(entryRef, updateData);
-        } catch (error: any) {
+        } catch (error) {
             console.error("Vote Error: ", error);
              const permissionError = new FirestorePermissionError({
                 path: entryRef.path,

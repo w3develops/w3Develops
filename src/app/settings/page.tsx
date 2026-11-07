@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { doc, DocumentReference, updateDoc } from 'firebase/firestore';
 import { UserProfile, MentorshipStatus } from '@/lib/types';
 import { useToast } from '@/components/ui/use-toast';
+import { getErrorMessage } from '@/lib/utils';
 
 export default function SettingsPage() {
     const { user, isUserLoading } = useUser();
@@ -42,8 +43,8 @@ export default function SettingsPage() {
                 mentorshipStatus: newStatus
             });
             toast({ title: "Mentorship Status Updated", description: `You are now ${newStatus} to mentorship requests.` });
-        } catch (error: any) {
-            toast({ variant: 'destructive', title: "Error", description: error.message || "Could not update status." });
+        } catch (error) {
+            toast({ variant: 'destructive', title: "Error", description: getErrorMessage(error, "Could not update status.") });
         } finally {
             setIsSubmitting(false);
         }
@@ -78,7 +79,7 @@ export default function SettingsPage() {
                    <div className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
                             <h4 className="font-medium">Security</h4>
-                            <p className="text-sm text-muted-foreground">Change your password and email address.</p>
+                            <p className="text-sm text-muted-foreground">Change your password or email, download your data, or delete your account.</p>
                         </div>
                         <Button asChild>
                             <Link href="/security">Manage Security</Link>

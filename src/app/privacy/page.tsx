@@ -1,106 +1,179 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { ShieldCheck } from 'lucide-react';
+import { LegalPage, LegalSection } from '@/components/LegalPage';
 
-'use client';
+export const metadata: Metadata = {
+    title: 'Privacy Policy | w3Develops',
+    description: 'What w3Develops collects, why, who it is shared with, and how to see, change or delete your information.',
+};
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+const linkClass = 'text-primary underline';
 
 export default function PrivacyPage() {
     return (
-        <div className="max-w-3xl mx-auto p-4 md:p-10">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Privacy Policy for w3Develops</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <p className="text-sm text-muted-foreground">Effective Date: November, 28 2025</p>
+        <LegalPage
+            icon={<ShieldCheck className="h-10 w-10" />}
+            title="Privacy Policy"
+            lastUpdated="November 2, 2026"
+            intro={
+                <>
+                    <p>
+                        w3Develops is a free, volunteer-run community for people learning to code. We collect what we need to run
+                        study groups, projects and profiles, and not much else. We don't sell your information, we don't run ads,
+                        and we don't share your data with data brokers.
+                    </p>
+                    <p>This page explains exactly what we collect and what you can do about it.</p>
+                </>
+            }
+        >
+            <LegalSection
+                title="What we collect"
+                summary="Your email, a username and your timezone to make an account. Anything else on your profile is up to you."
+            >
+                <ul className="list-disc pl-6 space-y-2">
+                    <li>
+                        <strong>Your account.</strong> Your email address, username, password and timezone. Passwords are handled
+                        by Firebase Authentication, and we never see them in plain text. We ask for your timezone so groups can
+                        find meeting times that work.
+                    </li>
+                    <li>
+                        <strong>Your profile, if you fill it in.</strong> A profile picture link, bio, skills, and links to your
+                        GitHub, LinkedIn or X accounts.
+                    </li>
+                    <li>
+                        <strong>What you do in the community.</strong> The study groups, projects, book clubs and meetups you
+                        create or join; who you follow; check-ins and status updates; mentorship, tutoring and pair programming
+                        requests; and notes, tasks and messages you post in those spaces.
+                    </li>
+                    <li>
+                        <strong>Things you send us.</strong> Feedback, support requests and job applications. Applications include
+                        your name, email, résumé and portfolio links, and cover letter.
+                    </li>
+                    <li>
+                        <strong>Basic technical information.</strong> Like almost every website, our hosting keeps short-lived
+                        server logs (such as IP address and browser type) so we can keep the site secure and fix bugs. We also use
+                        Google Analytics to count visits. See <Link href="/cookies" className={linkClass}>our cookie page</Link> for
+                        details.
+                    </li>
+                </ul>
+            </LegalSection>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">1. Introduction</h3>
-                        <p>Welcome to w3Develops("Company", "we", "our", "us"). We respect your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website w3develops.org, join our study groups, or participate in our competitions.</p>
-                        <p>By accessing or using our Service, you signify that you have read, understood, and agree to our collection, storage, use, and disclosure of your personal information as described in this Privacy Policy and our Terms of Service.</p>
-                    </div>
+            <LegalSection
+                title="What other members can see"
+                summary="Your profile and community activity are public. Your email address is not."
+            >
+                <p>
+                    w3Develops is a community, so most of what you share is meant to be seen: your username, profile, the groups
+                    and projects you're part of, and who you follow. You can hide your follower and following lists when you
+                    edit your profile. Your email address and anything you send us directly (feedback, support requests, applications)
+                    are never shown to other members.
+                </p>
+                <p>
+                    Spaces like mentorships, tutoring sessions and pairings are visible only to the people in them.
+                </p>
+            </LegalSection>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">2. Information We Collect</h3>
-                        <p>We collect information that you provide to us directly, as well as information that is automatically collected when you use our services.</p>
-                        
-                        <h4 className="font-semibold pt-2">A. Personal Data</h4>
-                        <p>While using our Service, we may ask you to provide us with certain personally identifiable information that can be used to contact or identify you. This includes, but is not limited to:</p>
-                        <ul className="list-disc pl-6 text-muted-foreground">
-                            <li>Email address</li>
-                            <li>First name and last name</li>
-                            <li>Phone number</li>
-                            <li>Address, State, Province, ZIP/Postal code, City</li>
-                            <li>Social media profiles and portfolio links</li>
-                            <li>Work history and educational background (for job placement services)</li>
-                        </ul>
+            <LegalSection
+                title="How we use it"
+                summary="To run the site, keep it safe, and send you emails you've asked for."
+            >
+                <ul className="list-disc pl-6 space-y-2">
+                    <li>To run your account and the community features you use.</li>
+                    <li>To match people for groups, mentorships, tutoring and pair programming.</li>
+                    <li>To send newsletters and notifications you've turned on. You can turn them off at any time in your settings.</li>
+                    <li>To reply when you contact us, and to review job applications.</li>
+                    <li>To keep the site secure, stop spam and abuse, and fix problems.</li>
+                    <li>To understand which parts of the site people use, so we know what to improve.</li>
+                </ul>
+                <p>We don't use your information for advertising, and we don't build profiles of you to sell to anyone.</p>
+            </LegalSection>
 
-                        <h4 className="font-semibold pt-2">B. Usage Data</h4>
-                        <p>We may also collect information that your browser sends whenever you visit our Service or when you access the Service by or through a mobile device. This may include:</p>
-                        <ul className="list-disc pl-6 text-muted-foreground">
-                            <li>Internet Protocol (IP) address</li>
-                            <li>Browser type and version</li>
-                            <li>Time and date of your visit</li>
-                            <li>Time spent on those pages</li>
-                            <li>Unique device identifiers and other diagnostic data</li>
-                        </ul>
-                    </div>
+            <LegalSection
+                title="Who we share it with"
+                summary="Only the services that keep the site running, and only when the law truly requires it."
+            >
+                <ul className="list-disc pl-6 space-y-2">
+                    <li>
+                        <strong>Google Firebase and Google Cloud</strong> host the site and store our database, and handle sign-in
+                        and analytics. Your data is stored on Google's servers in the United States.
+                    </li>
+                    <li>
+                        <strong>TypeSafe</strong> helps sort the public tech headlines in our daily news brief. It only ever sees
+                        public news headlines, never anything about you.
+                    </li>
+                    <li>
+                        <strong>Legal requests.</strong> We will only hand over information when a valid legal process requires it.
+                        When the law allows, we'll tell you first so you can respond. Our{' '}
+                        <Link href="/warrant-canary" className={linkClass}>warrant canary</Link> has more on this.
+                    </li>
+                    <li>
+                        <strong>Safety.</strong> If someone is in danger of serious harm, we may share what's needed to prevent it.
+                    </li>
+                </ul>
+                <p>
+                    If w3Develops ever joins or is handed over to another organization, this policy will still apply to the
+                    information we already hold, and we'll tell you before anything changes.
+                </p>
+            </LegalSection>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">3. How We Use Your Information</h3>
-                        <p>We reserve the right to use the information we collect for any lawful business purpose, including but not limited to:</p>
-                        <ul className="list-disc pl-6 text-muted-foreground">
-                            <li><strong>Providing and maintaining our Service:</strong> To manage your registration, study groups, and competition entries.</li>
-                            <li><strong>Communication:</strong> To contact you regarding your account, new features, solicitations, updates, and other news.</li>
-                            <li><strong>Marketing and Advertising:</strong> To send you promotional materials, newsletters, and information about third-party products or services that may interest you.</li>
-                            <li><strong>Data Analysis:</strong> To analyze user behavior and trends to improve our website and user experience.</li>
-                            <li><strong>Partnerships:</strong> To share relevant data with hiring partners, recruiters, or educational affiliates to facilitate job placement opportunities.</li>
-                            <li><strong>Business Transfers:</strong> To evaluate or conduct a merger, divestiture, restructuring, reorganization, dissolution, or other sale or transfer of some or all of our assets.</li>
-                        </ul>
-                    </div>
+            <LegalSection
+                title="Your choices"
+                summary="You can see, fix, download or delete your information. Just ask."
+            >
+                <ul className="list-disc pl-6 space-y-2">
+                    <li><strong>Change it:</strong> edit your profile and notification settings at any time.</li>
+                    <li>
+                        <strong>Get a copy:</strong> use <em>Download My Data</em> on the{' '}
+                        <Link href="/security" className={linkClass}>Security page</Link>, or email us and we'll send it to you.
+                    </li>
+                    <li>
+                        <strong>Delete it:</strong> use <em>Delete My Account</em> on the Security page, or email us and we'll
+                        do it for you. Things you posted in shared spaces, like group project tasks, may be kept without your name so the
+                        group's work still makes sense.
+                    </li>
+                    <li>
+                        <strong>Opt out of analytics:</strong> block analytics in your browser or with a content blocker. The site
+                        works the same without it.
+                    </li>
+                </ul>
+                <p>
+                    We'll answer these requests within 30 days, whatever country you live in. You don't need to give a reason.
+                </p>
+            </LegalSection>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">4. Disclosure of Your Information</h3>
-                        <p>We may share information we have collected about you in certain situations. Your information may be disclosed as follows:</p>
-                        <ul className="list-disc pl-6 text-muted-foreground">
-                            <li><strong>Third-Party Service Providers:</strong> We may share your information with third parties that perform services for us or on our behalf, including payment processing, data analysis, email delivery, hosting services, customer service, and marketing assistance.</li>
-                            <li><strong>Business Partners and Affiliates:</strong> We may share your information with our affiliates, business partners, or sponsors for marketing purposes or to offer you certain products, services, or promotions.</li>
-                            <li><strong>Marketing Communications:</strong> With your consent (or where permitted by law), we may share your information with third parties for their own marketing purposes.</li>
-                            <li><strong>Legal Requirements:</strong> We may disclose your information if we believe it is necessary to respond to legal process, to investigate or remedy potential violations of our policies, or to protect the rights, property, and safety of others.</li>
-                        </ul>
-                    </div>
+            <LegalSection title="How long we keep it">
+                <p>
+                    We keep your account information for as long as you have an account. Feedback and support requests are kept
+                    for as long as they're useful for fixing the problem. Job applications are kept for up to a year. Server logs
+                    are deleted automatically, usually within 30 days. Once you delete your account, it may take up to 30 days
+                    for it to disappear from our backups.
+                </p>
+            </LegalSection>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">5. Tracking and Cookies</h3>
-                        <p>We use cookies and similar tracking technologies to track the activity on our Service and hold certain information. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, if you do not accept cookies, you may not be able to use some portions of our Service.</p>
-                    </div>
+            <LegalSection title="Kids">
+                <p>
+                    You need to be at least 13 years old to make an account. If you think a child under 13 has signed up, let us
+                    know and we'll delete the account.
+                </p>
+            </LegalSection>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">6. Your Data Rights</h3>
-                        <p>Depending on your location, you may have certain rights regarding your personal data. We will comply with all applicable laws regarding data access, correction, and deletion requests to the extent required by the jurisdiction in which you reside.</p>
-                    </div>
+            <LegalSection title="Changes to this policy">
+                <p>
+                    If we change how we handle your information, we'll update this page and change the date at the top. For
+                    bigger changes, we'll let members know on the site or by email before they take effect. Our code is open source,
+                    so you can also see every past version of this page{' '}
+                    <a href="https://github.com/JonDevOps/w3Develops/commits/main/src/app/privacy/page.tsx" className={linkClass}>on GitHub</a>.
+                </p>
+            </LegalSection>
 
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">7. Security of Your Data</h3>
-                        <p>The security of your data is important to us, but remember that no method of transmission over the Internet, or method of electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your Personal Data, we cannot guarantee its absolute security.</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">8. Children's Privacy</h3>
-                        <p>Our Service does not address anyone under the age of 13. We do not knowingly collect personally identifiable information from anyone under the age of 13.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">9. Changes to This Privacy Policy</h3>
-                        <p>We reserve the right to modify this Privacy Policy at any time. We will notify you of any changes by posting the new Privacy Policy on this page. You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">10. Contact Us</h3>
-                        <p>If you have any questions about this Privacy Policy, please contact us at:</p>
-                        <p>By sending an email to <a href="mailto:contact@w3develops.org" className="text-primary underline">contact@w3develops.org</a></p>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
+            <LegalSection title="Questions">
+                <p>
+                    For anything privacy-related, email{' '}
+                    <a href="mailto:privacy@w3develops.org" className={linkClass}>privacy@w3develops.org</a>. A real person will
+                    read it.
+                </p>
+            </LegalSection>
+        </LegalPage>
     );
 }

@@ -1,12 +1,10 @@
-
-import BookClubDashboardPage from './client';
+import GroupDashboard from '@/components/groups/GroupDashboard';
 
 export async function generateStaticParams() {
   return [];
 }
 
-export default function Page({ params }: { params: { bookClubId: string } }) {
-  return <BookClubDashboardPage params={params} />;
+export default async function Page({ params }: { params: Promise<{ bookClubId: string }> }) {
+  const resolvedParams = await params;
+  return <GroupDashboard kind="bookClub" groupId={resolvedParams.bookClubId} />;
 }
-
-    

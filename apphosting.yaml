@@ -1,0 +1,18 @@
+# Settings for Backend (on Cloud Run).
+# See https://firebase.google.com/docs/app-hosting/configure#cloud-run
+runConfig:
+  minInstances: 0
+  # maxInstances: 100
+  # concurrency: 80
+  # cpu: 1
+  # memoryMiB: 512
+
+# Environment variables set on a backend in the Firebase console take
+# priority over this file. Keep JEV_API_KEY in the console too, or remove it
+# there, so the two don't disagree.
+#
+# Secrets from Google Cloud Secret Manager.
+# App Hosting will automatically fetch these values and provide them as environment variables.
+secrets:
+  - variable: JEV_API_KEY
+    secret: JEV_API_KEY
