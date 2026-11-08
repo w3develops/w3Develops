@@ -11,7 +11,7 @@ import {
 import { useUser, useFirestore } from '@/firebase/provider';
 
 /**
- * React hook to get the count of unread notifications for the current user in real-time.
+ * The number of unread notifications in the signed-in member's feed, kept up to date.
  * @returns {number} The number of unread notifications.
  */
 export function useNotifications(): number {
@@ -23,8 +23,9 @@ export function useNotifications(): number {
   const notificationsQuery = useMemo(() => {
     if (!user) return null;
     return query(
-      collection(firestore, 'users', user.uid, 'notifications'),
-      where('isRead', '==', false)
+      collection(firestore, 'users', user.uid, 'feed'),
+      where('notify', '==', true),
+      where('read', '==', false)
     );
   }, [user, firestore]);
 

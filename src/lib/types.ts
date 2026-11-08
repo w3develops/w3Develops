@@ -172,6 +172,24 @@ export interface Notification {
     link?: string;
 }
 
+/**
+ * One entry in a member's activity feed (users/{uid}/feed), written by the
+ * server (functions/src/feed.ts). Entries with `notify` also show in the
+ * notification bell until read.
+ */
+export interface FeedEntry {
+    id: string;
+    type: 'follow' | 'group_join' | 'group_leave';
+    actorId: string;
+    actorName: string;
+    actorPhoto: string;
+    message: string;
+    link: string;
+    notify: boolean;
+    read: boolean;
+    createdAt: Timestamp;
+}
+
 export interface CheckIn {
     id: string;
     userId: string;

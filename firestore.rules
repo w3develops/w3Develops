@@ -577,6 +577,17 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
 
+    // Each member's activity feed and notifications, written only by the
+    // server (functions/src). Members can read their own, mark entries
+    // read or unread, and delete them.
+    match /users/{userId}/feed/{entryId} {
+      allow read, delete: if isOwner(userId);
+      allow create: if false;
+      allow update: if isOwner(userId)
+                    && changedKeys().hasOnly(['read'])
+                    && request.resource.data.read is bool;
+    }
+
     // Private reports about members (src/components/ReportUserButton.tsx).
     // Members can only file them; the team reads them in the Firebase console.
     match /reports/{reportId} {

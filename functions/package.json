@@ -1,0 +1,22 @@
+{
+  "name": "w3develops-functions",
+  "private": true,
+  "description": "Server-side jobs for w3Develops: writes members' activity feeds and notifications",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "deploy": "firebase deploy --only functions"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0",
+    "firebase-functions": "^7.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "type": "module"
+}

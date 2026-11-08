@@ -24,6 +24,7 @@ async function docsWhere(firestore: Firestore, collectionName: string, field: st
 async function collectUserData(firestore: Firestore, user: User) {
     const profile = await getDoc(doc(firestore, 'users', user.uid));
     const notifications = await getDocs(collection(firestore, 'users', user.uid, 'notifications'));
+    const feed = await getDocs(collection(firestore, 'users', user.uid, 'feed'));
     const requests: Record<string, unknown[]> = {};
     for (const name of REQUEST_COLLECTIONS) {
         requests[name] = [
@@ -37,6 +38,7 @@ async function collectUserData(firestore: Firestore, user: User) {
         account: { uid: user.uid, email: user.email, createdAt: user.metadata.creationTime },
         profile: profile.exists() ? profile.data() : null,
         notifications: notifications.docs.map(d => ({ id: d.id, ...d.data() })),
+        activityFeed: feed.docs.map(d => ({ id: d.id, ...d.data() })),
         soloProjects: await docsWhere(firestore, 'soloProjects', 'userId', user.uid),
         careerApplications: await docsWhere(firestore, 'careerApplications', 'userId', user.uid),
         ...requests,
@@ -87,6 +89,15 @@ export default function AccountDataControls({ user }: { user: User }) {
             const profile = await getDoc(doc(firestore, 'users', user.uid));
             const username = profile.data()?.username_lowercase as string | undefined;
 
+            // The activity feed can hold hundreds of entries, more than one
+            // batch allows, so it's cleared in chunks first
+            const feed = await getDocs(collection(firestore, 'users', user.uid, 'feed'));
+            for (let i = 0; i < feed.docs.length; i += 400) {
+                const chunk = writeBatch(firestore);
+                feed.docs.slice(i, i + 400).forEach(entry => chunk.delete(entry.ref));
+                await chunk.commit();
+            }
+
             const batch = writeBatch(firestore);
             const notifications = await getDocs(collection(firestore, 'users', user.uid, 'notifications'));
             notifications.forEach(n => batch.delete(n.ref));
@@ -117,7 +128,7 @@ export default function AccountDataControls({ user }: { user: User }) {
                 <CardHeader>
                     <CardTitle>Download Your Data</CardTitle>
                     <CardDescription>
-                        Get a copy of your profile, projects, notifications and requests as a JSON file.
+                        Get a copy of your profile, projects, notifications, activity feed and requests as a JSON file.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -131,7 +142,7 @@ export default function AccountDataControls({ user }: { user: User }) {
                 <CardHeader>
                     <CardTitle>Delete Account</CardTitle>
                     <CardDescription>
-                        This permanently deletes your account, profile, solo projects and notifications. Group work you contributed
+                        This permanently deletes your account, profile, solo projects, notifications and activity feed. Group work you contributed
                         to stays with the group. This can't be undone, so download your data first if you want a copy.
                     </CardDescription>
                 </CardHeader>

@@ -1,0 +1,53 @@
+import { onDocumentUpdated } from 'firebase-functions/v2/firestore';
+import { added, getMembers, writeFeed, type FeedEntry } from './feed.js';
+
+// Study groups, group projects and book clubs, with the words and pages for each
+const GROUP_KINDS = {
+  studyGroups: { path: '/studygroups', noun: 'study group' },
+  groupProjects: { path: '/groupprojects', noun: 'group project' },
+  bookClubs: { path: '/book-clubs', noun: 'book club' },
+} as const;
+type GroupCollection = keyof typeof GROUP_KINDS;
+
+/**
+ * When members join or leave a group: the other members are notified, and
+ * the member's own feed records it.
+ */
+function onMembershipChange(collection: GroupCollection) {
+  const kind = GROUP_KINDS[collection];
+  return onDocumentUpdated(`${collection}/{groupId}`, async event => {
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+    if (!before || !after) return;
+    const joined = added(before.memberIds, after.memberIds);
+    const left = added(after.memberIds, before.memberIds);
+    if (joined.length === 0 && left.length === 0) return;
+
+    const groupId = event.params.groupId;
+    const groupName = typeof after.name === 'string' && after.name ? after.name : `a ${kind.noun}`;
+    const link = `${kind.path}/${groupId}`;
+    const current: string[] = Array.isArray(after.memberIds) ? after.memberIds : [];
+    const members = await getMembers([...joined, ...left]);
+    const name = (id: string) => members.get(id)?.username ?? 'A member';
+
+    const entries: FeedEntry[] = [];
+    for (const memberId of joined) {
+      entries.push({ recipientId: memberId, type: 'group_join', actorId: memberId, notify: false, message: `You joined ${groupName}`, link });
+      for (const otherId of current) {
+        if (otherId === memberId || joined.includes(otherId)) continue;
+        entries.push({ recipientId: otherId, type: 'group_join', actorId: memberId, notify: true, message: `${name(memberId)} joined ${groupName}`, link });
+      }
+    }
+    for (const memberId of left) {
+      entries.push({ recipientId: memberId, type: 'group_leave', actorId: memberId, notify: false, message: `You left ${groupName}`, link });
+      for (const otherId of current) {
+        entries.push({ recipientId: otherId, type: 'group_leave', actorId: memberId, notify: true, message: `${name(memberId)} left ${groupName}`, link });
+      }
+    }
+    await writeFeed(event.id, entries, members);
+  });
+}
+
+export const onStudyGroupMembers = onMembershipChange('studyGroups');
+export const onGroupProjectMembers = onMembershipChange('groupProjects');
+export const onBookClubMembers = onMembershipChange('bookClubs');
