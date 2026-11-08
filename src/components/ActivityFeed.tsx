@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { collection, limit, orderBy, query, type Query } from 'firebase/firestore';
-import { CheckSquare, ListPlus, LogIn, LogOut, MessageSquare, UserPlus } from 'lucide-react';
+import { CheckSquare, FolderGit2, Handshake, ListPlus, LogIn, LogOut, MailPlus, MessageSquare, UserPlus } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +20,9 @@ const ICONS: Record<FeedEntry['type'], React.ReactNode> = {
     checkin: <MessageSquare className="h-4 w-4 text-blue-500" aria-hidden="true" />,
     task_added: <ListPlus className="h-4 w-4 text-amber-600" aria-hidden="true" />,
     task_done: <CheckSquare className="h-4 w-4 text-green-600" aria-hidden="true" />,
+    request: <MailPlus className="h-4 w-4 text-primary" aria-hidden="true" />,
+    request_accepted: <Handshake className="h-4 w-4 text-green-600" aria-hidden="true" />,
+    solo_project: <FolderGit2 className="h-4 w-4 text-purple-600" aria-hidden="true" />,
 };
 
 function ActivityItem({ entry, now }: { entry: FeedEntry; now: number | null }) {
@@ -63,7 +66,7 @@ export default function ActivityFeed({ uid }: { uid: string }) {
         <Card>
             <CardHeader>
                 <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>What&apos;s been happening in your groups and with people you follow.</CardDescription>
+                <CardDescription>What&apos;s been happening in your groups, your mentorships and with people you follow.</CardDescription>
             </CardHeader>
             <CardContent>
                 {isLoading ? (

@@ -179,7 +179,8 @@ export interface Notification {
  */
 export interface FeedEntry {
     id: string;
-    type: 'follow' | 'group_join' | 'group_leave' | 'checkin' | 'task_added' | 'task_done';
+    type: 'follow' | 'group_join' | 'group_leave' | 'checkin' | 'task_added' | 'task_done'
+        | 'request' | 'request_accepted' | 'solo_project';
     actorId: string;
     actorName: string;
     actorPhoto: string;

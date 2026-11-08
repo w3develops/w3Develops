@@ -6,7 +6,8 @@ import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 /** Entries delete themselves after this long (a Firestore TTL policy on expiresAt) */
 const KEEP_DAYS = 60;
 
-export type FeedType = 'follow' | 'group_join' | 'group_leave' | 'checkin' | 'task_added' | 'task_done';
+export type FeedType = 'follow' | 'group_join' | 'group_leave' | 'checkin' | 'task_added' | 'task_done'
+  | 'request' | 'request_accepted' | 'solo_project';
 
 export interface FeedEntry {
   /** The member whose feed it goes in */
@@ -78,6 +79,12 @@ export async function writeFeed(eventId: string, entries: FeedEntry[], members: 
     }
     await batch.commit();
   }
+}
+
+/** A member's followers, to tell them what the member is up to */
+export async function getFollowers(userId: string): Promise<string[]> {
+  const data = (await getFirestore().collection('users').doc(userId).get()).data();
+  return Array.isArray(data?.followers) ? data.followers.filter((id: unknown): id is string => typeof id === 'string') : [];
 }
 
 /** The start of some text, cut at a word, for a feed entry's quote */

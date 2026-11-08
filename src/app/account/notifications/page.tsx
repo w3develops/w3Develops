@@ -102,7 +102,7 @@ export default function NotificationsPage() {
                     <div className="space-y-1.5">
                         <CardTitle as="h1">Notifications</CardTitle>
                         <CardDescription>
-                            Follows, and what&apos;s happening in your groups. Notifications are kept for 60 days.
+                            Follows, requests, and what&apos;s happening in your groups and with people you follow. Notifications are kept for 60 days.
                         </CardDescription>
                     </div>
                     {unread.length > 0 && (
@@ -129,7 +129,7 @@ export default function NotificationsPage() {
                         <div className="p-8 text-center text-muted-foreground">
                             <BellRing className="w-12 h-12 mx-auto mb-4" aria-hidden="true" />
                             <h2 className="font-semibold">No notifications yet</h2>
-                            <p>We&apos;ll let you know when someone follows you, or when your groups get new members, check-ins or tasks.</p>
+                            <p>We&apos;ll let you know when someone follows you or sends you a request, when your groups get new members, check-ins or tasks, and what people you follow are up to.</p>
                         </div>
                     )}
                 </CardContent>

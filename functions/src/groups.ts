@@ -1,5 +1,5 @@
 import { onDocumentUpdated } from 'firebase-functions/v2/firestore';
-import { added, getMembers, writeFeed, type FeedEntry } from './feed.js';
+import { added, getFollowers, getMembers, writeFeed, type FeedEntry } from './feed.js';
 
 // Study groups, group projects and book clubs, with the words and pages for each
 export const GROUP_KINDS = {
@@ -13,7 +13,8 @@ export const isGroupCollection = (name: string): name is GroupCollection => name
 
 /**
  * When members join or leave a group: the other members are notified, and
- * the member's own feed records it.
+ * the member's own feed records it. A member's followers also hear when they
+ * join a group (but not when they leave).
  */
 function onMembershipChange(collection: GroupCollection) {
   const kind = GROUP_KINDS[collection];
@@ -38,6 +39,11 @@ function onMembershipChange(collection: GroupCollection) {
       for (const otherId of current) {
         if (otherId === memberId || joined.includes(otherId)) continue;
         entries.push({ recipientId: otherId, type: 'group_join', actorId: memberId, notify: true, message: `${name(memberId)} joined ${groupName}`, link });
+      }
+      // Followers who aren't in the group already heard nothing above
+      for (const followerId of await getFollowers(memberId)) {
+        if (current.includes(followerId)) continue;
+        entries.push({ recipientId: followerId, type: 'group_join', actorId: memberId, notify: true, message: `${name(memberId)} joined the ${kind.noun} ${groupName}`, link });
       }
     }
     for (const memberId of left) {
