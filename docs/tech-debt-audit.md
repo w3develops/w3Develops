@@ -1,6 +1,6 @@
 # w3Develops tech debt audit
 
-Started November 2, 2026. Updated November 3, 2026.
+Started November 2, 2026. Updated November 7, 2026.
 
 ## Done
 
@@ -22,17 +22,20 @@ Started November 2, 2026. Updated November 3, 2026.
 - **Membership lives on the group.** Profiles no longer keep their own copy of which groups they're in; the dashboard, My Tasks and the activity feed read each group's member list. My Tasks and the activity feed also had broken links and field names.
 - **Verified email required** for joining, creating and posting. Google and GitHub sign-ins count as verified.
 - **Fake, spam and test accounts deleted**, along with their test groups and competitions. Backups are in `~/Documents/w3develops-admin/`.
+- **The account page is split up.** `account/page.tsx` went from 835 lines to about 100; its sections live in `src/components/account/`, and it uses the shared mentorship and pairing components instead of its own copies of the accept logic.
+- **Pair programming shares `MatchingProgram` too**, configured in `src/lib/matching-programs.ts` like mentorship and tutoring. The pairing, mentorship and tutorship detail pages share `ConnectionSpace`.
+- **Next.js 16.** The site runs on Next 16.4.5.
+- **`any` types** are down to the two default type parameters on `useDoc` and `useCollection`.
+- **Home page hydration error fixed** by updating `@radix-ui/react-slot` to 1.5, which handles server-rendered links inside `Button asChild`.
+- **Both GitHub repos stay in sync.** Every push goes to `JonDevOps/w3Develops` first and then straight to `w3develops/w3Develops`, and `main` is the same commit on both. The org repo's `.github/` files and README are now in both.
 
 ## Needs a decision from you
 
 - **Google Analytics.** It's disclosed on `/cookies`. Remove `measurementId` from `src/firebase/config.ts` if you'd rather not use it.
 - **YouTube feeds.** The channel ID in the news feeds and the podcast playlist (`src/app/api/podcast/route.ts`) both return 404. Replace them with the current channel and playlist IDs.
-- **The old repo, `w3develops/w3Develops`.** It still gets issues and looks active. Archive it, or add a note pointing to `JonDevOps/w3Develops`.
 - **Contact emails:** see [w3develops/w3Develops#519](https://github.com/w3develops/w3Develops/issues/519).
 
 ## Still to do
 
-- **`account/page.tsx` is 835 lines.** It repeats the mentorship accept logic, and should be split into section components.
 - **The users doc is a grab bag.** Group membership now comes from the groups, but meetups (`joinedMeetupIds`) and mentorships (`mentorIds`, `menteeIds`, …) still keep hand-synced ID arrays on profiles.
-- **About 68 `any` types** remain.
-- **Next.js 14 → 16.** Next 14 will stop receiving security fixes. Plan this as its own project.
+- **`npm audit` warnings (12).** They come from `@grpc/grpc-js` 1.9 (via Firebase) and `minimatch` 10 (via typescript-eslint). Neither affects the site: the gRPC issues are for running gRPC servers, and minimatch only runs in the lint tools. They'll clear when Firebase and typescript-eslint update those dependencies. Don't run `npm audit fix --force`, which would downgrade Firebase and the Next lint config.
