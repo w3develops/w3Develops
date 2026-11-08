@@ -179,11 +179,13 @@ export interface Notification {
  */
 export interface FeedEntry {
     id: string;
-    type: 'follow' | 'group_join' | 'group_leave';
+    type: 'follow' | 'group_join' | 'group_leave' | 'checkin' | 'task_added' | 'task_done';
     actorId: string;
     actorName: string;
     actorPhoto: string;
     message: string;
+    /** A short quote, like the start of a check-in; may be empty */
+    detail?: string;
     link: string;
     notify: boolean;
     read: boolean;

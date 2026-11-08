@@ -6,7 +6,7 @@ import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 /** Entries delete themselves after this long (a Firestore TTL policy on expiresAt) */
 const KEEP_DAYS = 60;
 
-export type FeedType = 'follow' | 'group_join' | 'group_leave';
+export type FeedType = 'follow' | 'group_join' | 'group_leave' | 'checkin' | 'task_added' | 'task_done';
 
 export interface FeedEntry {
   /** The member whose feed it goes in */
@@ -15,6 +15,8 @@ export interface FeedEntry {
   /** Who did it */
   actorId: string;
   message: string;
+  /** A short quote shown under the message, like the start of a check-in */
+  detail?: string;
   /** Where clicking the entry goes, a path on the site */
   link: string;
   /** Show it in the bell, not just the activity feed */
@@ -66,6 +68,7 @@ export async function writeFeed(eventId: string, entries: FeedEntry[], members: 
         actorName: actor?.username ?? 'A member',
         actorPhoto: actor?.photo ?? '',
         message: entry.message,
+        detail: entry.detail ?? '',
         link: entry.link,
         notify: entry.notify,
         read: !entry.notify,
@@ -75,6 +78,13 @@ export async function writeFeed(eventId: string, entries: FeedEntry[], members: 
     }
     await batch.commit();
   }
+}
+
+/** The start of some text, cut at a word, for a feed entry's quote */
+export function excerpt(text: unknown, max = 140): string {
+  if (typeof text !== 'string') return '';
+  const clean = text.replace(/\s+/g, ' ').trim();
+  return clean.length <= max ? clean : `${clean.slice(0, max - 1).replace(/\s+\S*$/, '')}…`;
 }
 
 /** IDs in `after` that weren't in `before` */

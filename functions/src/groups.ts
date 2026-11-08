@@ -2,12 +2,14 @@ import { onDocumentUpdated } from 'firebase-functions/v2/firestore';
 import { added, getMembers, writeFeed, type FeedEntry } from './feed.js';
 
 // Study groups, group projects and book clubs, with the words and pages for each
-const GROUP_KINDS = {
+export const GROUP_KINDS = {
   studyGroups: { path: '/studygroups', noun: 'study group' },
   groupProjects: { path: '/groupprojects', noun: 'group project' },
   bookClubs: { path: '/book-clubs', noun: 'book club' },
 } as const;
-type GroupCollection = keyof typeof GROUP_KINDS;
+export type GroupCollection = keyof typeof GROUP_KINDS;
+
+export const isGroupCollection = (name: string): name is GroupCollection => name in GROUP_KINDS;
 
 /**
  * When members join or leave a group: the other members are notified, and

@@ -8,3 +8,4 @@ setGlobalOptions({ region: 'us-central1', maxInstances: 5 });
 
 export { onFollow } from './follows.js';
 export { onStudyGroupMembers, onGroupProjectMembers, onBookClubMembers } from './groups.js';
+export { onCheckIn, onTaskAdded, onTaskDone } from './activity.js';

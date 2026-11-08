@@ -33,6 +33,7 @@ function NotificationItem({ entry, now, onToggleRead }: { entry: FeedEntry; now:
                 <p className={`font-medium ${entry.read ? 'text-muted-foreground' : 'text-foreground'}`}>
                     {!entry.read && <span className="sr-only">Unread: </span>}{entry.message}
                 </p>
+                {entry.detail && <p className="text-sm text-muted-foreground italic break-words">&quot;{entry.detail}&quot;</p>}
                 {/* Relative times depend on the clock, so they're filled in by the browser */}
                 <p className="text-sm text-muted-foreground">{now === null ? ' ' : timeAgo(entry.createdAt, now)}</p>
             </Link>
@@ -101,7 +102,7 @@ export default function NotificationsPage() {
                     <div className="space-y-1.5">
                         <CardTitle as="h1">Notifications</CardTitle>
                         <CardDescription>
-                            When people follow you or join your groups. Notifications are kept for 60 days.
+                            Follows, and what&apos;s happening in your groups. Notifications are kept for 60 days.
                         </CardDescription>
                     </div>
                     {unread.length > 0 && (
@@ -128,7 +129,7 @@ export default function NotificationsPage() {
                         <div className="p-8 text-center text-muted-foreground">
                             <BellRing className="w-12 h-12 mx-auto mb-4" aria-hidden="true" />
                             <h2 className="font-semibold">No notifications yet</h2>
-                            <p>We&apos;ll let you know when someone follows you or joins your groups.</p>
+                            <p>We&apos;ll let you know when someone follows you, or when your groups get new members, check-ins or tasks.</p>
                         </div>
                     )}
                 </CardContent>
