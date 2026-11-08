@@ -16,6 +16,7 @@ import { GROUP_KINDS, GroupKind, MAX_MEMBERS, commitmentLabel, isOpenToJoin } fr
 import JoinButton from '@/components/JoinButton';
 import FindGroupModal from './FindGroupModal';
 import GroupSchedule from './GroupSchedule';
+import ZonedText from '@/components/ZonedText';
 
 function GroupCardSkeleton() {
   return (
@@ -54,7 +55,7 @@ function GroupCard({ kind, group }: { kind: GroupKind; group: Group }) {
             <div className="flex items-center"><Users className="w-4 h-4 mr-2" /> {group.memberIds.length} / {MAX_MEMBERS} Members</div>
             <GroupSchedule group={group} />
             {commitmentLabel(group) && <Badge variant="outline" className="w-fit">{commitmentLabel(group)}</Badge>}
-            <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: {formatTimestamp(group.createdAt)}</div>
+            <div className="flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> Created: <ZonedText render={tz => formatTimestamp(group.createdAt, false, tz)} /></div>
           </div>
         </div>
         <div className="flex gap-2 items-center">
@@ -70,7 +71,11 @@ function GroupCard({ kind, group }: { kind: GroupKind; group: Group }) {
   );
 }
 
-export default function GroupListPage({ kind }: { kind: GroupKind }) {
+/**
+ * A list of study groups, group projects or book clubs. `initial` is the
+ * server's copy (see src/lib/list-pages.ts), shown until the live lists load.
+ */
+export default function GroupListPage({ kind, initial }: { kind: GroupKind; initial?: { newGroups: unknown[]; inProgress: unknown[] } | null }) {
   const config = GROUP_KINDS[kind];
   const firestore = useFirestore();
   const { user } = useUser();
@@ -86,9 +91,9 @@ export default function GroupListPage({ kind }: { kind: GroupKind }) {
     collection(firestore, config.collection), where('createdAt', '<=', Timestamp.fromMillis(oneWeekAgo)), orderBy('createdAt', 'desc'), limit(50)
   ) as Query<Group>, [firestore, config.collection, oneWeekAgo]);
 
-  const { data: newGroups, isLoading: isLoadingNew } = useCollection<Group>(newQuery);
-  const { data: inProgressGroups, isLoading: isLoadingInProgress } = useCollection<Group>(inProgressQuery);
-  const isLoading = oneWeekAgo === null || isLoadingNew || isLoadingInProgress;
+  const { data: newGroups, isLoading: isLoadingNew } = useCollection<Group>(newQuery, initial?.newGroups);
+  const { data: inProgressGroups, isLoading: isLoadingInProgress } = useCollection<Group>(inProgressQuery, initial?.inProgress);
+  const isLoading = (oneWeekAgo === null && !initial) || isLoadingNew || isLoadingInProgress;
 
   const term = searchTerm.toLowerCase();
   const matches = (g: Group) => !term || g.name_lowercase.includes(term) || g.topic.toLowerCase().includes(term);

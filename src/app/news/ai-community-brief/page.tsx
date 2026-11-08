@@ -1,14 +1,18 @@
-
 import { Sparkles, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import AiNewsSummary from '@/components/AiNewsSummary';
 import type { Metadata } from 'next';
 import { pageMetadata } from '@/lib/site-pages';
+import { loadNewsBrief } from '@/lib/news-editions';
+
+// Rendered on each visit; the briefing is built once per news edition
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = pageMetadata('/news/ai-community-brief');
 
-export default function AiCommunityBriefPage() {
+export default async function AiCommunityBriefPage() {
+    const { data: brief } = await loadNewsBrief();
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-10 space-y-8">
             <div className="flex items-center gap-4">
@@ -26,21 +30,21 @@ export default function AiCommunityBriefPage() {
                 </div>
                 <div className="space-y-2">
                     <h1 className="text-4xl md:text-5xl font-headline font-bold">
-                        Daily AI Community Briefing
+                        AI Community Briefing
                     </h1>
                     <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                        Your personalized window into today's tech trends, community growth, and actionable inspiration.
+                        The tech headlines that matter to developers, sorted by topic and ranked by importance.
                     </p>
                 </div>
             </div>
 
             <div className="pt-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <AiNewsSummary />
+                <AiNewsSummary initialBrief={brief} />
             </div>
 
             <footer className="pt-12 text-center border-t border-muted">
                 <p className="text-sm text-muted-foreground">
-                    Headlines are sorted and ranked by TypeSafe's Jev model, then written up automatically. This briefing updates once a day from global tech feeds.
+                    Headlines are sorted and ranked by TypeSafe's Jev model, then written up automatically. This briefing refreshes eight times a day from global tech feeds.
                 </p>
             </footer>
         </div>

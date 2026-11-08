@@ -1,8 +1,8 @@
 'use client';
 
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
 import { useState, useEffect, useMemo } from 'react';
-import { doc, getDoc, DocumentReference, collection, query, where, Query, documentId, getDocs } from 'firebase/firestore';
+import { doc, collection, query, where, Query, documentId, getDocs } from 'firebase/firestore';
 import { UserProfile, StudyGroup, GroupProject, SoloProject } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import FollowButton from '@/components/FollowButton';
 import { formatTimestamp } from '@/lib/utils';
+import ZonedText from '@/components/ZonedText';
 
 // Helper function to ensure a URL is absolute
 const ensureAbsoluteUrl = (url: string) => {
@@ -239,34 +240,18 @@ function UserSoloProjects({ soloProjectIds }: { soloProjectIds: string[] | undef
 }
 
 
-export default function UserProfilePage({ params }: { params: { userId: string } }) {
-  const { userId } = params;
+/**
+ * A member's profile. `initialProfile` is the server's copy of the public
+ * fields (see getPublicProfile), shown until the live profile loads.
+ */
+export default function UserProfilePage({ userId, initialProfile }: { userId: string; initialProfile: Record<string, unknown> | null }) {
   const { user: currentUser } = useUser();
   const firestore = useFirestore();
 
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const userDocRef = useMemo(() => (userId ? doc(firestore, 'users', userId) : null), [firestore, userId]);
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef, initialProfile);
   
   const isOwner = currentUser?.uid === userId;
-
-  useEffect(() => {
-    if (!userId) return;
-
-    const fetchUserProfile = async () => {
-      setIsProfileLoading(true);
-      const userDocRef = doc(firestore, 'users', userId) as DocumentReference<UserProfile>;
-      const docSnap = await getDoc(userDocRef);
-
-      if (docSnap.exists()) {
-        setUserProfile({ ...docSnap.data(), id: docSnap.id });
-      } else {
-        setUserProfile(null);
-      }
-      setIsProfileLoading(false);
-    };
-
-    fetchUserProfile();
-  }, [userId, firestore]);
   
   const roleBadges = useMemo(() => {
     if (!userProfile) return null;
@@ -318,7 +303,7 @@ export default function UserProfilePage({ params }: { params: { userId: string }
             </div>
             <div className="flex items-center justify-center md:justify-start gap-2 text-sm text-muted-foreground mt-2">
               <CalendarDays className="h-4 w-4" />
-              <span>Joined on {formatTimestamp(userProfile.createdAt)}</span>
+              <span>Joined on <ZonedText render={tz => formatTimestamp(userProfile.createdAt, false, tz)} /></span>
             </div>
             <p className="text-muted-foreground mt-2 max-w-2xl">{userProfile.bio}</p>
             <div className="flex justify-center md:justify-start items-center gap-4 mt-4">

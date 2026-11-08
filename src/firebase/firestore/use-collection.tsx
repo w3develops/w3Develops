@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Query,
   onSnapshot,
@@ -9,6 +9,7 @@ import {
   QuerySnapshot,
   CollectionReference,
 } from 'firebase/firestore';
+import { fromPlain } from './plain';
 
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
@@ -43,14 +44,19 @@ export interface UseCollectionResult<T> {
  * @template T Optional type for document data. Defaults to any.
  * @param {CollectionReference<DocumentData> | Query<DocumentData> | null | undefined} targetRefOrQuery -
  * The Firestore CollectionReference or Query. Waits if null/undefined.
+ * @param initialData - The documents as the server fetched them (see
+ * plain.ts), shown until the live results arrive so the page has content
+ * straight away, including while there's no query yet.
  * @returns {UseCollectionResult<T>} Object with data, isLoading, error.
  */
 export function useCollection<T = any>(
     targetRefOrQuery: (CollectionReference<DocumentData> | Query<DocumentData>) | null | undefined,
+    initialData?: unknown,
 ): UseCollectionResult<WithId<T>> {
   
   // The latest results, and which query they came from
   const [latest, setLatest] = useState<Latest<WithId<T>[]>>(NOTHING_YET);
+  const initial = useMemo(() => (initialData ? fromPlain<WithId<T>[]>(initialData) : null), [initialData]);
 
   // Forget old results once there's nothing to listen to
   if (!targetRefOrQuery && latest.source !== null) {
@@ -82,8 +88,12 @@ export function useCollection<T = any>(
     return () => unsubscribe();
   }, [targetRefOrQuery]); // Re-run if the target query/reference changes.
 
-  if (!targetRefOrQuery) return { data: null, isLoading: false, error: null };
-  // Waiting on a new query: keep showing the previous results meanwhile
-  if (latest.source !== targetRefOrQuery) return { data: latest.data, isLoading: true, error: null };
+  if (!targetRefOrQuery) return { data: initial, isLoading: false, error: null };
+  if (latest.source !== targetRefOrQuery) {
+    // Nothing live yet: show the server's copy, if there is one
+    if (latest.source === null && initial) return { data: initial, isLoading: false, error: null };
+    // Waiting on a new query: keep showing the previous results meanwhile
+    return { data: latest.data, isLoading: true, error: null };
+  }
   return { data: latest.data, isLoading: false, error: latest.error };
 }

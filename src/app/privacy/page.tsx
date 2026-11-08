@@ -13,7 +13,7 @@ export default function PrivacyPage() {
         <LegalPage
             icon={<ShieldCheck className="h-10 w-10" />}
             title="Privacy Policy"
-            lastUpdated="November 2, 2026"
+            lastUpdated="November 7, 2026"
             intro={
                 <>
                     <p>
@@ -63,7 +63,8 @@ export default function PrivacyPage() {
             >
                 <p>
                     w3Develops is a community, so most of what you share is meant to be seen: your username, profile, the groups
-                    and projects you're part of, and who you follow. You can hide your follower and following lists when you
+                    and projects you're part of, and who you follow. Like a GitHub profile, a profile with a bio or skills can
+                    show up in search engines such as Google. You can hide your follower and following lists when you
                     edit your profile. Your email address and anything you send us directly (feedback, support requests, applications)
                     are never shown to other members.
                 </p>

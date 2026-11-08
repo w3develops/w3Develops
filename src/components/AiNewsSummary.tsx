@@ -8,12 +8,20 @@ import type { NewsBrief } from '@/lib/news-brief';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getErrorMessage } from '@/lib/utils';
 
-export default function AiNewsSummary() {
-  const [brief, setBrief] = useState<NewsBrief | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+/**
+ * The AI community briefing. Pass `initialBrief` when the server already
+ * loaded it (null if it couldn't); left out, the briefing loads in the browser.
+ */
+export default function AiNewsSummary({ initialBrief }: { initialBrief?: NewsBrief | null }) {
+  const fromServer = initialBrief !== undefined;
+  const [brief, setBrief] = useState<NewsBrief | null>(initialBrief ?? null);
+  const [isLoading, setIsLoading] = useState(!fromServer);
+  const [error, setError] = useState<string | null>(
+    fromServer && !initialBrief ? 'The briefing is unavailable right now. Please try again in a few minutes.' : null,
+  );
 
   useEffect(() => {
+    if (fromServer) return;
     const getBrief = async () => {
       try {
         const res = await fetch('/api/news/brief');
@@ -28,7 +36,7 @@ export default function AiNewsSummary() {
     };
 
     getBrief();
-  }, []);
+  }, [fromServer]);
 
   return (
     <Card className="border-2 border-primary/20 bg-primary/5 mb-8">
@@ -42,7 +50,7 @@ export default function AiNewsSummary() {
             ? `${brief.date} · Headlines ${brief.rankedBy === 'jev'
                 ? 'sorted and ranked by Jev'
                 : 'sorted by keyword'}`
-            : "Today's digest of tech news for the w3Develops community."}
+            : 'A digest of tech news for the w3Develops community.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
