@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ActivityFeed from '@/components/ActivityFeed';
+import GettingStarted from '@/components/account/GettingStarted';
 import { MatchingDashboard } from '@/components/MatchingProgram';
 import AccountPageSkeleton from '@/components/account/AccountPageSkeleton';
 import GroupListCard from '@/components/account/GroupListCard';
@@ -58,6 +59,8 @@ export default function AccountPage() {
           </Avatar>
           <h1 className="text-3xl font-headline">Hello, {userProfile.username || user.email}!</h1>
         </div>
+
+        <GettingStarted user={user} profile={userProfile} />
 
         <ActivityFeed uid={user.uid} />
 

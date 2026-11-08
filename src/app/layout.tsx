@@ -11,6 +11,7 @@ import Footer from "@/components/layout/footer";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import { HOME_DESCRIPTION, HOME_TITLE, SITE_NAME, SITE_URL, sharePreview } from "@/lib/site-pages";
 import JsonLd from "@/components/JsonLd";
+import ErrorReporter from "@/components/ErrorReporter";
 
 
 const inter = Inter({ 
@@ -113,6 +114,7 @@ export default function RootLayout({
         )}
       >
         <JsonLd data={SITE_STRUCTURED_DATA} />
+        <ErrorReporter />
         <FirebaseClientProvider>
             <AnnouncementBanner />
             <Header />

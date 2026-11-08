@@ -18,6 +18,7 @@ import JoinButton from '@/components/JoinButton';
 import { formatTimestamp } from '@/lib/utils';
 import { Group } from '@/lib/types';
 import JoinTimeLeft from '@/components/groups/JoinTimeLeft';
+import AddToCalendarButton from '@/components/groups/AddToCalendarButton';
 import { GROUP_KINDS, GroupKind, commitmentLabel, isNew, isOpenToJoin } from '@/lib/groups';
 import { timeZoneLabel } from '@/lib/timezones';
 import GroupSchedule from './GroupSchedule';
@@ -94,6 +95,7 @@ export default function GroupDashboard({ kind, groupId, initialGroup }: { kind: 
           </div>
           <div className="flex flex-wrap gap-2 shrink-0">
             {!isMember && <JoinButton kind={kind} item={group} onJoinSuccess={() => {}} />}
+            {isMember && <AddToCalendarButton kind={kind} group={group} />}
             {isCreator && (
               <>
                 <Button asChild variant="outline" size="sm"><Link href={`${config.path}/${groupId}/edit`}><Pencil className="w-4 h-4 mr-2" />Edit</Link></Button>

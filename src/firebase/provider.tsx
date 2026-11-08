@@ -143,7 +143,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   return (
     <FirebaseContext.Provider value={contextValue}>
-      {process.env.NODE_ENV === 'development' && <FirebaseErrorListener />}
+      <FirebaseErrorListener />
       {children}
     </FirebaseContext.Provider>
   );

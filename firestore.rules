@@ -577,6 +577,23 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
 
+    // Private reports about members (src/components/ReportUserButton.tsx).
+    // Members can only file them; the team reads them in the Firebase console.
+    match /reports/{reportId} {
+      allow read, update, delete: if false;
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasOnly(['reporterId', 'reportedUserId', 'reason', 'details', 'page', 'status', 'createdAt'])
+                    && request.resource.data.reporterId == request.auth.uid
+                    && request.resource.data.reportedUserId is string
+                    && request.resource.data.reportedUserId != request.auth.uid
+                    && exists(/databases/$(database)/documents/users/$(request.resource.data.reportedUserId))
+                    && request.resource.data.reason in ['harassment', 'spam', 'impersonation', 'inappropriate', 'inactive', 'other']
+                    && request.resource.data.details is string && request.resource.data.details.size() <= 1000
+                    && request.resource.data.page is string && request.resource.data.page.size() <= 300
+                    && request.resource.data.status == 'open'
+                    && request.resource.data.createdAt == request.time;
+    }
+
     match /feedback/{feedbackId} {
       allow read: if false;
       allow write: if request.auth != null
