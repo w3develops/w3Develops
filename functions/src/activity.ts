@@ -35,7 +35,7 @@ async function shareWithGroup({ eventId, collection, groupId, actorId, type, ver
     { recipientId: actorId, type, actorId, notify: false, message: `You ${verb} ${groupName}`, detail, link },
     ...memberIds
       .filter(id => id !== actorId)
-      .map(id => ({ recipientId: id, type, actorId, notify: true, message: `${name} ${verb} ${groupName}`, detail, link })),
+      .map(id => ({ recipientId: id, type, actorId, notify: true, category: 'groupActivity' as const, message: `${name} ${verb} ${groupName}`, detail, link })),
   ];
   await writeFeed(eventId, entries, members);
 }

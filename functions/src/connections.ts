@@ -53,7 +53,7 @@ function onRequestWritten(collection: keyof typeof PROGRAMS) {
       const ask = (typeof after.type === 'string' && program.asks[after.type]) || program.defaultAsk;
       await writeFeed(event.id, [
         {
-          recipientId: toUid, type: 'request', actorId: fromUid, notify: true,
+          recipientId: toUid, type: 'request', actorId: fromUid, notify: true, category: 'requests',
           message: `${members.get(fromUid)?.username ?? 'A member'} ${ask}`,
           // Incoming requests are answered from the account page
           link: '/account',
@@ -72,7 +72,7 @@ function onRequestWritten(collection: keyof typeof PROGRAMS) {
       const link = `${program.connectionsPath}/${connectionId(fromUid, toUid)}`;
       await writeFeed(event.id, [
         {
-          recipientId: fromUid, type: 'request_accepted', actorId: toUid, notify: true,
+          recipientId: fromUid, type: 'request_accepted', actorId: toUid, notify: true, category: 'requests',
           message: `${members.get(toUid)?.username ?? 'A member'} accepted your ${program.name} request`, link,
         },
         {

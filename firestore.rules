@@ -577,6 +577,20 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
 
+    // A member's private settings, like which notifications they want
+    // (src/lib/notification-prefs.ts). Only the member can see them.
+    match /users/{userId}/private/{docId} {
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId) && docId == 'notificationPrefs'
+                    && request.resource.data.keys().hasOnly(['follows', 'groupMembers', 'groupActivity', 'requests', 'following', 'meetingReminders'])
+                    && (!('follows' in request.resource.data) || request.resource.data.follows is bool)
+                    && (!('groupMembers' in request.resource.data) || request.resource.data.groupMembers is bool)
+                    && (!('groupActivity' in request.resource.data) || request.resource.data.groupActivity is bool)
+                    && (!('requests' in request.resource.data) || request.resource.data.requests is bool)
+                    && (!('following' in request.resource.data) || request.resource.data.following is bool)
+                    && (!('meetingReminders' in request.resource.data) || request.resource.data.meetingReminders is bool);
+    }
+
     // Each member's activity feed and notifications, written only by the
     // server (functions/src). Members can read their own, mark entries
     // read or unread, and delete them.

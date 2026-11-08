@@ -2,12 +2,13 @@
 // shows in the member's activity feed; entries with `notify` also show in
 // their notification bell until read. Only this server code can write them.
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { getPrefs, type PrefId } from './prefs.js';
 
 /** Entries delete themselves after this long (a Firestore TTL policy on expiresAt) */
 const KEEP_DAYS = 60;
 
 export type FeedType = 'follow' | 'group_join' | 'group_leave' | 'checkin' | 'task_added' | 'task_done'
-  | 'request' | 'request_accepted' | 'solo_project';
+  | 'request' | 'request_accepted' | 'solo_project' | 'reminder';
 
 export interface FeedEntry {
   /** The member whose feed it goes in */
@@ -22,6 +23,14 @@ export interface FeedEntry {
   link: string;
   /** Show it in the bell, not just the activity feed */
   notify: boolean;
+  /**
+   * Which of the member's notification settings covers it. If they've
+   * switched that kind off, the entry still goes in their activity feed,
+   * just not in the bell.
+   */
+  category?: PrefId;
+  /** Shown instead of the actor's username, for entries with no member behind them */
+  actorName?: string;
 }
 
 export interface Member {
@@ -57,22 +66,26 @@ export async function writeFeed(eventId: string, entries: FeedEntry[], members: 
   if (entries.length === 0) return;
   const db = getFirestore();
   const expiresAt = Timestamp.fromMillis(Date.now() + KEEP_DAYS * 24 * 60 * 60 * 1000);
+  const prefs = await getPrefs(entries.filter(e => e.notify && e.category).map(e => e.recipientId));
+  const wantsBell = (entry: FeedEntry) =>
+    entry.notify && (!entry.category || prefs.get(entry.recipientId)?.[entry.category] !== false);
   for (let i = 0; i < entries.length; i += 400) {
     const batch = db.batch();
     for (const entry of entries.slice(i, i + 400)) {
       const actor = members.get(entry.actorId);
+      const notify = wantsBell(entry);
       const ref = db.collection('users').doc(entry.recipientId).collection('feed')
         .doc(`${eventId}-${entry.type}-${entry.actorId}`.slice(0, 1500));
       batch.set(ref, {
         type: entry.type,
         actorId: entry.actorId,
-        actorName: actor?.username ?? 'A member',
+        actorName: entry.actorName ?? actor?.username ?? 'A member',
         actorPhoto: actor?.photo ?? '',
         message: entry.message,
         detail: entry.detail ?? '',
         link: entry.link,
-        notify: entry.notify,
-        read: !entry.notify,
+        notify,
+        read: !notify,
         createdAt: FieldValue.serverTimestamp(),
         expiresAt,
       });

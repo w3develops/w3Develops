@@ -102,7 +102,8 @@ export default function NotificationsPage() {
                     <div className="space-y-1.5">
                         <CardTitle as="h1">Notifications</CardTitle>
                         <CardDescription>
-                            Follows, requests, and what&apos;s happening in your groups and with people you follow. Notifications are kept for 60 days.
+                            Follows, requests, and what&apos;s happening in your groups and with people you follow. Notifications are kept for 60 days.{' '}
+                            <Link href="/notifications" className="underline">Choose which ones you get</Link>.
                         </CardDescription>
                     </div>
                     {unread.length > 0 && (

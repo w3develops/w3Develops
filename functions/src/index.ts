@@ -11,3 +11,4 @@ export { onStudyGroupMembers, onGroupProjectMembers, onBookClubMembers } from '.
 export { onCheckIn, onTaskAdded, onTaskDone } from './activity.js';
 export { onMentorshipRequest, onTutorRequest, onPairRequest } from './connections.js';
 export { onSoloProject } from './solo.js';
+export { meetingReminders } from './reminders.js';

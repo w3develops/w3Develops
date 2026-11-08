@@ -16,7 +16,7 @@ export const onSoloProject = onDocumentCreated('soloProjects/{projectId}', async
   await writeFeed(event.id, [
     { recipientId: ownerId, type: 'solo_project', actorId: ownerId, notify: false, message: `You started a solo project: ${name}`, detail, link },
     ...followers.map(id => ({
-      recipientId: id, type: 'solo_project' as const, actorId: ownerId, notify: true,
+      recipientId: id, type: 'solo_project' as const, actorId: ownerId, notify: true, category: 'following' as const,
       message: `${owner} started a solo project: ${name}`, detail, link,
     })),
   ], members);

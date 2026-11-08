@@ -25,6 +25,7 @@ async function collectUserData(firestore: Firestore, user: User) {
     const profile = await getDoc(doc(firestore, 'users', user.uid));
     const notifications = await getDocs(collection(firestore, 'users', user.uid, 'notifications'));
     const feed = await getDocs(collection(firestore, 'users', user.uid, 'feed'));
+    const notificationPrefs = await getDoc(doc(firestore, 'users', user.uid, 'private', 'notificationPrefs'));
     const requests: Record<string, unknown[]> = {};
     for (const name of REQUEST_COLLECTIONS) {
         requests[name] = [
@@ -39,6 +40,7 @@ async function collectUserData(firestore: Firestore, user: User) {
         profile: profile.exists() ? profile.data() : null,
         notifications: notifications.docs.map(d => ({ id: d.id, ...d.data() })),
         activityFeed: feed.docs.map(d => ({ id: d.id, ...d.data() })),
+        notificationSettings: notificationPrefs.exists() ? notificationPrefs.data() : null,
         soloProjects: await docsWhere(firestore, 'soloProjects', 'userId', user.uid),
         careerApplications: await docsWhere(firestore, 'careerApplications', 'userId', user.uid),
         ...requests,
@@ -104,6 +106,7 @@ export default function AccountDataControls({ user }: { user: User }) {
             const projects = await getDocs(query(collection(firestore, 'soloProjects'), where('userId', '==', user.uid)));
             projects.forEach(p => batch.delete(p.ref));
             if (username) batch.delete(doc(firestore, 'usernames', username));
+            batch.delete(doc(firestore, 'users', user.uid, 'private', 'notificationPrefs'));
             await batch.commit();
 
             await deleteDoc(doc(firestore, 'users', user.uid));

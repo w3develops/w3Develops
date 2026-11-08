@@ -17,7 +17,7 @@ export const onFollow = onDocumentUpdated('users/{userId}', async event => {
   const followed = members.get(userId);
   const entries: FeedEntry[] = newFollowers.flatMap(followerId => [
     {
-      recipientId: userId, type: 'follow', actorId: followerId, notify: true,
+      recipientId: userId, type: 'follow', actorId: followerId, notify: true, category: 'follows',
       message: `${members.get(followerId)?.username ?? 'A member'} followed you`,
       link: `/users/${followerId}`,
     },
