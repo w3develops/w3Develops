@@ -34,7 +34,7 @@ function formatDate(dateString: string, timeZone: string) {
 function NewsItem({ item, user, userProfile }: { item: Post, user: User | null, userProfile: UserProfile | null }) {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const isHearted = userProfile?.starredSoloProjectIds?.includes(item.link) || false;
+    const isHearted = userProfile?.heartedArticleLinks?.includes(item.link) || false;
 
     const handleHeart = async () => {
         if (!user) {
@@ -42,9 +42,14 @@ function NewsItem({ item, user, userProfile }: { item: Post, user: User | null, 
             return;
         }
         const userRef = doc(firestore, 'users', user.uid);
-        await updateDoc(userRef, {
-            starredSoloProjectIds: isHearted ? arrayRemove(item.link) : arrayUnion(item.link)
-        });
+        try {
+            await updateDoc(userRef, {
+                heartedArticleLinks: isHearted ? arrayRemove(item.link) : arrayUnion(item.link)
+            });
+        } catch (error) {
+            console.error('Could not save the heart:', error);
+            toast({ title: "Couldn't save that. Please try again.", variant: "destructive" });
+        }
     };
 
     const handleShare = () => {
@@ -71,10 +76,10 @@ function NewsItem({ item, user, userProfile }: { item: Post, user: User | null, 
                         </p>
                     </div>
                     <div className="flex flex-col gap-2">
-                        <Button variant="ghost" size="icon" onClick={handleHeart} className={isHearted ? 'text-red-500' : 'text-muted-foreground'}>
+                        <Button variant="ghost" size="icon" onClick={handleHeart} aria-label={isHearted ? 'Remove heart' : 'Heart this article'} aria-pressed={isHearted} className={isHearted ? 'text-red-500' : 'text-muted-foreground'}>
                             <Heart className={`h-5 w-5 ${isHearted ? 'fill-current' : ''}`} />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={handleShare} className="text-muted-foreground">
+                        <Button variant="ghost" size="icon" onClick={handleShare} aria-label="Share this article" className="text-muted-foreground">
                             <Share2 className="h-5 w-5" />
                         </Button>
                     </div>

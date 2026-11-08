@@ -42,6 +42,7 @@ export interface UserProfile {
   joinedMeetupIds?: string[];
   soloProjectIds?: string[];
   starredSoloProjectIds?: string[];
+  heartedArticleLinks?: string[]; // links of news articles the member hearted
   notificationSettings?: NotificationSettings;
   status?: UserStatus;
   lastCheckInAt?: Timestamp | FieldValue | null;
