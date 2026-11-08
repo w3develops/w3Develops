@@ -114,6 +114,8 @@ export default function RootLayout({
         )}
       >
         <JsonLd data={SITE_STRUCTURED_DATA} />
+        {/* React moves this into the page head: lets feed readers find /feed.xml */}
+        <link rel="alternate" type="application/rss+xml" title={`What's new on ${SITE_NAME}`} href="/feed.xml" />
         <ErrorReporter />
         <FirebaseClientProvider>
             <AnnouncementBanner />

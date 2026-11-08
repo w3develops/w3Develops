@@ -158,10 +158,10 @@ export default function Home() {
             </div>
         </section>
 
-        {/* Bootcamp Alternative Section */}
+        {/* Bootcamp Alternative Section: the image sits left of the text on large screens */}
          <section className="w-full pt-4 md:pt-8 lg:pt-10 pb-12">
             <div className="container grid items-center gap-10 px-4 md:px-6 lg:grid-cols-2 lg:gap-16">
-                <div className="flex justify-center lg:order-last">
+                <div className="flex justify-center">
                    <Image
                       src="/logo.png"
                       width={400}
