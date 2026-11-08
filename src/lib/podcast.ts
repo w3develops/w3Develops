@@ -12,7 +12,8 @@ export interface PodcastEpisode {
 
 const parser = new Parser();
 
-const YOUTUBE_PLAYLIST_ID = 'PLTwiqKOPckq-z5E-LUpMXpcv_GWXE2k4F';
+export const YOUTUBE_PLAYLIST_ID = 'PLTwiqKOPckq-z5E-LUpMXpcv_GWXE2k4F';
+export const PLAYLIST_URL = `https://www.youtube.com/playlist?list=${YOUTUBE_PLAYLIST_ID}`;
 const FEED_URL = `https://www.youtube.com/feeds/videos.xml?playlist_id=${YOUTUBE_PLAYLIST_ID}`;
 
 function getVideoId(link: string): string | null {

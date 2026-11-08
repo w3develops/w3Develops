@@ -29,11 +29,9 @@ Started November 2, 2026. Updated November 7, 2026.
 - **Home page hydration error fixed** by updating `@radix-ui/react-slot` to 1.5, which handles server-rendered links inside `Button asChild`.
 - **Both GitHub repos stay in sync.** Every push goes to `JonDevOps/w3Develops` first and then straight to `w3develops/w3Develops`, and `main` is the same commit on both. The org repo's `.github/` files and README are now in both.
 
-## Needs a decision from you
-
-- **Google Analytics.** It's disclosed on `/cookies`. Remove `measurementId` from `src/firebase/config.ts` if you'd rather not use it.
-- **YouTube feeds.** The channel ID in the news feeds and the podcast playlist (`src/app/api/podcast/route.ts`) both return 404. Replace them with the current channel and playlist IDs.
-- **Contact emails:** see [w3develops/w3Develops#519](https://github.com/w3develops/w3Develops/issues/519).
+- **Google Analytics stays.** It's disclosed on `/cookies`, and the live site sends page views to `G-4X3H3B54J2`.
+- **Contact emails** work ([w3develops/w3Develops#519](https://github.com/w3develops/w3Develops/issues/519)).
+- **Podcast page works again.** The playlist ID was right; YouTube's RSS feed returns 404 for every channel and playlist. When the feed can't be read, `/podcast` now shows YouTube's embedded playlist player and a link to the playlist, instead of an error. The news feeds no longer use YouTube.
 
 ## Still to do
 
