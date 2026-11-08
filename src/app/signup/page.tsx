@@ -19,6 +19,7 @@ import TimezoneSelect from '@/components/TimezoneSelect';
 import { browserTimeZone } from '@/lib/timezones';
 import { useBrowserTimeZone } from '@/lib/hooks/useClientValues';
 import { getErrorMessage } from '@/lib/utils';
+import { RESERVED_USERNAMES } from '@/lib/usernames';
 
 function useDebounce(value: string, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -56,12 +57,6 @@ function validatePassword(password: string) {
     }
     return null;
 }
-
-const RESERVED_USERNAMES = [
-  'root', 'admin', 'abuse', 'webmaster', 'spam', 'help',
-  'administratorrequest', 'invalid', 'valid', 'error', 'motd',
-  'authenticateduser', 'login:', 'password:'
-];
 
 function validateUsername(username: string): string | null {
   if (username.length < 3) {

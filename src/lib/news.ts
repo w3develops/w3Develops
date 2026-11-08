@@ -1,13 +1,19 @@
 import Parser from 'rss-parser';
 import { unstable_cache } from 'next/cache';
-import { rssFeeds } from '@/lib/rss-feeds';
+import { featuredFeeds, rssFeeds } from '@/lib/rss-feeds';
 
 export interface Post {
   title: string;
   link: string;
   isoDate: string;
   source: string;
+  /** From a feed the news page pins to the top */
+  featured?: boolean;
 }
+
+// Only recent posts are shown. Posts are never stored: each edition reads the
+// feeds again, and the cached copy expires with the edition.
+const MAX_POST_AGE_DAYS = 3;
 
 const parser = new Parser({
     // The first visitor after each refresh time waits for the slowest feed.
@@ -16,13 +22,11 @@ const parser = new Parser({
 });
 
 /**
- * Fetches every RSS feed in rssFeeds and returns the last 7 days of posts,
+ * Fetches every RSS feed in rssFeeds and returns the last 3 days of posts,
  * newest first. Feeds that fail are skipped.
  */
 export async function fetchRecentPosts(): Promise<Post[]> {
-  // Look back 7 days to ensure we catch the latest social posts even if the group hasn't posted today
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const cutoff = Date.now() - MAX_POST_AGE_DAYS * 24 * 60 * 60 * 1000;
 
   let allPosts: Post[] = [];
 
@@ -33,15 +37,15 @@ export async function fetchRecentPosts(): Promise<Post[]> {
         const posts = feed.items
           .filter(item => {
             if (!item.isoDate) return false;
-            const itemDate = new Date(item.isoDate);
-            return itemDate > sevenDaysAgo && item.title && item.link;
+            return new Date(item.isoDate).getTime() > cutoff && item.title && item.link;
           })
           .map(item => ({
             title: item.title!,
             link: item.link!,
             isoDate: item.isoDate!,
             // Extract a clean source name from the feed title or URL
-            source: feed.title || new URL(feedUrl).hostname.replace(/^www\./, ''),
+            source: feed.title?.trim() || new URL(feedUrl).hostname.replace(/^www\./, ''),
+            ...(featuredFeeds.includes(feedUrl) && { featured: true }),
           }));
         return posts;
       }

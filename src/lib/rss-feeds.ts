@@ -1,5 +1,17 @@
 
+/**
+ * Feeds whose posts are pinned to the top of the news page, above the rest
+ * (the brief still takes the newest posts from every feed)
+ */
+export const featuredFeeds = [
+    'https://www.freecodecamp.org/news/rss/',
+    'https://pluralistic.net/feed/',
+    'https://craphound.com/feed/',
+];
+
 export const rssFeeds = [
+    ...featuredFeeds,
+
     // Official w3Develops Feeds - The "Easy" ones with public RSS
     'https://mastodon.social/@w3develops.rss',
     'https://medium.com/feed/w3develops',
@@ -25,6 +37,9 @@ export const rssFeeds = [
     'https://cryptoslate.com/feed/',
     'https://coinjournal.net/feed/',
     'https://www.theverge.com/rss/index.xml',
+    'https://feeds.npr.org/1019/rss.xml',
+    'https://moxie.foxnews.com/google-publisher/tech.xml',
+    'https://www.sify.com/category/technology/feed/',
     'https://coinpedia.org/feed/',
     'https://www.hackthissite.org/pages/hts.rss.php',
     'https://www.techradar.com/rss',
@@ -32,7 +47,12 @@ export const rssFeeds = [
     'https://www.securityweek.com/feed/',
     'https://krebsonsecurity.com/feed/',
     'https://www.bleepingcomputer.com/feed/',
-    'https://www.freecodecamp.org/news/rss/',
+    // Hacker magazines (Phrack and Hakin9 have no feed)
+    'https://feeds.feedburner.com/TheHackersNews',
+    'https://www.hackercoolmagazine.com/feed/',
+    'https://cybersecurityventures.com/feed/',
+    'https://www.2600.com/rss.xml',
+    'https://www.wiz.io/feed/rss.xml',
     'https://www.infoworld.com/feed/',
     'https://cprss.s3.amazonaws.com/javascriptweekly.com.xml',
     'https://react.dev/rss.xml',

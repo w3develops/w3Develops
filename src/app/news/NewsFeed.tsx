@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Rss, Megaphone, History, ChevronLeft, ChevronRight, Heart, Share2, Sparkles } from "lucide-react";
+import { Rss, Megaphone, History, ChevronLeft, ChevronRight, Heart, Share2, Sparkles, Pin } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
@@ -67,7 +67,10 @@ function NewsItem({ item, user, userProfile }: { item: Post, user: User | null, 
             <CardContent className="p-6">
                 <div className="flex justify-between items-start gap-4">
                     <div className="space-y-2 flex-1">
-                        <p className="text-xs text-primary font-bold uppercase tracking-widest">{item.source}</p>
+                        <p className="flex items-center gap-2 text-xs text-primary font-bold uppercase tracking-widest">
+                            {item.featured && <><Pin className="h-3.5 w-3.5" aria-hidden="true" /><span className="sr-only">Pinned:</span></>}
+                            {item.source}
+                        </p>
                         <a href={item.link} target="_blank" rel="noopener noreferrer" className="block text-xl md:text-2xl font-bold font-headline hover:text-primary transition-colors leading-tight">
                             {item.title}
                         </a>
@@ -112,11 +115,16 @@ export default function NewsFeed({ newsItems, initialAnnouncements }: { newsItem
     const userDocRef = useMemo(() => user ? doc(firestore, 'users', user.uid) : null, [user, firestore]);
     const { data: userProfile } = useDoc<UserProfile>(userDocRef);
 
-    const totalPages = Math.ceil(newsItems.length / ITEMS_PER_PAGE);
+    // Pinned sources (see featuredFeeds) come first, each part newest first
+    const orderedNews = useMemo(
+        () => [...newsItems.filter(item => item.featured), ...newsItems.filter(item => !item.featured)],
+        [newsItems],
+    );
+    const totalPages = Math.ceil(orderedNews.length / ITEMS_PER_PAGE);
     const paginatedNews = useMemo(() => {
         const start = (currentPage - 1) * ITEMS_PER_PAGE;
-        return newsItems.slice(start, start + ITEMS_PER_PAGE);
-    }, [newsItems, currentPage]);
+        return orderedNews.slice(start, start + ITEMS_PER_PAGE);
+    }, [orderedNews, currentPage]);
 
     return (
         <div className="max-w-5xl mx-auto p-4 md:p-10 space-y-12">

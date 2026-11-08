@@ -245,10 +245,12 @@ service cloud.firestore {
     // Firebase Auth already keeps each member's email privately.
     match /users/{userId} {
       allow read: if true;
-      allow create: if isOwner(userId) && !('email' in request.resource.data);
+      allow create: if isOwner(userId) && !('email' in request.resource.data)
+                    && (!('username' in request.resource.data || 'username_lowercase' in request.resource.data)
+                        || hasClaimedUsername(request.resource.data));
       allow delete: if isOwner(userId);
       allow update: if !('email' in request.resource.data) && (
-        isOwner(userId) ||
+        (isOwner(userId) && (!setsUsername(request.resource.data, resource.data) || hasClaimedUsername(request.resource.data))) ||
         (
           request.resource.data.diff(resource.data).affectedKeys().size() == 1 &&
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
@@ -258,10 +260,42 @@ service cloud.firestore {
       );
     }
 
+    // Names nobody can sign up with, so no one can pose as the site's staff.
+    // Keep in step with RESERVED_USERNAMES in src/lib/usernames.ts.
+    function isReservedUsername(name) {
+      return name in [
+        'root', 'admin', 'administrator', 'abuse', 'webmaster', 'spam', 'help', 'support',
+        'administratorrequest', 'invalid', 'valid', 'error', 'motd', 'authenticateduser',
+        'moderator', 'staff', 'official', 'security', 'system', 'w3develops'
+      ];
+    }
+
+    // A username document is named after the lowercase username: 3 to 24
+    // letters and numbers, as the signup form checks
+    function isClaimableUsername(name) {
+      return name.matches('^[a-z0-9]{3,24}$') && !isReservedUsername(name);
+    }
+
+    // A profile's username must be one the member has claimed (in the same
+    // write, at signup), so the rules above can't be skipped by writing the
+    // profile directly
+    function hasClaimedUsername(data) {
+      return data.username is string
+             && data.username_lowercase == data.username.lower()
+             && getAfter(/databases/$(database)/documents/usernames/$(data.username_lowercase)).data.uid == request.auth.uid;
+    }
+
+    function setsUsername(data, before) {
+      return data.diff(before).affectedKeys().hasAny(['username', 'username_lowercase']);
+    }
+
     match /usernames/{username} {
       allow get: if true;
       allow list: if false;
-      allow create: if request.auth.uid == request.resource.data.uid;
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.uid
+                    && request.resource.data.keys().hasOnly(['uid'])
+                    && isClaimableUsername(username);
       allow update: if false;
       // Lets members free up their username when they delete their account
       allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
@@ -394,8 +428,16 @@ service cloud.firestore {
                       && request.resource.data.username is string
                       && request.resource.data.projectUrl is string
                       && request.resource.data.voterIds == [];
-        allow update: if (request.auth != null && resource.data.userId == request.auth.uid && get(/databases/$(database)/documents/competitions/$(competitionId)).data.endDate > request.time) ||
-                      (isVerified() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['voterIds']) && isAddingSelfToList(request.resource.data.voterIds, resource.data.get('voterIds', [])));
+        // The entrant can edit their entry while the competition is open, but
+        // not its votes or owner
+        allow update: if (request.auth != null && resource.data.userId == request.auth.uid
+                          && get(/databases/$(database)/documents/competitions/$(competitionId)).data.endDate > request.time
+                          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['voterIds', 'userId'])) ||
+                      // Other members can vote for an entry, or take their vote back
+                      (isVerified() && resource.data.userId != request.auth.uid
+                          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['voterIds'])
+                          && (isAddingSelfToList(request.resource.data.voterIds, resource.data.get('voterIds', []))
+                              || isRemovingSelfFromList(request.resource.data.voterIds, resource.data.get('voterIds', []))));
         allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
       }
     }
