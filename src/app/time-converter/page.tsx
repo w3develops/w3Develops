@@ -54,7 +54,7 @@ export default function TimeConverterPage() {
           <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-4">
             <Globe className="h-10 w-10 text-primary" />
           </div>
-          <CardTitle className="text-3xl font-headline">UTC Time Converter</CardTitle>
+          <CardTitle as="h1" className="text-3xl font-headline">UTC Time Converter</CardTitle>
           <CardDescription>
             Find your UTC offset to help coordinate with the w3Develops global community.
           </CardDescription>

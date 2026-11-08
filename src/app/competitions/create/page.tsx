@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { useRouter } from 'next/navigation';
@@ -17,6 +18,7 @@ import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/e
 import { UserProfile } from '@/lib/types';
 import { browserTimeZone, zonedTimeToDate } from '@/lib/timezones';
 import { Clock } from 'lucide-react';
+import { notifySearchEngines } from '@/lib/notify-search-engines';
 
 export default function CreateCompetitionPage() {
   const { user, isUserLoading } = useUser();
@@ -82,6 +84,7 @@ export default function CreateCompetitionPage() {
     addDoc(competitionsCollection, competitionData)
         .then((newDocRef) => {
             toast({ title: "Success!", description: "Your new competition has been created." });
+            notifySearchEngines(`/competitions/${newDocRef.id}`);
             router.push(`/competitions/${newDocRef.id}`);
         })
         .catch(async (error) => {
@@ -131,7 +134,10 @@ export default function CreateCompetitionPage() {
             <div className="grid gap-2">
                 <Label htmlFor="startTime" className="flex items-center gap-2"><Clock className="h-4 w-4" /> Start Time (In your local time)</Label>
                 <Input id="startTime" type="time" value={localStartTime} onChange={e => setLocalTime(e.target.value)} required />
-                <p className="text-[10px] text-muted-foreground">The competition will go live based on this time normalized to UTC.</p>
+                <p className="text-xs text-muted-foreground">
+                  Members see this time in their own time zone. To compare zones yourself, use the{' '}
+                  <Link href="/time-converter" target="_blank" className="text-primary underline">time converter</Link>.
+                </p>
             </div>
             
             <div className="grid gap-2">

@@ -38,6 +38,28 @@ export function isOpenToJoin(group: Group): boolean {
   return !!group.createdAt && Date.now() - group.createdAt.toMillis() < ONE_WEEK_IN_MS;
 }
 
+const ONE_HOUR_IN_MS = 60 * 60 * 1000;
+const ONE_DAY_IN_MS = 24 * ONE_HOUR_IN_MS;
+
+/**
+ * How long a group still takes new members, in words ("3 days left"), or
+ * null once its first week is over
+ */
+export function joinTimeLeft(group: Group, now: number): string | null {
+  if (!group.createdAt) return null;
+  const left = group.createdAt.toMillis() + ONE_WEEK_IN_MS - now;
+  if (left <= 0) return null;
+  if (left >= ONE_DAY_IN_MS) {
+    const days = Math.floor(left / ONE_DAY_IN_MS);
+    return `${days} ${days === 1 ? 'day' : 'days'} left to join`;
+  }
+  if (left >= ONE_HOUR_IN_MS) {
+    const hours = Math.floor(left / ONE_HOUR_IN_MS);
+    return `${hours} ${hours === 1 ? 'hour' : 'hours'} left to join`;
+  }
+  return 'Less than an hour left to join';
+}
+
 export function isFull(group: Group): boolean {
   return group.memberIds.length >= MAX_MEMBERS;
 }

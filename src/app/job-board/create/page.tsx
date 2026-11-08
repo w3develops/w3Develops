@@ -14,6 +14,7 @@ import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import { UserProfile } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { notifySearchEngines } from '@/lib/notify-search-engines';
 
 export default function CreateJobPage() {
   const { user, isUserLoading } = useUser();
@@ -72,6 +73,7 @@ export default function CreateJobPage() {
     addDoc(jobsCollection, jobData)
         .then((newDocRef) => {
             toast({ title: "Success!", description: "Your job posting has been created." });
+            notifySearchEngines(`/job-board/${newDocRef.id}`);
             router.push(`/job-board/${newDocRef.id}`);
         })
         .catch(async (error) => {

@@ -1,33 +1,44 @@
-![w3Develops Social Banner](https://imgur.com/RUxbr2g.png)
-
-## Status
-
-<p style="text-align:center;">
-	  <a href="http://www.firsttimersonly.com/">
-    <img alt="First Timers Only Friendly" src="https://img.shields.io/badge/first--timers--only-friendly-blue.svg">
-  	 </a>
-	  <a href="http://makeapullrequest.com">
-    <img alt="Pull Requests Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat">
-  	  </a>
-	
-  <a href="https://discord.gg/ckQ52gA">
-	<img alt="Discord Chat" src="https://img.shields.io/badge/chat-online-green.svg?logo=discord">
-  </a>
-  <a href="https://www.patreon.com/w3develops">
-	<img alt="Contribute with w3Develops on Patreon" src="https://img.shields.io/badge/Patreon-contribute-yellow.svg">
-  </a>  
-  <a href="#backers">
-    <img alt="Backers on Open Collective" src="https://opencollective.com/w3develops/backers/badge.svg">
-  </a>
-  <a href="#sponsors">
-    <img alt="Sponsors on Open Collective" src="https://opencollective.com/w3develops/sponsors/badge.svg">
-  </a>
+<p align="center">
+  <a href="https://w3develops.org"><img src="public/landingpagelogo.png" width="200" height="200" alt="The w3Develops bonfire logo"></a>
 </p>
 
-# Welcome to W3Develops' open source codebase
-## What is W3Develops?
+<h1 align="center">w3Develops</h1>
 
-[W3Develops](https://w3develops.org/) is a community where like minded individuals can learn new technologies and build together to level up their knowledge and have projects to showcase to further their career. This website has many features and is continueously adding more such as a programmer meetup tracker, online and in person meetups, podcasts, video walkthroughs, study groups, building groups, a job board, internships, a forum, a social network, and more.
+<p align="center"><strong>A free, global developer community. Learn, build and connect with developers in every time zone.</strong></p>
+
+<p align="center">
+  <a href=".github/LICENSE"><img src="https://img.shields.io/badge/license-BSD--3-blue?style=flat-square" alt="License: BSD-3"></a>
+  <a href="http://makeapullrequest.com"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="Pull requests welcome"></a>
+  <a href="http://www.firsttimersonly.com/"><img src="https://img.shields.io/badge/first--timers--only-friendly-blue?style=flat-square" alt="First Timers Only friendly"></a>
+  <a href="https://discord.gg/ckQ52gA"><img src="https://img.shields.io/badge/discord-join%20chat-5865F2?style=flat-square&logo=discord&logoColor=white" alt="Discord"></a>
+  <a href="https://deepwiki.com/w3develops/w3Develops"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
+  <a href="#backers"><img src="https://opencollective.com/w3develops/backers/badge.svg" alt="Backers on Open Collective"></a>
+  <a href="#sponsors"><img src="https://opencollective.com/w3develops/sponsors/badge.svg" alt="Sponsors on Open Collective"></a>
+</p>
+
+<p align="center">
+  <a href="https://w3develops.org">Website</a> ·
+  <a href="https://w3develops.org/explore">Explore</a> ·
+  <a href="https://w3develops.org/faq">FAQ</a> ·
+  <a href="https://w3develops.org/contribute">Contribute</a> ·
+  <a href="https://deepwiki.com/w3develops/w3Develops">DeepWiki</a> ·
+  <a href="AGENTS.md">AGENTS.md</a>
+</p>
+
+<p align="center">
+  <a href="https://discord.gg/ckQ52gA">Discord</a> ·
+  <a href="https://x.com/w3develops">X</a> ·
+  <a href="https://www.youtube.com/w3Develops">YouTube</a> ·
+  <a href="https://www.linkedin.com/company/w3develops">LinkedIn</a> ·
+  <a href="https://bsky.app/profile/w3develops.bsky.social">Bluesky</a> ·
+  <a href="https://mastodon.social/@w3develops">Mastodon</a> ·
+  <a href="https://www.reddit.com/r/w3Develops/">Reddit</a> ·
+  <a href="https://medium.com/w3develops">Medium</a>
+</p>
+
+## What is w3Develops?
+
+[W3Develops](https://w3develops.org/) is a community where like minded individuals can learn new technologies and build together to level up their knowledge and have projects to showcase to further their career. This website has many features and is continuously adding more such as a programmer meetup tracker, online and in person meetups, podcasts, video walkthroughs, study groups, building groups, a job board, internships, a forum, a social network, and more.
 
 
 The goal of W3Develops is to provide a simple learning, collaborating, networking website for programmers.

@@ -52,13 +52,15 @@ function NewsItem({ item, user, userProfile }: { item: Post, user: User | null, 
         }
     };
 
+    // Posts on X credit w3Develops; Hacker News submissions use the article's own title
+    const xShareUrl = `https://x.com/intent/post?text=${encodeURIComponent(`${item.title} (via @w3develops)`)}&url=${encodeURIComponent(item.link)}`;
+    const hnShareUrl = `https://news.ycombinator.com/submitlink?u=${encodeURIComponent(item.link)}&t=${encodeURIComponent(item.title)}`;
+
     const handleShare = () => {
-        const text = `Check out this article from w3Develops: ${item.title}`;
-        const url = item.link;
         if (navigator.share) {
-            navigator.share({ title: item.title, text, url });
+            navigator.share({ title: item.title, text: `Check out this article from w3Develops: ${item.title}`, url: item.link }).catch(() => {});
         } else {
-            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`);
+            window.open(xShareUrl, '_blank', 'noopener,noreferrer');
         }
     };
 
@@ -76,6 +78,11 @@ function NewsItem({ item, user, userProfile }: { item: Post, user: User | null, 
                         </a>
                         <p className="text-sm text-muted-foreground">
                             <ZonedText render={tz => formatDate(item.isoDate, tz)} />
+                        </p>
+                        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                            <span>Share on</span>
+                            <a href={xShareUrl} target="_blank" rel="noopener noreferrer" className="font-medium hover:text-primary underline-offset-2 hover:underline">X</a>
+                            <a href={hnShareUrl} target="_blank" rel="noopener noreferrer" className="font-medium hover:text-primary underline-offset-2 hover:underline">Hacker News</a>
                         </p>
                     </div>
                     <div className="flex flex-col gap-2">

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { addDoc, collection, doc, DocumentReference, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
@@ -23,6 +24,7 @@ import { GROUP_KINDS, GroupKind, commitmentLabel } from '@/lib/groups';
 import { DAYS_OF_WEEK, browserTimeZone, describeSchedule, isValidTimeZone } from '@/lib/timezones';
 import { useBrowserTimeZone } from '@/lib/hooks/useClientValues';
 import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
+import { notifySearchEngines } from '@/lib/notify-search-engines';
 
 const KEEP = 'keep';
 const CUSTOM = 'custom';
@@ -119,6 +121,7 @@ export default function GroupForm({ kind, groupId }: { kind: GroupKind; groupId?
       if (isEditing) {
         await updateDoc(doc(firestore, config.collection, groupId), fields);
         toast({ title: 'Saved', description: `Your ${config.noun} has been updated.` });
+        notifySearchEngines(`${config.path}/${groupId}`);
         router.push(`${config.path}/${groupId}`);
       } else {
         const ref = await addDoc(collection(firestore, config.collection), {
@@ -128,6 +131,7 @@ export default function GroupForm({ kind, groupId }: { kind: GroupKind; groupId?
           createdAt: serverTimestamp(),
         });
         toast({ title: 'Success!', description: `Your ${config.title.toLowerCase()} has been created.` });
+        notifySearchEngines(`${config.path}/${ref.id}`);
         router.push(`${config.path}/${ref.id}`);
       }
     } catch {
@@ -224,7 +228,8 @@ export default function GroupForm({ kind, groupId }: { kind: GroupKind; groupId?
             </div>
             {days.length > 0 && startTime && timezone && (
               <p className="text-xs text-muted-foreground -mt-4">
-                Meets {describeSchedule(days, startTime, timezone, timezone)}. Members elsewhere see it in their own time.
+                Meets {describeSchedule(days, startTime, timezone, timezone)}. Members elsewhere see it in their own time
+                (compare zones with the <Link href="/time-converter" target="_blank" className="text-primary underline">time converter</Link>).
               </p>
             )}
 

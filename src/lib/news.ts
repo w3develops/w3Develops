@@ -15,6 +15,9 @@ export interface Post {
 // feeds again, and the cached copy expires with the edition.
 const MAX_POST_AGE_DAYS = 3;
 
+// Some feeds pad titles with line breaks and indentation
+const tidy = (text: string) => text.replace(/\s+/g, ' ').trim();
+
 const parser = new Parser({
     // The first visitor after each refresh time waits for the slowest feed.
     // Working feeds answer within about 2 seconds; this cuts off ones that hang.
@@ -40,11 +43,11 @@ export async function fetchRecentPosts(): Promise<Post[]> {
             return new Date(item.isoDate).getTime() > cutoff && item.title && item.link;
           })
           .map(item => ({
-            title: item.title!,
+            title: tidy(item.title!),
             link: item.link!,
             isoDate: item.isoDate!,
             // Extract a clean source name from the feed title or URL
-            source: feed.title?.trim() || new URL(feedUrl).hostname.replace(/^www\./, ''),
+            source: tidy(feed.title ?? '') || new URL(feedUrl).hostname.replace(/^www\./, ''),
             ...(featuredFeeds.includes(feedUrl) && { featured: true }),
           }));
         return posts;

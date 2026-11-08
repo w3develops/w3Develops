@@ -102,6 +102,11 @@ export const SITE_PAGES = {
     description: 'Test your skills in w3Develops community coding challenges. See active and upcoming competitions and submit your entry.',
     section: 'Events and challenges',
   },
+  '/time-converter': {
+    title: 'Time Zone Converter',
+    description: 'Find your offset from UTC and convert meeting times between time zones, so you can join study groups and events from anywhere.',
+    section: 'Events and challenges',
+  },
   '/hackathons': {
     title: 'Hackathons',
     description: 'Platforms where you can find, join and compete in online and in-person hackathons, including Major League Hacking.',
@@ -209,6 +214,11 @@ export const SITE_PAGES = {
   '/cookies': {
     title: 'Cookies',
     description: 'The few cookies and browser storage w3Develops uses, what each one is for, and how to turn them off.',
+    section: 'About and policies',
+  },
+  '/code-of-conduct': {
+    title: 'Code of Conduct',
+    description: 'How members treat each other on w3Develops: be kind, no harassment, trolling or spam, and how to report a problem.',
     section: 'About and policies',
   },
   '/warrant-canary': {

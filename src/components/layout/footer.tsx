@@ -105,6 +105,9 @@ export default function Footer() {
               <Link href="/contribute" className="text-primary hover:underline">Contribute</Link>
               <Link href="/careers" className="text-primary hover:underline">Careers</Link>
               <Link href="/faq" className="text-primary hover:underline">FAQ</Link>
+              <Link href="/code-of-conduct" className="text-primary hover:underline">Code of Conduct</Link>
+              <Link href="/time-converter" className="text-primary hover:underline">Time Converter</Link>
+              <Link href="/warrant-canary" className="text-primary hover:underline">Warrant Canary</Link>
             </div>
           </div>
 

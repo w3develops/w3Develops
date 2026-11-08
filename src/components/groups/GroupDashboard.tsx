@@ -17,6 +17,7 @@ import MemberList from '@/components/MemberList';
 import JoinButton from '@/components/JoinButton';
 import { formatTimestamp } from '@/lib/utils';
 import { Group } from '@/lib/types';
+import JoinTimeLeft from '@/components/groups/JoinTimeLeft';
 import { GROUP_KINDS, GroupKind, commitmentLabel, isOpenToJoin } from '@/lib/groups';
 import { timeZoneLabel } from '@/lib/timezones';
 import GroupSchedule from './GroupSchedule';
@@ -89,6 +90,7 @@ export default function GroupDashboard({ kind, groupId, initialGroup }: { kind: 
               {isOpenToJoin(group) ? <Badge>New</Badge> : <Badge variant="secondary">In Progress</Badge>}
             </div>
             <CardDescription>{group.description}</CardDescription>
+            <JoinTimeLeft group={group} />
           </div>
           <div className="flex flex-wrap gap-2 shrink-0">
             {!isMember && <JoinButton kind={kind} item={group} onJoinSuccess={() => {}} />}

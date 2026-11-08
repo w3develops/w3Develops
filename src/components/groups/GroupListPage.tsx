@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { formatTimestamp } from '@/lib/utils';
 import { useOneWeekAgo } from '@/lib/hooks/useClientValues';
+import JoinTimeLeft from '@/components/groups/JoinTimeLeft';
 import { Group } from '@/lib/types';
 import { GROUP_KINDS, GroupKind, MAX_MEMBERS, commitmentLabel, isOpenToJoin } from '@/lib/groups';
 import JoinButton from '@/components/JoinButton';
@@ -52,6 +53,7 @@ function GroupCard({ kind, group }: { kind: GroupKind; group: Group }) {
         <div>
           <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden">{group.description}</p>
           <div className="flex flex-col text-sm text-muted-foreground gap-2">
+            <JoinTimeLeft group={group} />
             <div className="flex items-center"><Users className="w-4 h-4 mr-2" /> {group.memberIds.length} / {MAX_MEMBERS} Members</div>
             <GroupSchedule group={group} />
             {commitmentLabel(group) && <Badge variant="outline" className="w-fit">{commitmentLabel(group)}</Badge>}

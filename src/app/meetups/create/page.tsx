@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import { zonedTimeToDate } from '@/lib/timezones';
 import { useBrowserTimeZone } from '@/lib/hooks/useClientValues';
 import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { getErrorMessage } from '@/lib/utils';
+import { notifySearchEngines } from '@/lib/notify-search-engines';
 
 export default function CreateMeetupPage() {
   const { user, isUserLoading } = useUser();
@@ -112,6 +114,7 @@ export default function CreateMeetupPage() {
       await batch.commit();
 
       toast({ title: "Success!", description: "Your new meetup has been created." });
+      notifySearchEngines(`/meetups/${newMeetupRef.id}`);
       router.push(`/meetups/${newMeetupRef.id}`);
     } catch (error) {
         toast({ variant: "destructive", title: "Could Not Create Meetup", description: getErrorMessage(error, "An unexpected error occurred.") });
@@ -177,6 +180,10 @@ export default function CreateMeetupPage() {
              <div className="grid gap-2">
                 <Label htmlFor="timezone">Time Zone</Label>
                 <TimezoneSelect id="timezone" value={timezone} onChange={setTimezone} />
+                <p className="text-xs text-muted-foreground">
+                  Members see this time in their own time zone. To compare zones yourself, use the 
+                  <Link href="/time-converter" target="_blank" className="text-primary underline">time converter</Link>.
+                </p>
             </div>
              <div className="grid gap-2">
                 <Label>Location Type</Label>

@@ -256,6 +256,10 @@ export const aiMachineLearningResources: LearningResource[] = [
         description: "Explore the world of Artificial Intelligence and Machine Learning with these curated resources, covering everything from beginner concepts to advanced applications.",
         links: [
             { title: "Kaggle Learn", url: "https://www.kaggle.com/learn" },
+            { title: "Hugging Face Learn", url: "https://huggingface.co/learn" },
+            { title: "Google Gemini Workshops (GitHub)", url: "https://github.com/google-gemini/workshops" },
+            { title: "Google GEAR - Gemini Enterprise Agent Ready", url: "https://developers.google.com/program/gear" },
+            { title: "Google Skills - Introduction to Agents and Google's Agent Ecosystem", url: "https://www.skills.google/paths/3546" },
             { title: "OpenML Education", url: "https://www.openml.org/" },
             { title: "Google Prompt Engineering Guide [PDF]", url: "https://www.gptaiflow.com/assets/files/2025-01-18-pdf-1-TechAI-Goolge-whitepaper_Prompt%20Engineering_v4-af36dcc7a49bb7269a58b1c9b89a8ae1.pdf" },
             { title: "GitHub - Machine Learning for Beginners", url: "https://github.com/collections/machine-learning" },
