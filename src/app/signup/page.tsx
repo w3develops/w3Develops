@@ -20,6 +20,7 @@ import { browserTimeZone } from '@/lib/timezones';
 import { useBrowserTimeZone } from '@/lib/hooks/useClientValues';
 import { getErrorMessage } from '@/lib/utils';
 import { RESERVED_USERNAMES } from '@/lib/usernames';
+import { Checkbox } from '@/components/ui/checkbox';
 
 function useDebounce(value: string, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -93,6 +94,8 @@ function SignupPageContent() {
   const timezone = chosenTimezone ?? browserTz;
   
   const [usernameError, setUsernameError] = useState<string | null>(null);
+  // New members confirm they meet the minimum age in the Terms of Use
+  const [isOldEnough, setIsOldEnough] = useState(false);
   const [isUsernameChecking, setIsUsernameChecking] = useState(false);
   const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,6 +114,8 @@ function SignupPageContent() {
   const isComplete = !!profile && !needsUsername;
   const isFinishing = !!user && profile !== undefined && !isComplete;
   const isReturning = isFinishing && !!profile;
+  // Members with a profile already confirmed their age when they joined
+  const needsAgeCheck = !isReturning;
 
   // Forget the last member's profile as soon as a different member signs in
   const [profileUid, setProfileUid] = useState(user?.uid);
@@ -172,6 +177,10 @@ function SignupPageContent() {
     e.preventDefault();
     if ((needsUsername && !username) || (needsTimezone && !timezone) || (!isFinishing && (!email || !password))) {
       toast({ variant: "destructive", title: "Missing fields", description: "Please fill out all fields." });
+      return;
+    }
+    if (needsAgeCheck && !isOldEnough) {
+      toast({ variant: "destructive", title: "Age requirement", description: "You need to be 13 or older to join w3Develops." });
       return;
     }
     
@@ -324,7 +333,21 @@ function SignupPageContent() {
                 <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} disabled={isSubmitting} />
               </div>
               </>}
-              <Button type="submit" className="w-full" disabled={isSubmitting || (needsUsername && !isUsernameAvailable) || (needsTimezone && !timezone)}>
+
+              {needsAgeCheck && (
+              <div className="flex items-start gap-2">
+                <Checkbox id="ageConfirm" checked={isOldEnough} onCheckedChange={checked => setIsOldEnough(!!checked)} disabled={isSubmitting} aria-describedby="ageConfirmNote" className="mt-0.5" />
+                <div className="grid gap-1">
+                  <Label htmlFor="ageConfirm" className="text-sm font-normal leading-snug">I&apos;m 13 or older</Label>
+                  <p id="ageConfirmNote" className="text-xs text-muted-foreground">
+                    Members must be at least 13, as our{' '}
+                    <Link href="/terms" target="_blank" className="underline">Terms of Use</Link> say.
+                  </p>
+                </div>
+              </div>
+              )}
+
+              <Button type="submit" className="w-full" disabled={isSubmitting || (needsUsername && !isUsernameAvailable) || (needsTimezone && !timezone) || (needsAgeCheck && !isOldEnough)}>
                 {isSubmitting ? 'Creating Account...' : isFinishing ? 'Finish' : 'Create Account'}
               </Button>
             </form>
