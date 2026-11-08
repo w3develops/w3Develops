@@ -18,7 +18,7 @@ import JoinButton from '@/components/JoinButton';
 import { formatTimestamp } from '@/lib/utils';
 import { Group } from '@/lib/types';
 import JoinTimeLeft from '@/components/groups/JoinTimeLeft';
-import { GROUP_KINDS, GroupKind, commitmentLabel, isOpenToJoin } from '@/lib/groups';
+import { GROUP_KINDS, GroupKind, commitmentLabel, isNew, isOpenToJoin } from '@/lib/groups';
 import { timeZoneLabel } from '@/lib/timezones';
 import GroupSchedule from './GroupSchedule';
 import ZonedText from '@/components/ZonedText';
@@ -87,7 +87,7 @@ export default function GroupDashboard({ kind, groupId, initialGroup }: { kind: 
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-4">
               <CardTitle as="h1" className="font-headline text-3xl">{group.name}</CardTitle>
-              {isOpenToJoin(group) ? <Badge>New</Badge> : <Badge variant="secondary">In Progress</Badge>}
+              {isNew(group) ? <Badge>New</Badge> : <Badge variant="secondary">In Progress</Badge>}
             </div>
             <CardDescription>{group.description}</CardDescription>
             <JoinTimeLeft group={group} />

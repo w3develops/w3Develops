@@ -13,7 +13,7 @@ import { formatTimestamp } from '@/lib/utils';
 import { useOneWeekAgo } from '@/lib/hooks/useClientValues';
 import JoinTimeLeft from '@/components/groups/JoinTimeLeft';
 import { Group } from '@/lib/types';
-import { GROUP_KINDS, GroupKind, MAX_MEMBERS, commitmentLabel, isOpenToJoin } from '@/lib/groups';
+import { GROUP_KINDS, GroupKind, MAX_MEMBERS, commitmentLabel, isNew, isOpenToJoin } from '@/lib/groups';
 import JoinButton from '@/components/JoinButton';
 import FindGroupModal from './FindGroupModal';
 import GroupSchedule from './GroupSchedule';
@@ -45,7 +45,7 @@ function GroupCard({ kind, group }: { kind: GroupKind; group: Group }) {
           <Link href={`${config.path}/${group.id}`} className="hover:underline">
             <CardTitle>{group.name}</CardTitle>
           </Link>
-          {open ? <Badge>New</Badge> : <Badge variant="secondary">In Progress</Badge>}
+          {isNew(group) ? <Badge>New</Badge> : <Badge variant="secondary">In Progress</Badge>}
         </div>
         <Badge variant="secondary" className="w-fit">{group.topic}</Badge>
       </CardHeader>

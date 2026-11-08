@@ -20,7 +20,7 @@ import NameSearchInput from '@/components/NameSearchInput';
 import TimezoneSelect from '@/components/TimezoneSelect';
 import { topics } from '@/lib/constants';
 import { Group, UserProfile } from '@/lib/types';
-import { GROUP_KINDS, GroupKind, commitmentLabel } from '@/lib/groups';
+import { GROUP_KINDS, GroupKind, MAX_MEMBERS, commitmentLabel } from '@/lib/groups';
 import { DAYS_OF_WEEK, browserTimeZone, describeSchedule, isValidTimeZone } from '@/lib/timezones';
 import { useBrowserTimeZone } from '@/lib/hooks/useClientValues';
 import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
@@ -52,6 +52,7 @@ export default function GroupForm({ kind, groupId }: { kind: GroupKind; groupId?
   const [customTopic, setCustomTopic] = useState('');
   const [description, setDescription] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
+  const [openToJoinAnytime, setOpenToJoinAnytime] = useState(false);
   const [hourOption, setHourOption] = useState<string>(config.hourOptions[1]);
   const [customHours, setCustomHours] = useState('');
   const [days, setDays] = useState<string[]>([]);
@@ -77,6 +78,7 @@ export default function GroupForm({ kind, groupId }: { kind: GroupKind; groupId?
         if (topics.includes(g.topic)) setTopic(g.topic); else { setTopic('Other'); setCustomTopic(g.topic); }
         setDescription(g.description || '');
         setGithubUrl(g.githubUrl || '');
+        setOpenToJoinAnytime(!!g.openToJoinAnytime);
         const hours = commitmentLabel(g).match(/^(\d+)hr\/day$/)?.[1];
         if (!commitmentLabel(g)) setHourOption(config.hourOptions[1]);
         else if (hours && (config.hourOptions as readonly string[]).includes(hours)) setHourOption(hours);
@@ -115,6 +117,7 @@ export default function GroupForm({ kind, groupId }: { kind: GroupKind; groupId?
       startTime,
       timezone,
       ...(config.hasGithub ? { githubUrl: githubUrl.trim() } : {}),
+      ...(config.canStayOpen ? { openToJoinAnytime } : {}),
     };
 
     try {
@@ -237,6 +240,18 @@ export default function GroupForm({ kind, groupId }: { kind: GroupKind; groupId?
               <div className="grid gap-2">
                 <Label htmlFor="githubUrl">GitHub Repository (optional)</Label>
                 <Input id="githubUrl" type="url" placeholder="https://github.com/your/repo" value={githubUrl} onChange={e => setGithubUrl(e.target.value)} />
+              </div>
+            )}
+
+            {config.canStayOpen && (
+              <div className="flex items-start gap-3 rounded-md border p-3">
+                <Checkbox id="openToJoinAnytime" checked={openToJoinAnytime} onCheckedChange={checked => setOpenToJoinAnytime(!!checked)} className="mt-0.5" />
+                <div className="grid gap-1">
+                  <Label htmlFor="openToJoinAnytime">Open to join anytime</Label>
+                  <p className="text-xs text-muted-foreground">
+                    New members can join after the first week too, up to {MAX_MEMBERS} members. Leave it off to read together as a fixed group.
+                  </p>
+                </div>
               </div>
             )}
 

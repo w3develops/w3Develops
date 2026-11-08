@@ -39,22 +39,32 @@ service cloud.firestore {
       return data.name is string && data.name.size() > 0 && data.name.size() <= 75
              && data.topic is string && data.topic.size() > 0 && data.topic.size() <= 50
              && data.description is string && data.description.size() <= 500
-             && data.commitmentDays is list && data.commitmentDays.size() > 0 && data.commitmentDays.size() <= 7;
+             && data.commitmentDays is list && data.commitmentDays.size() > 0 && data.commitmentDays.size() <= 7
+             && (!('openToJoinAnytime' in data) || data.openToJoinAnytime is bool);
+    }
+
+    // Only book clubs can stay open to join after their first week
+    function hasNoAnytimeJoin() {
+      return !('openToJoinAnytime' in request.resource.data);
     }
 
     function canCreateGroup() {
       return isVerified()
              && request.resource.data.creatorId == request.auth.uid
              && request.resource.data.memberIds == [request.auth.uid]
+             // The real time, so the one-week join window can't be stretched
+             && request.resource.data.createdAt == request.time
              && isValidGroup(request.resource.data);
     }
 
-    // Joining adds only yourself, during the first week, while there's room
+    // Joining adds only yourself, while there's room, during the first week
+    // or any time for a book club that stays open
     function isJoiningGroup() {
       return isVerified()
              && changedKeys().hasOnly(['memberIds'])
              && resource.data.memberIds.size() < 25
-             && request.time - resource.data.createdAt < duration.value(7, 'd')
+             && (request.time - resource.data.createdAt < duration.value(7, 'd')
+                 || resource.data.get('openToJoinAnytime', false) == true)
              && isAddingSelfToList(request.resource.data.memberIds, resource.data.memberIds);
     }
 
@@ -68,7 +78,7 @@ service cloud.firestore {
     function isEditingGroup() {
       return isVerified()
              && resource.data.creatorId == request.auth.uid
-             && changedKeys().hasOnly(['name', 'name_lowercase', 'topic', 'description', 'commitment', 'commitmentDays', 'startTime', 'timezone', 'githubUrl'])
+             && changedKeys().hasOnly(['name', 'name_lowercase', 'topic', 'description', 'commitment', 'commitmentDays', 'startTime', 'timezone', 'githubUrl', 'openToJoinAnytime'])
              && isValidGroup(request.resource.data);
     }
 
@@ -450,8 +460,8 @@ service cloud.firestore {
 
     match /studyGroups/{groupId} {
       allow read: if true;
-      allow create: if canCreateGroup();
-      allow update: if isJoiningGroup() || isLeavingGroup() || isEditingGroup();
+      allow create: if canCreateGroup() && hasNoAnytimeJoin();
+      allow update: if (isJoiningGroup() || isLeavingGroup() || isEditingGroup()) && hasNoAnytimeJoin();
       allow delete: if request.auth != null && resource.data.creatorId == request.auth.uid;
 
       match /tasks/{taskId} {
@@ -500,8 +510,8 @@ service cloud.firestore {
 
     match /groupProjects/{groupProjectId} {
       allow read: if true;
-      allow create: if canCreateGroup();
-      allow update: if isJoiningGroup() || isLeavingGroup() || isEditingGroup();
+      allow create: if canCreateGroup() && hasNoAnytimeJoin();
+      allow update: if (isJoiningGroup() || isLeavingGroup() || isEditingGroup()) && hasNoAnytimeJoin();
       allow delete: if request.auth != null && resource.data.creatorId == request.auth.uid;
 
       match /tasks/{taskId} {

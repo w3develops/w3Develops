@@ -33,10 +33,21 @@ export default function FindGroupModal({ kind, isOpen, onClose }: { kind: GroupK
     return query(collection(firestore, config.collection), where('createdAt', '>', Timestamp.fromMillis(oneWeekAgo)), orderBy('createdAt', 'desc')) as Query<Group>;
   }, [isOpen, oneWeekAgo, firestore, config.collection]);
 
-  const { data: openGroups, isLoading: isQueryLoading } = useCollection<Group>(openGroupsQuery);
-  const isLoading = isQueryLoading || oneWeekAgo === null;
+  // Book clubs that stay open to join after their first week
+  const anytimeQuery = useMemo(() => {
+    if (!isOpen || !config.canStayOpen) return null;
+    return query(collection(firestore, config.collection), where('openToJoinAnytime', '==', true)) as Query<Group>;
+  }, [isOpen, firestore, config.collection, config.canStayOpen]);
 
-  const matches = useMemo(() => (openGroups || []).filter(g =>
+  const { data: newGroups, isLoading: isQueryLoading } = useCollection<Group>(openGroupsQuery);
+  const { data: anytimeGroups, isLoading: isAnytimeLoading } = useCollection<Group>(anytimeQuery);
+  const isLoading = isQueryLoading || isAnytimeLoading || oneWeekAgo === null;
+  const openGroups = useMemo(() => {
+    const newIds = new Set((newGroups || []).map(g => g.id));
+    return [...(newGroups || []), ...(anytimeGroups || []).filter(g => !newIds.has(g.id))];
+  }, [newGroups, anytimeGroups]);
+
+  const matches = useMemo(() => openGroups.filter(g =>
     !isFull(g) && (!user || !g.memberIds.includes(user.uid)) && (topic === ANY_TOPIC || g.topic === topic)
   ), [openGroups, user, topic]);
 
@@ -51,7 +62,7 @@ export default function FindGroupModal({ kind, isOpen, onClose }: { kind: GroupK
         <DialogHeader>
           <DialogTitle>Join a {config.title}</DialogTitle>
           <DialogDescription>
-            {config.plural} take new members during their first week. Pick a topic to see which ones are open.
+            {config.plural} take new members during their first week{config.canStayOpen ? ', and some stay open to join anytime' : ''}. Pick a topic to see which ones are open.
           </DialogDescription>
         </DialogHeader>
 
