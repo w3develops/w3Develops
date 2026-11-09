@@ -12,3 +12,11 @@ export const firebaseConfig = {
   appId: "1:690553774369:web:c92428e5e77642aa981e60",
   measurementId: "G-4X3H3B54J2"
 };
+
+/**
+ * The reCAPTCHA Enterprise site key for App Check, which proves requests
+ * come from the real site. Site keys are public by design. While it's empty,
+ * App Check stays off. Created in Google Cloud > Security > reCAPTCHA and
+ * registered in Firebase > App Check.
+ */
+export const appCheckSiteKey = '6LcdEhcuAAAAABy1Ash957vSbGANVrBJgBjKhjBU';

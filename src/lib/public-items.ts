@@ -1,16 +1,17 @@
 // Server code only: import it from server pages, never from 'use client' files
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
-import { collection, doc, getDoc, getDocs, limit, orderBy, query, Timestamp, where, type QueryConstraint } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase/initialize-app';
+import type { Timestamp } from 'firebase/firestore';
+import { readDoc, readList } from '@/lib/server-db';
 import { toPlain } from '@/firebase/firestore/plain';
 import { SITE_NAME, sharePreview } from '@/lib/site-pages';
 
 // Study groups, projects, meetups and the like are public, so their pages are
 // rendered with real content on the server: search engines and AI crawlers
 // can read them, and visitors see them straight away. The browser then
-// switches to the live copy. Fetches go through the site's own Firebase setup,
-// as an anonymous reader, so the Firestore rules decide what's public.
+// switches to the live copy. Reads go through src/lib/server-db.ts, which
+// uses the Admin SDK on Google Cloud and so skips the Firestore rules: only
+// read collections that are public to everyone, and pick public fields only.
 
 /** The public item pages, by Firestore collection, and where each lives */
 export const PUBLIC_ITEM_PAGES = {
@@ -32,9 +33,9 @@ class ItemNotFound extends Error {}
 // a moment ago shows up as soon as someone opens it
 const fetchItem = unstable_cache(
   async (collectionName: PublicCollection, id: string) => {
-    const snap = await getDoc(doc(initializeFirebase().firestore, collectionName, id));
-    if (!snap.exists()) throw new ItemNotFound();
-    return toPlain({ ...snap.data(), id: snap.id }) as Record<string, unknown>;
+    const item = await readDoc(collectionName, id);
+    if (!item) throw new ItemNotFound();
+    return toPlain({ ...item.data, id: item.id }) as Record<string, unknown>;
   },
   ['public-item'],
   { revalidate: ITEM_CACHE_SECONDS },
@@ -60,10 +61,10 @@ const PUBLIC_PROFILE_FIELDS = [
 
 const fetchProfile = unstable_cache(
   async (userId: string) => {
-    const snap = await getDoc(doc(initializeFirebase().firestore, 'users', userId));
-    if (!snap.exists()) throw new ItemNotFound();
-    const data = snap.data();
-    const profile: Record<string, unknown> = { id: snap.id };
+    const member = await readDoc('users', userId);
+    if (!member) throw new ItemNotFound();
+    const data = member.data;
+    const profile: Record<string, unknown> = { id: member.id };
     for (const field of PUBLIC_PROFILE_FIELDS) {
       if (data[field] !== undefined) profile[field] = data[field];
     }
@@ -113,11 +114,13 @@ export interface PublicListQuery {
 
 const fetchList = unstable_cache(
   async (list: PublicListQuery) => {
-    const constraints: QueryConstraint[] = [];
-    if (list.after) constraints.push(where(list.after.field, list.after.op, Timestamp.fromMillis(list.after.millis)));
-    constraints.push(orderBy(list.orderBy, list.direction), limit(list.limit));
-    const snap = await getDocs(query(collection(initializeFirebase().firestore, list.collection), ...constraints));
-    return snap.docs.map(item => toPlain({ ...item.data(), id: item.id }));
+    const docs = await readList({
+      collection: list.collection,
+      where: list.after,
+      orderBy: { field: list.orderBy, direction: list.direction },
+      limit: list.limit,
+    });
+    return docs.map(item => toPlain({ ...item.data, id: item.id }));
   },
   ['public-list'],
   { revalidate: ITEM_CACHE_SECONDS },
@@ -172,13 +175,12 @@ const SITEMAP_LIMIT_PER_COLLECTION = 1000;
 /** Every public item page and member profile, with when it last changed where that's known */
 export const listPublicItemPages = unstable_cache(
   async (): Promise<{ path: string; lastModified?: string }[]> => {
-    const firestore = initializeFirebase().firestore;
     const pages: { path: string; lastModified?: string }[] = [];
     for (const [collectionName, basePath] of Object.entries(PUBLIC_ITEM_PAGES)) {
       try {
-        const snap = await getDocs(query(collection(firestore, collectionName), limit(SITEMAP_LIMIT_PER_COLLECTION)));
-        for (const item of snap.docs) {
-          const data = item.data();
+        const items = await readList({ collection: collectionName, limit: SITEMAP_LIMIT_PER_COLLECTION });
+        for (const item of items) {
+          const data = item.data;
           const changed = (data.updatedAt ?? data.createdAt) as Timestamp | undefined;
           pages.push({
             path: `${basePath}/${item.id}`,
@@ -192,9 +194,9 @@ export const listPublicItemPages = unstable_cache(
     // Member profiles that say something about the member. Profiles have no
     // "last changed" date, so none is given.
     try {
-      const snap = await getDocs(query(collection(firestore, 'users'), limit(SITEMAP_LIMIT_PER_COLLECTION)));
-      for (const member of snap.docs) {
-        if (profileHasContent(member.data())) pages.push({ path: `/users/${member.id}` });
+      const members = await readList({ collection: 'users', limit: SITEMAP_LIMIT_PER_COLLECTION });
+      for (const member of members) {
+        if (profileHasContent(member.data)) pages.push({ path: `/users/${member.id}` });
       }
     } catch (error) {
       console.warn('Could not list member profiles for the sitemap:', error);
