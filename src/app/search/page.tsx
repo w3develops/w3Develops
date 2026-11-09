@@ -2,7 +2,8 @@
 'use client';
 
 import { Suspense, useMemo, useState } from 'react';
-import { useOneWeekAgo } from '@/lib/hooks/useClientValues';
+import { useNow } from '@/lib/hooks/useClientValues';
+import { isNew as isGroupNew } from '@/lib/groups';
 import { useSearchParams } from 'next/navigation';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, where, orderBy, limit, Query, DocumentData } from 'firebase/firestore';
@@ -43,7 +44,8 @@ function SearchResultsSkeleton() {
 
 function SearchResults() {
   // Unknown until the page runs in the browser, so no "New" badges before then
-  const oneWeekAgo = useOneWeekAgo();
+  // "New" groups haven't started yet; known once the page runs in the browser
+  const now = useNow();
   const searchParams = useSearchParams();
   const q = searchParams.get('q');
   const firestore = useFirestore();
@@ -191,7 +193,7 @@ function SearchResults() {
                 {filteredGroups.length > 0 ? (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {filteredGroups.map(group => {
-                        const isNew = oneWeekAgo !== null && !!group.createdAt && group.createdAt.toMillis() > oneWeekAgo;
+                        const isNew = now !== null && isGroupNew(group, now);
                         return (
                             <Link href={`/studygroups/${group.id}`} key={group.id}>
                             <Card className="hover:bg-accent transition-colors h-full flex flex-col">
@@ -224,7 +226,7 @@ function SearchResults() {
                 {filteredBookClubs.length > 0 ? (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {filteredBookClubs.map(club => {
-                        const isNew = oneWeekAgo !== null && !!club.createdAt && club.createdAt.toMillis() > oneWeekAgo;
+                        const isNew = now !== null && isGroupNew(club, now);
                         return (
                             <Link href={`/book-clubs/${club.id}`} key={club.id}>
                             <Card className="hover:bg-accent transition-colors h-full flex flex-col">
@@ -257,7 +259,7 @@ function SearchResults() {
                 {filteredGroupProjects.length > 0 ? (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {filteredGroupProjects.map(groupProject => {
-                        const isNew = oneWeekAgo !== null && !!groupProject.createdAt && groupProject.createdAt.toMillis() > oneWeekAgo;
+                        const isNew = now !== null && isGroupNew(groupProject, now);
                         return (
                         <Link href={`/groupprojects/${groupProject.id}`} key={groupProject.id}>
                             <Card className="hover:bg-accent transition-colors h-full flex flex-col">

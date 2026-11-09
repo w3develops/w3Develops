@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { addDoc, collection, doc, DocumentReference, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { ChevronDown, Clock } from 'lucide-react';
+import { addDoc, collection, deleteField, doc, DocumentReference, getDoc, serverTimestamp, Timestamp, updateDoc } from 'firebase/firestore';
+import { CalendarDays, ChevronDown, Clock } from 'lucide-react';
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -18,10 +18,10 @@ import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerT
 import { LoadingSkeleton } from '@/components/layout/loading-skeleton';
 import NameSearchInput from '@/components/NameSearchInput';
 import TimezoneSelect from '@/components/TimezoneSelect';
-import { topics } from '@/lib/constants';
+import { MAX_START_DAYS, topics } from '@/lib/constants';
 import { Group, UserProfile } from '@/lib/types';
 import { GROUP_KINDS, GroupKind, MAX_MEMBERS, commitmentLabel } from '@/lib/groups';
-import { DAYS_OF_WEEK, browserTimeZone, describeSchedule, isValidTimeZone } from '@/lib/timezones';
+import { DAYS_OF_WEEK, browserTimeZone, dateIn, describeSchedule, isValidTimeZone, todayIn, zonedTimeToDate } from '@/lib/timezones';
 import { useBrowserTimeZone } from '@/lib/hooks/useClientValues';
 import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { notifySearchEngines } from '@/lib/notify-search-engines';
@@ -57,6 +57,9 @@ export default function GroupForm({ kind, groupId }: { kind: GroupKind; groupId?
   const [customHours, setCustomHours] = useState('');
   const [days, setDays] = useState<string[]>([]);
   const [startTime, setStartTime] = useState('18:00');
+  // Optional first meeting, "YYYY-MM-DD" in the group's time zone; members can join until then
+  const [startDate, setStartDate] = useState('');
+  const [loadedStartDate, setLoadedStartDate] = useState('');
   // New groups default to the member's saved timezone, else the browser's;
   // editing loads the group's own timezone below
   const [chosenTimezone, setTimezone] = useState<string | null>(null);
@@ -87,6 +90,9 @@ export default function GroupForm({ kind, groupId }: { kind: GroupKind; groupId?
         setDays(g.commitmentDays || []);
         setStartTime(g.startTime || '18:00');
         setTimezone(isValidTimeZone(g.timezone) ? g.timezone : browserTimeZone());
+        const loaded = g.startDate && isValidTimeZone(g.timezone) ? dateIn(g.startDate.toDate(), g.timezone) : '';
+        setStartDate(loaded);
+        setLoadedStartDate(loaded);
       }
       setIsLoaded(true);
     });
@@ -104,9 +110,30 @@ export default function GroupForm({ kind, groupId }: { kind: GroupKind; groupId?
       toast({ variant: 'destructive', title: 'Missing fields', description: 'Please fill in the name, topic, hours, meeting days and time.' });
       return;
     }
+    // The first meeting: the start date at the start time, in the group's time zone
+    const firstMeeting = startDate ? zonedTimeToDate(startDate, startTime, timezone) : null;
+    // Unchanged if it's the same moment, or the host left the date alone on a
+    // group that has already started (so editing its meeting time still works)
+    const savedStart = existing?.startDate?.toMillis();
+    const startUnchanged = !!firstMeeting && savedStart !== undefined
+      && (savedStart === firstMeeting.getTime() || (startDate === loadedStartDate && savedStart <= Date.now()));
+    if (firstMeeting && !startUnchanged) {
+      if (firstMeeting.getTime() <= Date.now()) {
+        toast({ variant: 'destructive', title: 'Pick a later start date', description: 'The first meeting has to be in the future.' });
+        return;
+      }
+      if (firstMeeting.getTime() > Date.now() + MAX_START_DAYS * 24 * 60 * 60 * 1000) {
+        toast({ variant: 'destructive', title: 'Pick an earlier start date', description: `The first meeting can be up to ${MAX_START_DAYS} days away.` });
+        return;
+      }
+    }
     if (!ensureVerified()) return;
     setIsSubmitting(true);
 
+    // A new or changed start date is saved; clearing it removes it
+    const startDateField = firstMeeting
+      ? (startUnchanged ? {} : { startDate: Timestamp.fromDate(firstMeeting) })
+      : (isEditing && existing?.startDate ? { startDate: deleteField() } : {});
     const fields = {
       name: name.trim(),
       name_lowercase: name.trim().toLowerCase(),
@@ -118,6 +145,7 @@ export default function GroupForm({ kind, groupId }: { kind: GroupKind; groupId?
       timezone,
       ...(config.hasGithub ? { githubUrl: githubUrl.trim() } : {}),
       ...(config.canStayOpen ? { openToJoinAnytime } : {}),
+      ...startDateField,
     };
 
     try {
@@ -236,6 +264,22 @@ export default function GroupForm({ kind, groupId }: { kind: GroupKind; groupId?
               </p>
             )}
 
+            <div className="grid gap-2">
+              <Label htmlFor="startDate" className="flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Start Date (optional)</Label>
+              <Input
+                id="startDate"
+                type="date"
+                value={startDate}
+                min={timezone ? todayIn(timezone) : undefined}
+                onChange={e => setStartDate(e.target.value)}
+                className="sm:max-w-xs"
+              />
+              <p className="text-xs text-muted-foreground">
+                Members can join until the first meeting on this date, up to {MAX_START_DAYS} days away. Leave it empty
+                to start two weeks after the {config.noun} is created.
+              </p>
+            </div>
+
             {config.hasGithub && (
               <div className="grid gap-2">
                 <Label htmlFor="githubUrl">GitHub Repository (optional)</Label>
@@ -249,7 +293,7 @@ export default function GroupForm({ kind, groupId }: { kind: GroupKind; groupId?
                 <div className="grid gap-1">
                   <Label htmlFor="openToJoinAnytime">Open to join anytime</Label>
                   <p className="text-xs text-muted-foreground">
-                    New members can join after the first week too, up to {MAX_MEMBERS} members. Leave it off to read together as a fixed group.
+                    New members can join after the club starts too, up to {MAX_MEMBERS} members. Leave it off to read together as a fixed group.
                   </p>
                 </div>
               </div>

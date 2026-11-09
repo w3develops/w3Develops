@@ -40,7 +40,15 @@ service cloud.firestore {
              && data.topic is string && data.topic.size() > 0 && data.topic.size() <= 50
              && data.description is string && data.description.size() <= 500
              && data.commitmentDays is list && data.commitmentDays.size() > 0 && data.commitmentDays.size() <= 7
-             && (!('openToJoinAnytime' in data) || data.openToJoinAnytime is bool);
+             && (!('openToJoinAnytime' in data) || data.openToJoinAnytime is bool)
+             && (!('startDate' in data) || data.startDate is timestamp);
+    }
+
+    // A start date being set must be ahead, and at most 90 days away
+    // (MAX_START_DAYS in src/lib/constants.ts)
+    function isAllowedStartDate(data) {
+      return !('startDate' in data)
+             || (data.startDate > request.time && data.startDate < request.time + duration.value(90, 'd'));
     }
 
     // Only book clubs can stay open to join after their first week
@@ -52,18 +60,22 @@ service cloud.firestore {
       return isVerified()
              && request.resource.data.creatorId == request.auth.uid
              && request.resource.data.memberIds == [request.auth.uid]
-             // The real time, so the one-week join window can't be stretched
+             // The real time, so the join window can't be stretched
              && request.resource.data.createdAt == request.time
-             && isValidGroup(request.resource.data);
+             && isValidGroup(request.resource.data)
+             && isAllowedStartDate(request.resource.data);
     }
 
-    // Joining adds only yourself, while there's room, during the first week
-    // or any time for a book club that stays open
+    // Joining adds only yourself, while there's room, until the group starts
+    // (its start date, or two weeks after it was created; see joinDeadline in
+    // src/lib/groups.ts), or any time for a book club that stays open
     function isJoiningGroup() {
       return isVerified()
              && changedKeys().hasOnly(['memberIds'])
              && resource.data.memberIds.size() < 25
-             && (request.time - resource.data.createdAt < duration.value(7, 'd')
+             && ((('startDate' in resource.data)
+                    ? request.time < resource.data.startDate
+                    : request.time - resource.data.createdAt < duration.value(14, 'd'))
                  || resource.data.get('openToJoinAnytime', false) == true)
              && isAddingSelfToList(request.resource.data.memberIds, resource.data.memberIds);
     }
@@ -78,8 +90,10 @@ service cloud.firestore {
     function isEditingGroup() {
       return isVerified()
              && resource.data.creatorId == request.auth.uid
-             && changedKeys().hasOnly(['name', 'name_lowercase', 'topic', 'description', 'commitment', 'commitmentDays', 'startTime', 'timezone', 'githubUrl', 'openToJoinAnytime'])
-             && isValidGroup(request.resource.data);
+             && changedKeys().hasOnly(['name', 'name_lowercase', 'topic', 'description', 'commitment', 'commitmentDays', 'startTime', 'timezone', 'githubUrl', 'openToJoinAnytime', 'startDate'])
+             && isValidGroup(request.resource.data)
+             // A new start date must be ahead; an unchanged one can be in the past
+             && (!changedKeys().hasAny(['startDate']) || isAllowedStartDate(request.resource.data));
     }
 
     function isValidNewCheckIn() {

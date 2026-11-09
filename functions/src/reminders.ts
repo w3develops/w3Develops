@@ -1,5 +1,5 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { writeFeed, type FeedEntry } from './feed.js';
 import { GROUP_KINDS } from './groups.js';
 import { getPrefs } from './prefs.js';
@@ -20,12 +20,14 @@ export const meetingReminders = onSchedule({ schedule: `every ${RUN_EVERY_MINUTE
   const to = now + (LEAD_MINUTES + RUN_EVERY_MINUTES) * 60_000;
 
   for (const [collection, kind] of Object.entries(GROUP_KINDS)) {
-    const groups = await db.collection(collection).select('name', 'memberIds', 'commitmentDays', 'startTime', 'timezone').get();
+    const groups = await db.collection(collection).select('name', 'memberIds', 'commitmentDays', 'startTime', 'timezone', 'startDate').get();
     for (const group of groups.docs) {
-      const { name, memberIds, commitmentDays, startTime, timezone } = group.data();
+      const { name, memberIds, commitmentDays, startTime, timezone, startDate } = group.data();
+      // Groups with a start date don't meet before it
+      const firstMeeting = startDate instanceof Timestamp ? startDate.toMillis() : 0;
       if (!Array.isArray(memberIds) || memberIds.length === 0 || !Array.isArray(commitmentDays)
         || typeof startTime !== 'string' || !isValidTimeZone(timezone)) continue;
-      const start = meetingsAround(now, commitmentDays, startTime, timezone).find(t => t > from && t <= to);
+      const start = meetingsAround(now, commitmentDays, startTime, timezone).find(t => t > from && t <= to && t >= firstMeeting);
       if (start === undefined) continue;
 
       const prefs = await getPrefs(memberIds);

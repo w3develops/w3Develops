@@ -10,9 +10,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { topics } from '@/lib/constants';
-import { useOneWeekAgo } from '@/lib/hooks/useClientValues';
+import { useJoinWindowStart } from '@/lib/hooks/useClientValues';
+import { JOIN_WINDOW_MS } from '@/lib/constants';
 import { Group } from '@/lib/types';
-import { GROUP_KINDS, GroupKind, MAX_MEMBERS, commitmentLabel, isFull } from '@/lib/groups';
+import { GROUP_KINDS, GroupKind, MAX_MEMBERS, commitmentLabel, isFull, isOpenToJoin } from '@/lib/groups';
 import JoinButton from '@/components/JoinButton';
 import GroupSchedule from './GroupSchedule';
 
@@ -27,25 +28,34 @@ export default function FindGroupModal({ kind, isOpen, onClose }: { kind: GroupK
   const router = useRouter();
   const [topic, setTopic] = useState(ANY_TOPIC);
 
-  const oneWeekAgo = useOneWeekAgo();
+  const windowStart = useJoinWindowStart();
   const openGroupsQuery = useMemo(() => {
-    if (!isOpen || oneWeekAgo === null) return null;
-    return query(collection(firestore, config.collection), where('createdAt', '>', Timestamp.fromMillis(oneWeekAgo)), orderBy('createdAt', 'desc')) as Query<Group>;
-  }, [isOpen, oneWeekAgo, firestore, config.collection]);
+    if (!isOpen || windowStart === null) return null;
+    return query(collection(firestore, config.collection), where('createdAt', '>', Timestamp.fromMillis(windowStart)), orderBy('createdAt', 'desc')) as Query<Group>;
+  }, [isOpen, windowStart, firestore, config.collection]);
 
-  // Book clubs that stay open to join after their first week
+  // Older groups whose start date is still ahead
+  const upcomingQuery = useMemo(() => {
+    if (!isOpen || windowStart === null) return null;
+    return query(collection(firestore, config.collection), where('startDate', '>', Timestamp.fromMillis(windowStart + JOIN_WINDOW_MS))) as Query<Group>;
+  }, [isOpen, windowStart, firestore, config.collection]);
+
+  // Book clubs that stay open to join after they start
   const anytimeQuery = useMemo(() => {
     if (!isOpen || !config.canStayOpen) return null;
     return query(collection(firestore, config.collection), where('openToJoinAnytime', '==', true)) as Query<Group>;
   }, [isOpen, firestore, config.collection, config.canStayOpen]);
 
   const { data: newGroups, isLoading: isQueryLoading } = useCollection<Group>(openGroupsQuery);
+  const { data: upcomingGroups, isLoading: isUpcomingLoading } = useCollection<Group>(upcomingQuery);
   const { data: anytimeGroups, isLoading: isAnytimeLoading } = useCollection<Group>(anytimeQuery);
-  const isLoading = isQueryLoading || isAnytimeLoading || oneWeekAgo === null;
+  const isLoading = isQueryLoading || isUpcomingLoading || isAnytimeLoading || windowStart === null;
+  // Every group still taking members, each once
   const openGroups = useMemo(() => {
-    const newIds = new Set((newGroups || []).map(g => g.id));
-    return [...(newGroups || []), ...(anytimeGroups || []).filter(g => !newIds.has(g.id))];
-  }, [newGroups, anytimeGroups]);
+    const byId = new Map<string, Group>();
+    for (const g of [...(newGroups || []), ...(upcomingGroups || []), ...(anytimeGroups || [])]) byId.set(g.id, g);
+    return [...byId.values()].filter(isOpenToJoin);
+  }, [newGroups, upcomingGroups, anytimeGroups]);
 
   const matches = useMemo(() => openGroups.filter(g =>
     !isFull(g) && (!user || !g.memberIds.includes(user.uid)) && (topic === ANY_TOPIC || g.topic === topic)
@@ -62,7 +72,7 @@ export default function FindGroupModal({ kind, isOpen, onClose }: { kind: GroupK
         <DialogHeader>
           <DialogTitle>Join a {config.title}</DialogTitle>
           <DialogDescription>
-            {config.plural} take new members during their first week{config.canStayOpen ? ', and some stay open to join anytime' : ''}. Pick a topic to see which ones are open.
+            {config.plural} take new members until they start, two weeks after they&apos;re created unless the host picks a start date{config.canStayOpen ? ', and some stay open to join anytime' : ''}. Pick a topic to see which ones are open.
           </DialogDescription>
         </DialogHeader>
 

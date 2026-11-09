@@ -93,7 +93,8 @@ export interface Group {
   startTime?: string; // "HH:mm" in the host's timezone
   timezone?: string; // the host's timezone, e.g. "America/New_York"
   githubUrl?: string; // group projects only
-  openToJoinAnytime?: boolean; // book clubs only: takes members after the first week too
+  openToJoinAnytime?: boolean; // book clubs only: takes members after it starts too
+  startDate?: Timestamp; // optional first meeting; members can join until then
   createdAt: Timestamp;
 }
 export type StudyGroup = Group;

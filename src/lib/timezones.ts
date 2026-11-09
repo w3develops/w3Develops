@@ -69,10 +69,15 @@ export function zonedTimeToDate(date: string, time: string, timeZone: string): D
   return new Date(guess - offsetMs(first, timeZone));
 }
 
+/** The date `date` falls on in `timeZone`, as "YYYY-MM-DD" */
+export function dateIn(date: Date, timeZone: string): string {
+  const w = wallClock(date, timeZone);
+  return `${w.year}-${String(w.month).padStart(2, '0')}-${String(w.day).padStart(2, '0')}`;
+}
+
 /** Today's date in `timeZone`, as "YYYY-MM-DD" */
 export function todayIn(timeZone: string): string {
-  const w = wallClock(new Date(), timeZone);
-  return `${w.year}-${String(w.month).padStart(2, '0')}-${String(w.day).padStart(2, '0')}`;
+  return dateIn(new Date(), timeZone);
 }
 
 export function formatDateTime(date: Date, timeZone = browserTimeZone(), withZone = true): string {

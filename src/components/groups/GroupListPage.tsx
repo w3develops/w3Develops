@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { formatTimestamp } from '@/lib/utils';
-import { useOneWeekAgo } from '@/lib/hooks/useClientValues';
+import { useJoinWindowStart } from '@/lib/hooks/useClientValues';
 import JoinTimeLeft from '@/components/groups/JoinTimeLeft';
 import { Group } from '@/lib/types';
 import { GROUP_KINDS, GroupKind, MAX_MEMBERS, commitmentLabel, isNew, isOpenToJoin } from '@/lib/groups';
@@ -84,24 +84,28 @@ export default function GroupListPage({ kind, initial }: { kind: GroupKind; init
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Groups younger than a week are "New"; unknown until the page runs in the browser
-  const oneWeekAgo = useOneWeekAgo();
-  const newQuery = useMemo(() => oneWeekAgo === null ? null : query(
-    collection(firestore, config.collection), where('createdAt', '>', Timestamp.fromMillis(oneWeekAgo)), orderBy('createdAt', 'desc'), limit(25)
-  ) as Query<Group>, [firestore, config.collection, oneWeekAgo]);
-  const inProgressQuery = useMemo(() => oneWeekAgo === null ? null : query(
-    collection(firestore, config.collection), where('createdAt', '<=', Timestamp.fromMillis(oneWeekAgo)), orderBy('createdAt', 'desc'), limit(50)
-  ) as Query<Group>, [firestore, config.collection, oneWeekAgo]);
+  // Recent groups and older ones; unknown until the page runs in the browser
+  const windowStart = useJoinWindowStart();
+  const newQuery = useMemo(() => windowStart === null ? null : query(
+    collection(firestore, config.collection), where('createdAt', '>', Timestamp.fromMillis(windowStart)), orderBy('createdAt', 'desc'), limit(25)
+  ) as Query<Group>, [firestore, config.collection, windowStart]);
+  const inProgressQuery = useMemo(() => windowStart === null ? null : query(
+    collection(firestore, config.collection), where('createdAt', '<=', Timestamp.fromMillis(windowStart)), orderBy('createdAt', 'desc'), limit(50)
+  ) as Query<Group>, [firestore, config.collection, windowStart]);
 
   const { data: newGroups, isLoading: isLoadingNew } = useCollection<Group>(newQuery, initial?.newGroups);
   const { data: inProgressGroups, isLoading: isLoadingInProgress } = useCollection<Group>(inProgressQuery, initial?.inProgress);
-  const isLoading = (oneWeekAgo === null && !initial) || isLoadingNew || isLoadingInProgress;
+  const isLoading = (windowStart === null && !initial) || isLoadingNew || isLoadingInProgress;
 
   const term = searchTerm.toLowerCase();
   const matches = (g: Group) => !term || g.name_lowercase.includes(term) || g.topic.toLowerCase().includes(term);
+  // "New" means not started yet: a group with a later start date stays new
+  // past the usual two weeks, and one with an early start date moves on sooner
+  const all = [...(newGroups ?? []), ...(inProgressGroups ?? [])];
+  const loaded = !!newGroups || !!inProgressGroups;
   const sections = [
-    { title: 'New', groups: newGroups?.filter(matches), empty: `No new ${config.plural.toLowerCase()} at this time.` },
-    { title: 'In Progress', groups: inProgressGroups?.filter(matches), empty: `No in-progress ${config.plural.toLowerCase()} at this time.` },
+    { title: 'New', groups: loaded ? all.filter(g => isNew(g)).filter(matches) : undefined, empty: `No new ${config.plural.toLowerCase()} at this time.` },
+    { title: 'In Progress', groups: loaded ? all.filter(g => !isNew(g)).filter(matches) : undefined, empty: `No in-progress ${config.plural.toLowerCase()} at this time.` },
   ];
 
   return (

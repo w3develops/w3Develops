@@ -1,19 +1,20 @@
 // Server code only: the first page of items for each public list page, so
 // search engines, AI crawlers and visitors get real content in the HTML. The
 // browser components show these until their live queries answer.
-import { ONE_WEEK_IN_MS } from '@/lib/constants';
+import { JOIN_WINDOW_MS } from '@/lib/constants';
 import { GROUP_KINDS, type GroupKind } from '@/lib/groups';
 import { getPublicList, roundedNow } from '@/lib/public-items';
 
 const ONE_HOUR_IN_MS = 60 * 60 * 1000;
 
 /**
- * New and in-progress groups, split at one week old the same way the browser
- * does it (see useOneWeekAgo); null when Firestore can't be read.
+ * Groups created within the join window and older ones, queried the same way
+ * the browser does it (see useJoinWindowStart); the page then sorts them into
+ * "New" and "In Progress" by start date. Null when Firestore can't be read.
  */
 export async function getInitialGroups(kind: GroupKind) {
   const config = GROUP_KINDS[kind];
-  const cutoff = Math.floor((Date.now() - ONE_WEEK_IN_MS) / ONE_HOUR_IN_MS) * ONE_HOUR_IN_MS;
+  const cutoff = Math.floor((Date.now() - JOIN_WINDOW_MS) / ONE_HOUR_IN_MS) * ONE_HOUR_IN_MS;
   const [newGroups, inProgress] = await Promise.all([
     getPublicList({ collection: config.collection, orderBy: 'createdAt', direction: 'desc', limit: 25, after: { field: 'createdAt', op: '>', millis: cutoff } }),
     getPublicList({ collection: config.collection, orderBy: 'createdAt', direction: 'desc', limit: 50, after: { field: 'createdAt', op: '<=', millis: cutoff } }),

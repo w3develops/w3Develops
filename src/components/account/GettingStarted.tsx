@@ -67,7 +67,7 @@ export default function GettingStarted({ user, profile }: { user: User; profile:
     {
       done: inAGroup === true,
       title: 'Join a study group, project or book club',
-      description: 'Groups take new members in their first week. Join one, or start your own.',
+      description: 'Groups take new members until they start, usually two weeks after they\'re created. Join one, or start your own.',
       link: { href: '/studygroups', label: 'Find a group' },
     },
     {

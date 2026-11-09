@@ -1,5 +1,5 @@
 import type { Group } from '@/lib/types';
-import { DAYS_OF_WEEK, isValidTimeZone, todayIn } from '@/lib/timezones';
+import { DAYS_OF_WEEK, dateIn, isValidTimeZone, todayIn } from '@/lib/timezones';
 
 // "Add to Google Calendar" links for groups that meet on set days. Google's
 // event template takes the times as the host's wall-clock times plus their
@@ -23,19 +23,23 @@ const stamp = (d: Date) =>
 
 /**
  * A Google Calendar link that adds the group's meetings as a weekly repeating
- * event, starting from the next meeting day; null if the group has no days,
+ * event, starting from the next meeting day (not before the group's start
+ * date); null if the group has no days,
  * start time or time zone set.
  */
 export function googleCalendarUrl(
-  group: Pick<Group, 'name' | 'description' | 'commitmentDays' | 'startTime' | 'timezone' | 'commitment' | 'commitmentHours'>,
+  group: Pick<Group, 'name' | 'description' | 'commitmentDays' | 'startTime' | 'timezone' | 'commitment' | 'commitmentHours' | 'startDate'>,
   { title, pageUrl, today }: { title: string; pageUrl: string; today?: string },
 ): string | null {
   const dayIndexes = (group.commitmentDays ?? []).map(day => DAYS_OF_WEEK.indexOf(day)).filter(i => i >= 0);
   const time = group.startTime?.match(/^(\d{2}):(\d{2})$/);
   if (dayIndexes.length === 0 || !time || !isValidTimeZone(group.timezone)) return null;
 
-  // The first meeting day on or after today, in the host's time zone
-  const [y, m, d] = (today ?? todayIn(group.timezone)).split('-').map(Number);
+  // The first meeting day on or after today (or the group's start date, if
+  // that's later), in the host's time zone
+  const from = today ?? todayIn(group.timezone);
+  const startsOn = group.startDate ? dateIn(group.startDate.toDate(), group.timezone) : '';
+  const [y, m, d] = (startsOn > from ? startsOn : from).split('-').map(Number);
   let start = new Date(Date.UTC(y, m - 1, d, Number(time[1]), Number(time[2])));
   while (!dayIndexes.includes(start.getUTCDay())) start = new Date(start.getTime() + 24 * 60 * 60 * 1000);
   const end = new Date(start.getTime() + meetingHours(group) * 60 * 60 * 1000);

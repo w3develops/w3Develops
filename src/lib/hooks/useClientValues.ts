@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { browserTimeZone } from '@/lib/timezones';
-import { ONE_WEEK_IN_MS } from '@/lib/constants';
+import { JOIN_WINDOW_MS } from '@/lib/constants';
 
 // Values only the browser knows. While the server renders the page, and while
 // the browser first takes it over, these return their "unknown" value so both
@@ -51,12 +51,13 @@ export function useNow(): number | null {
 const ONE_HOUR_IN_MS = 60 * 60 * 1000;
 
 /**
- * The time one week ago in milliseconds, rounded down to the hour so a query
- * built from it stays the same for an hour; null before the page is running
- * in the browser.
+ * The time a join window ago (two weeks), in milliseconds: groups created
+ * after it are still taking members unless they set a start date. Rounded
+ * down to the hour so a query built from it stays the same for an hour; null
+ * before the page is running in the browser.
  */
-export function useOneWeekAgo(): number | null {
+export function useJoinWindowStart(): number | null {
   const current = useNow();
   if (current === null) return null;
-  return Math.floor((current - ONE_WEEK_IN_MS) / ONE_HOUR_IN_MS) * ONE_HOUR_IN_MS;
+  return Math.floor((current - JOIN_WINDOW_MS) / ONE_HOUR_IN_MS) * ONE_HOUR_IN_MS;
 }
