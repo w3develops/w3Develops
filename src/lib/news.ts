@@ -1,6 +1,6 @@
 import Parser from 'rss-parser';
 import { unstable_cache } from 'next/cache';
-import { featuredFeeds, rssFeeds } from '@/lib/rss-feeds';
+import { featuredFeeds, feedNames, rssFeeds } from '@/lib/rss-feeds';
 
 export interface Post {
   title: string;
@@ -47,7 +47,7 @@ export async function fetchRecentPosts(): Promise<Post[]> {
             link: item.link!,
             isoDate: item.isoDate!,
             // Extract a clean source name from the feed title or URL
-            source: tidy(feed.title ?? '') || new URL(feedUrl).hostname.replace(/^www\./, ''),
+            source: feedNames[feedUrl] ?? (tidy(feed.title ?? '') || new URL(feedUrl).hostname.replace(/^www\./, '')),
             ...(featuredFeeds.includes(feedUrl) && { featured: true }),
           }));
         return posts;

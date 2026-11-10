@@ -21,6 +21,7 @@ export const PUBLIC_ITEM_PAGES = {
   meetups: '/meetups',
   competitions: '/competitions',
   jobs: '/job-board',
+  posts: '/news/posts',
 } as const;
 export type PublicCollection = keyof typeof PUBLIC_ITEM_PAGES;
 
@@ -109,7 +110,7 @@ export interface PublicListQuery {
   /**
    * Only documents whose field has this value. Member posts must pass
    * status == 'visible': the Admin SDK skips the rules, which would
-   * otherwise keep hidden posts out.
+   * otherwise keep hidden posts out. Needs a composite index with orderBy.
    */
   equals?: { field: string; value: string };
   orderBy: string;
