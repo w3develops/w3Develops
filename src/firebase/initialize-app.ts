@@ -1,11 +1,21 @@
 import { appCheckSiteKey, firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore, initializeFirestore } from 'firebase/firestore';
+import { connectAuthEmulator, getAuth } from 'firebase/auth';
+import { connectFirestoreEmulator, getFirestore, initializeFirestore } from 'firebase/firestore';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
 let appCheckStarted = false;
+
+// Local testing against the Firebase emulators instead of the live project:
+//   NEXT_PUBLIC_USE_EMULATORS=1 npx next dev   (the "dev-emulated" launch config)
+// with `firebase emulators:start --only auth,firestore` running. Ports default
+// to firebase.json's and can be changed with NEXT_PUBLIC_AUTH_EMULATOR_PORT and
+// NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT. Never set on the live site.
+const useEmulators = process.env.NEXT_PUBLIC_USE_EMULATORS === '1';
+const authEmulatorPort = Number(process.env.NEXT_PUBLIC_AUTH_EMULATOR_PORT || 9099);
+const firestoreEmulatorPort = Number(process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT || 8080);
+let emulatorsConnected = false;
 
 /**
  * App Check, in the browser only: each request to Firestore and the other
@@ -16,7 +26,7 @@ let appCheckStarted = false;
  * locally once App Check is enforced.
  */
 function startAppCheck(app: FirebaseApp) {
-  if (appCheckStarted || typeof window === 'undefined' || !appCheckSiteKey) return;
+  if (appCheckStarted || typeof window === 'undefined' || !appCheckSiteKey || useEmulators) return;
   appCheckStarted = true;
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean }).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
@@ -49,6 +59,12 @@ export function getSdks(firebaseApp: FirebaseApp) {
   startAppCheck(app);
   // Use initializeFirestore to ensure consistent configuration
   const firestore = initializeFirestore(app, {});
+  const auth = getAuth(app);
+  if (useEmulators && !emulatorsConnected) {
+    emulatorsConnected = true;
+    connectFirestoreEmulator(firestore, '127.0.0.1', firestoreEmulatorPort);
+    connectAuthEmulator(auth, `http://127.0.0.1:${authEmulatorPort}`, { disableWarnings: true });
+  }
 
   // Conditionally initialize Analytics only on the client and if supported.
   const analytics = typeof window !== 'undefined' && firebaseConfig.measurementId 
@@ -57,7 +73,7 @@ export function getSdks(firebaseApp: FirebaseApp) {
 
   return {
     firebaseApp: app,
-    auth: getAuth(app),
+    auth,
     firestore: firestore,
     analytics,
   };

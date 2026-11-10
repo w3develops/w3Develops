@@ -72,6 +72,16 @@ export const SITE_PAGES = {
     description: 'Curated resources for programming fundamentals, web development from frontend to backend, and digital marketing.',
     section: 'Learn and build together',
   },
+  '/feed': {
+    title: 'Community Feed',
+    description: 'Short public posts from w3Develops members about what they are learning and building, with posts from people and topics you follow first.',
+    section: 'Find people to work with',
+  },
+  '/moderation': {
+    title: 'Moderation',
+    description: 'Review reported posts and keep the community feed safe. For w3Develops moderators only.',
+    noindex: true,
+  },
   '/mentorship': {
     title: 'Mentorship',
     description: 'Find a developer mentor, or mentor newcomers, for free. Connect by skill, then work together in a private shared dashboard.',
