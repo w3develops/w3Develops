@@ -173,6 +173,10 @@ empty in production right now (`CategoryTaskList` only logs the error), and
 this change fixes them as a side effect. Either way, the new `list` rule lets
 the `array-contains` query through.
 
+*Answered November 9, 2026:* the `documentId() in [...]` query passes the
+current rule in the emulator, as long as every ID is one of the member's own
+connections. The My Tasks tabs aren't broken.
+
 ## Migration steps
 
 Each step is its own PR, so each one can be reviewed, deployed and rolled back
@@ -209,6 +213,16 @@ fields alive.
 Also take a fresh backup of `users`, `meetups`, `mentorships`, `tutorships`
 and `pairings` here.
 
+**Result (November 9, 2026): clean, and there's nothing to migrate.** The
+script (`~/Documents/w3develops-admin/scripts/check-profile-id-arrays.mjs`)
+found 62 profiles and no meetups, mentorships, tutorships or pairings. None of
+the nine fields is set on any profile. The two mentorships, one tutorship and
+one meetup in the November 3 backup belonged to the test accounts deleted that
+day. The backup and report are in
+`~/Documents/w3develops-admin/profile-id-arrays-2026-11-10/`. So step 5 has no
+data to delete, and the only other ID array left on profiles is
+`soloProjectIds` (one profile).
+
 ### Step 1: Allow listing connections (rules only)
 
 - Split `allow read` into `allow get` (unchanged) and `allow list` (new) on the
@@ -225,6 +239,14 @@ and `pairings` here.
   `main`.
 
 This doesn't change any app behavior on its own.
+
+**Status (November 9, 2026): written and tested, not deployed.** The rule is
+`isListingOwnConnections()` in `firestore.rules`. Every case above behaves as
+expected in the emulator, along with a `documentId() in` query that names
+someone else's connection (denied), the tasks subcollection (unchanged), and
+listing a connection right after accepting the request. Before the change,
+the `array-contains` query was denied. The live rules matched `main` when
+checked.
 
 ### Step 2: Read from the new source (app only, still writing both)
 

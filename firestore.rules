@@ -133,6 +133,13 @@ service cloud.firestore {
       return request.auth != null && get(/databases/$(database)/documents/pairings/$(pairingId)).data.memberIds.hasAny([request.auth.uid]);
     }
 
+    // Members can list the mentorships, tutorships or pairings they're in,
+    // with where('memberIds', 'array-contains', <their uid>). Every result
+    // must include them, so a query without that filter is refused.
+    function isListingOwnConnections() {
+      return request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
+    }
+
     function isAddingSelfToList(listAfter, listBefore) {
       return request.auth != null
              && listAfter.size() == listBefore.size() + 1
@@ -339,7 +346,8 @@ service cloud.firestore {
     }
 
     match /mentorships/{mentorshipId} {
-      allow read: if isMentorshipMember(mentorshipId);
+      allow get: if isMentorshipMember(mentorshipId);
+      allow list: if isListingOwnConnections();
       // Saved again if the two reconnect later
       allow create, update: if isStartingRoleConnection(mentorshipId, 'mentorshipRequests', 'mentor', 'mentee');
       allow delete: if false;
@@ -375,7 +383,8 @@ service cloud.firestore {
     }
 
     match /tutorships/{tutorshipId} {
-      allow read: if isTutorshipMember(tutorshipId);
+      allow get: if isTutorshipMember(tutorshipId);
+      allow list: if isListingOwnConnections();
       // Saved again if the two reconnect later
       allow create, update: if isStartingRoleConnection(tutorshipId, 'tutorRequests', 'tutor', 'student');
       allow delete: if false;
@@ -411,7 +420,8 @@ service cloud.firestore {
     }
 
     match /pairings/{pairingId} {
-      allow read: if isPairingMember(pairingId);
+      allow get: if isPairingMember(pairingId);
+      allow list: if isListingOwnConnections();
       // Saved again if the two reconnect later
       allow create, update: if isStartingConnection(pairingId, 'pairRequests', []);
       allow delete: if false;
