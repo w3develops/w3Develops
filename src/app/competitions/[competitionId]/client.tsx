@@ -21,6 +21,8 @@ import {
 import SubmitCompetitionEntryForm from '@/components/forms/SubmitCompetitionEntryForm';
 import VoteButton from '@/components/VoteButton';
 import ZonedText from '@/components/ZonedText';
+import ModeratorItemControls from '@/components/moderation/ModeratorItemControls';
+import ModeratorDeletePart from '@/components/moderation/ModeratorDeletePart';
 
 function CompetitionDashboardPageSkeleton() {
     return (
@@ -74,7 +76,10 @@ function EntryCard({ entry, competitionId, isActive }: { entry: CompetitionEntry
         <p className="text-sm text-muted-foreground line-clamp-3 h-[60px]">{entry.description}</p>
         <div className="flex items-center justify-between mt-4">
           <p className="text-xs text-muted-foreground">Submitted: {formatTimestamp(entry.submittedAt, true)}</p>
-          <VoteButton entry={entry} competitionId={competitionId} canVote={isActive} />
+          <div className="flex items-center gap-1">
+            <ModeratorDeletePart kind="competitions" id={competitionId} part="entries" partId={entry.id} ownerId={entry.userId} />
+            <VoteButton entry={entry} competitionId={competitionId} canVote={isActive} />
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -134,6 +139,7 @@ export default function CompetitionDashboardPage({ params, initialCompetition }:
                 <Badge variant={isActive ? 'default' : 'secondary'}>{isActive ? 'Active' : (now > competition.endDate ? 'Past' : 'Upcoming')}</Badge>
             </div>
             <CardDescription className="pt-2">{competition.description}</CardDescription>
+            <ModeratorItemControls kind="competitions" id={competitionId} item={competition as unknown as Record<string, unknown>} />
         </CardHeader>
         <CardContent className="space-y-6">
            <div className="grid md:grid-cols-2 gap-x-6 gap-y-4 text-sm md:text-base">

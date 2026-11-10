@@ -20,6 +20,7 @@ import {
 import SubmitSoloProjectForm from '@/components/forms/SubmitSoloProjectForm';
 import StarProjectButton from '@/components/StarProjectButton';
 import ZonedText from '@/components/ZonedText';
+import ModeratorItemControls from '@/components/moderation/ModeratorItemControls';
 
 function ProjectList({ userProfile, initial }: { userProfile: UserProfile | null; initial: unknown[] | null }) {
     const firestore = useFirestore();
@@ -82,6 +83,7 @@ function ProjectList({ userProfile, initial }: { userProfile: UserProfile | null
                                         View Project <ExternalLink className="h-4 w-4 ml-2" />
                                     </a>
                                 </Button>
+                                <ModeratorItemControls kind="soloProjects" id={project.id} item={project as unknown as Record<string, unknown>} compact />
                                 {userProfile && userProfile.id !== project.userId && (
                                      <StarProjectButton projectId={project.id} userProfile={userProfile} />
                                 )}

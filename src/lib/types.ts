@@ -404,6 +404,8 @@ export interface ModerationLogEntry {
   action: ModerationAction;
   targetUserId: string;
   postId?: string;
+  /** For edits and deletions of members' items, like "studyGroups/abc" (src/lib/moderated-items.ts) */
+  contentPath?: string;
   /** Why, in the moderator's words; shown to the member for warnings */
   note: string;
   createdAt: Timestamp;

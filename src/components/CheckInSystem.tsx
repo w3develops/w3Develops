@@ -17,6 +17,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './
 import Link from 'next/link';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import ModeratorDeletePart from '@/components/moderation/ModeratorDeletePart';
+import { MODERATED_ITEMS, type ModeratedKind } from '@/lib/moderated-items';
 
 interface CheckInSystemProps {
   parentId: string;
@@ -25,7 +27,7 @@ interface CheckInSystemProps {
 }
 
 
-function UserCheckInsDisplay({ memberId, memberProfiles, allCheckins, isLoading, type }: { memberId: string, memberProfiles: Map<string, UserProfile>, allCheckins: CheckIn[] | null, isLoading: boolean, type: 'daily' | 'weekly' }) {
+function UserCheckInsDisplay({ memberId, memberProfiles, allCheckins, isLoading, type, moderated }: { memberId: string, memberProfiles: Map<string, UserProfile>, allCheckins: CheckIn[] | null, isLoading: boolean, type: 'daily' | 'weekly', moderated?: { kind: ModeratedKind; id: string } }) {
     const member = memberProfiles.get(memberId);
     
     const userCheckins = useMemo(() => {
@@ -71,7 +73,10 @@ function UserCheckInsDisplay({ memberId, memberProfiles, allCheckins, isLoading,
                     <div className="space-y-3 pl-4 border-l-2 ml-4">
                         {userCheckins.map(checkin => (
                             <div key={checkin.id} className="text-sm">
-                                <p className="font-semibold">{formatTimestamp(checkin.createdAt, true)}</p>
+                                <div className="flex items-center justify-between gap-2">
+                                    <p className="font-semibold">{formatTimestamp(checkin.createdAt, true)}</p>
+                                    {moderated && <ModeratorDeletePart kind={moderated.kind} id={moderated.id} part="checkIns" partId={checkin.id} ownerId={checkin.userId} />}
+                                </div>
                                 <p className="text-muted-foreground whitespace-pre-wrap">{checkin.content}</p>
                             </div>
                         ))}
@@ -86,6 +91,9 @@ function UserCheckInsDisplay({ memberId, memberProfiles, allCheckins, isLoading,
 
 
 export default function CheckInSystem({ parentId, collectionPath, memberIds }: CheckInSystemProps) {
+    // Group check-ins are public, so moderators can remove one; private
+    // connections' check-ins are left alone
+    const moderated = collectionPath in MODERATED_ITEMS ? { kind: collectionPath as ModeratedKind, id: parentId } : undefined;
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -238,6 +246,7 @@ export default function CheckInSystem({ parentId, collectionPath, memberIds }: C
                                           key={id} 
                                           memberId={id} 
                                           memberProfiles={memberProfiles} 
+                                          moderated={moderated}
                                           allCheckins={allDailyCheckins}
                                           isLoading={isLoadingAllDaily}
                                           type="daily"
@@ -256,6 +265,7 @@ export default function CheckInSystem({ parentId, collectionPath, memberIds }: C
                                           key={id} 
                                           memberId={id} 
                                           memberProfiles={memberProfiles} 
+                                          moderated={moderated}
                                           allCheckins={allWeeklyCheckins}
                                           isLoading={isLoadingAllWeekly}
                                           type="weekly"
@@ -308,6 +318,7 @@ export default function CheckInSystem({ parentId, collectionPath, memberIds }: C
                                           key={id} 
                                           memberId={id} 
                                           memberProfiles={memberProfiles} 
+                                          moderated={moderated}
                                           allCheckins={allDailyCheckins}
                                           isLoading={isLoadingAllDaily}
                                           type="daily"
@@ -343,6 +354,7 @@ export default function CheckInSystem({ parentId, collectionPath, memberIds }: C
                                           key={id} 
                                           memberId={id} 
                                           memberProfiles={memberProfiles} 
+                                          moderated={moderated}
                                           allCheckins={allWeeklyCheckins}
                                           isLoading={isLoadingAllWeekly}
                                           type="weekly"

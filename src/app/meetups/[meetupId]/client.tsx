@@ -20,6 +20,8 @@ import JoinMeetupButton from '@/components/JoinMeetupButton';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import ZonedText from '@/components/ZonedText';
+import ModeratorItemControls from '@/components/moderation/ModeratorItemControls';
+import ModeratorDeletePart from '@/components/moderation/ModeratorDeletePart';
 
 function MeetupUpdates({ meetupId, creatorId }: { meetupId: string, creatorId: string }) {
   const { user } = useUser();
@@ -84,7 +86,10 @@ function MeetupUpdates({ meetupId, creatorId }: { meetupId: string, creatorId: s
             {updates && updates.length > 0 ? (
                 updates.map(update => (
                     <div key={update.id} className="p-3 bg-muted/50 rounded-lg">
-                        <p className="text-sm text-muted-foreground">{formatTimestamp(update.createdAt, true)}</p>
+                        <div className="flex items-center justify-between gap-2">
+                            <p className="text-sm text-muted-foreground">{formatTimestamp(update.createdAt, true)}</p>
+                            <ModeratorDeletePart kind="meetups" id={meetupId} part="updates" partId={update.id} ownerId={creatorId} />
+                        </div>
                         <p className="mt-1 whitespace-pre-wrap">{update.content}</p>
                     </div>
                 ))
@@ -183,6 +188,7 @@ export default function MeetupDashboardPage({ params, initialMeetup }: { params:
                 <Badge variant="secondary">{meetup.topic}</Badge>
             </div>
             <CardDescription>{meetup.description}</CardDescription>
+            <ModeratorItemControls kind="meetups" id={meetupId} item={meetup as unknown as Record<string, unknown>} />
         </CardHeader>
         <CardContent className="space-y-6">
            <div className="grid md:grid-cols-2 gap-6">

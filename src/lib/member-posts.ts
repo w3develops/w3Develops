@@ -68,6 +68,8 @@ export const MODERATION_ACTIONS = {
   'auto-hide': 'Hid a post after reports',
   'add-moderator': 'Made a member a moderator',
   'remove-moderator': 'Removed a moderator',
+  'edit-content': 'Edited',
+  'delete-content': 'Deleted',
 } as const;
 export type ModerationAction = keyof typeof MODERATION_ACTIONS;
 

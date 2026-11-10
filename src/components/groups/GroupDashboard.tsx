@@ -23,6 +23,7 @@ import { GROUP_KINDS, GroupKind, commitmentLabel, isNew, isOpenToJoin } from '@/
 import { timeZoneLabel } from '@/lib/timezones';
 import GroupSchedule from './GroupSchedule';
 import ZonedText from '@/components/ZonedText';
+import ModeratorItemControls from '@/components/moderation/ModeratorItemControls';
 
 export default function GroupDashboard({ kind, groupId, initialGroup }: { kind: GroupKind; groupId: string; initialGroup?: unknown }) {
   const config = GROUP_KINDS[kind];
@@ -108,6 +109,7 @@ export default function GroupDashboard({ kind, groupId, initialGroup }: { kind: 
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          <ModeratorItemControls kind={config.collection} id={groupId} item={group as unknown as Record<string, unknown>} />
           <div className="flex flex-wrap gap-4 items-center">
             <Badge variant="secondary" className="text-base">{group.topic}</Badge>
             {commitmentLabel(group) && <Badge variant="outline" className="text-base">{commitmentLabel(group)}</Badge>}
