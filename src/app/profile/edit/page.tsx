@@ -42,6 +42,7 @@ export default function EditProfilePage() {
   const [github, setGithub] = useState('');
   const [linkedin, setLinkedin] = useState('');
   const [twitter, setTwitter] = useState('');
+  const [discord, setDiscord] = useState('');
   const [followInfoPrivate, setFollowInfoPrivate] = useState(false);
   const [timezone, setTimezone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,6 +70,7 @@ export default function EditProfilePage() {
       setGithub(userProfile.socialLinks?.github || '');
       setLinkedin(userProfile.socialLinks?.linkedin || '');
       setTwitter(userProfile.socialLinks?.twitter || '');
+      setDiscord(userProfile.socialLinks?.discord || '');
       setFollowInfoPrivate(userProfile.followInfoPrivate || false);
       setTimezone(isValidTimeZone(userProfile.timezone) ? userProfile.timezone : browserTimeZone());
       setPairProgrammingStatus(userProfile.pairProgrammingStatus || 'closed');
@@ -115,6 +117,7 @@ export default function EditProfilePage() {
         github: ensureAbsoluteUrl(github),
         linkedin: ensureAbsoluteUrl(linkedin),
         twitter: ensureAbsoluteUrl(twitter),
+        discord: discord.trim().replace(/^@/, ''),
       },
       followInfoPrivate,
       timezone,
@@ -212,6 +215,7 @@ export default function EditProfilePage() {
         <Card>
             <CardHeader>
                 <CardTitle>Social Links</CardTitle>
+                <CardDescription>All optional. Your GitHub and Discord help your group members find you.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
                  <div className="grid gap-2">
@@ -225,6 +229,10 @@ export default function EditProfilePage() {
                  <div className="grid gap-2">
                     <Label htmlFor="twitter">Twitter / X</Label>
                     <Input id="twitter" placeholder="twitter.com/your-handle" value={twitter} onChange={(e) => setTwitter(e.target.value)} disabled={isSubmitting} maxLength={150}/>
+                </div>
+                 <div className="grid gap-2">
+                    <Label htmlFor="discord">Discord username</Label>
+                    <Input id="discord" placeholder="your_username" value={discord} onChange={(e) => setDiscord(e.target.value)} disabled={isSubmitting} maxLength={32} autoComplete="off"/>
                 </div>
             </CardContent>
         </Card>
