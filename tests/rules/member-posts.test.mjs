@@ -572,3 +572,21 @@ describe('account age', () => {
     await assertSucceeds(updateDoc(doc(as('newbie'), 'users', 'newbie'), { bio: 'Hi' }));
   });
 });
+
+describe('the moderation team list', () => {
+  test('moderators can read it, members cannot', async () => {
+    await seed(db => setDoc(doc(db, 'moderators', 'mod'), { username: 'mod', addedBy: 'mod', addedAt: Timestamp.now() }));
+    await assertSucceeds(getDocs(collection(as('mod'), 'moderators')));
+    await assertFails(getDocs(collection(as('alice'), 'moderators')));
+    await assertFails(getDoc(doc(anon(), 'moderators', 'mod')));
+  });
+
+  test('nobody can write it from the browser, not even moderators', async () => {
+    await assertFails(setDoc(doc(as('mod'), 'moderators', 'alice'), { username: 'alice', addedBy: 'mod', addedAt: serverTimestamp() }));
+    await assertFails(setDoc(doc(as('alice'), 'moderators', 'alice'), { username: 'alice', addedBy: 'alice', addedAt: serverTimestamp() }));
+  });
+
+  test('team changes are logged by the server only', async () => {
+    await assertFails(setDoc(doc(as('mod'), 'moderationLog', 'l1'), { actorId: 'mod', action: 'add-moderator', targetUserId: 'alice', note: '', createdAt: serverTimestamp() }));
+  });
+});

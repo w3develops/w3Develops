@@ -66,6 +66,8 @@ export const MODERATION_ACTIONS = {
   suspend: 'Suspended a member',
   unsuspend: 'Lifted a suspension',
   'auto-hide': 'Hid a post after reports',
+  'add-moderator': 'Made a member a moderator',
+  'remove-moderator': 'Removed a moderator',
 } as const;
 export type ModerationAction = keyof typeof MODERATION_ACTIONS;
 

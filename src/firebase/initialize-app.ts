@@ -2,6 +2,7 @@ import { appCheckSiteKey, firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { connectAuthEmulator, getAuth } from 'firebase/auth';
 import { connectFirestoreEmulator, getFirestore, initializeFirestore } from 'firebase/firestore';
+import { connectFunctionsEmulator, getFunctions, type Functions } from 'firebase/functions';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
@@ -11,11 +12,24 @@ let appCheckStarted = false;
 //   NEXT_PUBLIC_USE_EMULATORS=1 npx next dev   (the "dev-emulated" launch config)
 // with `firebase emulators:start --only auth,firestore` running. Ports default
 // to firebase.json's and can be changed with NEXT_PUBLIC_AUTH_EMULATOR_PORT and
-// NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT. Never set on the live site.
+// NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT (and NEXT_PUBLIC_FUNCTIONS_EMULATOR_PORT,
+// with the functions emulator). Never set on the live site.
 const useEmulators = process.env.NEXT_PUBLIC_USE_EMULATORS === '1';
 const authEmulatorPort = Number(process.env.NEXT_PUBLIC_AUTH_EMULATOR_PORT || 9099);
 const firestoreEmulatorPort = Number(process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT || 8080);
+const functionsEmulatorPort = Number(process.env.NEXT_PUBLIC_FUNCTIONS_EMULATOR_PORT || 5001);
 let emulatorsConnected = false;
+let functionsEmulatorConnected = false;
+
+/** Cloud Functions the site calls (functions/src), in the database's region */
+export function appFunctions(app: FirebaseApp): Functions {
+  const functions = getFunctions(app, 'us-central1');
+  if (useEmulators && !functionsEmulatorConnected) {
+    functionsEmulatorConnected = true;
+    connectFunctionsEmulator(functions, '127.0.0.1', functionsEmulatorPort);
+  }
+  return functions;
+}
 
 /**
  * App Check, in the browser only: each request to Firestore and the other

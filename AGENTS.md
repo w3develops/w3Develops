@@ -79,8 +79,9 @@ next dev` (see `src/firebase/initialize-app.ts` for the port settings).
 - Reserved usernames are listed in both `src/lib/usernames.ts` and
   `firestore.rules`; keep the two lists the same. So are the feed's blocked
   words and post limits (`src/lib/member-posts.ts`).
-- Moderators have a `moderator` custom claim, set with
-  `scripts/set-moderator.mjs`. Every moderator change is saved with a
+- Moderators have a `moderator` custom claim. Admins (the `admin` claim) add
+  and remove them on the Team tab of `/moderation`; `scripts/set-moderator.mjs`
+  makes someone an admin. Every moderator change is saved with a
   `moderationLog` entry in the same write, which the rules require.
 
 ## Pull requests

@@ -6,7 +6,7 @@ import { useFirestore, useUser } from '@/firebase';
 import type { ModerationAction } from '@/lib/member-posts';
 import type { MemberStanding } from '@/lib/types';
 
-export type ModeratorAction = Exclude<ModerationAction, 'auto-hide'>;
+export type ModeratorAction = Exclude<ModerationAction, 'auto-hide' | 'add-moderator' | 'remove-moderator'>;
 
 export interface ActionRequest {
   action: ModeratorAction;

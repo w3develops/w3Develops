@@ -775,6 +775,13 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Who is on the moderation team, for the Team tab on /moderation.
+    // Written only by the setModerator function, which also sets the claim.
+    match /moderators/{userId} {
+      allow read: if isModerator();
+      allow write: if false;
+    }
+
     // A member's warnings and suspension. Members can read their own, so the
     // feed can tell them; moderators change them with a moderationLog entry.
     match /memberStandings/{userId} {

@@ -16,12 +16,13 @@ import { useToast } from '@/components/ui/use-toast';
 import { REPORT_REASONS } from '@/components/ReportUserButton';
 import PostCard from '@/components/posts/PostCard';
 import ZonedText from '@/components/ZonedText';
-import { useIsModerator } from '@/lib/hooks/useIsModerator';
+import { useStaffRoles } from '@/lib/hooks/useIsModerator';
 import { useNow } from '@/lib/hooks/useClientValues';
 import { useDocsByIds } from '@/lib/hooks/useDocsByIds';
 import { MODERATION_ACTIONS, POST_REPORT_REASONS, SUSPENSION_DAYS } from '@/lib/member-posts';
 import { formatTimestamp } from '@/lib/utils';
 import type { MemberPost, MemberStanding, ModerationLogEntry, Report, UserProfile } from '@/lib/types';
+import ModerationTeam from './ModerationTeam';
 import { useModerationActions, type ActionRequest, type ModeratorAction } from './useModerationActions';
 
 const REASON_LABELS: Record<string, string> = { ...REPORT_REASONS, ...POST_REPORT_REASONS };
@@ -209,7 +210,7 @@ function LogEntries({ entries }: { entries: ModerationLogEntry[] }) {
   );
 }
 
-function Queue() {
+function Queue({ isAdmin }: { isAdmin: boolean }) {
   const firestore = useFirestore();
   const [pending, setPending] = useState<Pending | null>(null);
 
@@ -241,6 +242,7 @@ function Queue() {
           <TabsTrigger value="members">Member reports ({memberReports.length})</TabsTrigger>
           <TabsTrigger value="hidden">Hidden ({otherHidden.length})</TabsTrigger>
           <TabsTrigger value="log">Log</TabsTrigger>
+          <TabsTrigger value="team">Team</TabsTrigger>
         </TabsList>
 
         <TabsContent value="posts" className="space-y-4">
@@ -272,6 +274,10 @@ function Queue() {
           {otherHidden.map(post => <ReviewPost key={post.id} postId={post.id} reports={[]} onAction={setPending} />)}
         </TabsContent>
 
+        <TabsContent value="team">
+          <ModerationTeam isAdmin={isAdmin} />
+        </TabsContent>
+
         <TabsContent value="log">
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-base">Latest moderation actions</CardTitle></CardHeader>
@@ -287,7 +293,7 @@ function Queue() {
 /** The moderators' review page. Only members with the moderator claim can read any of it. */
 export default function ModerationQueue() {
   const { user, isUserLoading } = useUser();
-  const isModerator = useIsModerator();
+  const roles = useStaffRoles();
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-10 space-y-6">
@@ -298,10 +304,10 @@ export default function ModerationQueue() {
           Follow the <Link href="/code-of-conduct" className="underline">Code of Conduct</Link>.
         </p>
       </div>
-      {isUserLoading || (user && isModerator === null) ? (
+      {isUserLoading || (user && roles === null) ? (
         <p className="text-muted-foreground">Checking your access...</p>
-      ) : isModerator ? (
-        <Queue />
+      ) : roles?.moderator ? (
+        <Queue isAdmin={roles.admin} />
       ) : (
         <p className="text-muted-foreground">This page is for w3Develops moderators.</p>
       )}

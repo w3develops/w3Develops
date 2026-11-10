@@ -386,3 +386,11 @@ export interface MemberStanding {
   lastLogId: string;
   updatedAt: Timestamp;
 }
+
+/** A member of the moderation team (moderators/{uid}), written by the setModerator function */
+export interface Moderator {
+  id: string;
+  username: string;
+  addedBy: string;
+  addedAt: Timestamp;
+}
