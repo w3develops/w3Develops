@@ -132,6 +132,11 @@ export const SITE_PAGES = {
     description: 'A short briefing on the tech headlines that matter to developers, sorted by topic and ranked by importance, refreshed eight times a day.',
     section: 'News and media',
   },
+  '/news/developer-news-style-guide': {
+    title: 'Developer News Style Guide',
+    description: 'How to write for w3Develops: a plain, friendly voice, tested code samples, linked sources, accessible images and honest use of AI.',
+    section: 'Get involved',
+  },
   '/news/archive': {
     title: 'News Archive',
     description: 'Past w3Develops news and announcements.',
