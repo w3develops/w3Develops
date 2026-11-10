@@ -34,7 +34,12 @@ a test script at it with `connectFirestoreEmulator`:
 
 ```bash
 firebase emulators:start --only firestore
+npm run test:rules   # the rules tests in tests/rules, in a throwaway emulator
 ```
+
+To click through signed-in pages without touching live data, run the auth and
+Firestore emulators and start the site with `NEXT_PUBLIC_USE_EMULATORS=1 npx
+next dev` (see `src/firebase/initialize-app.ts` for the port settings).
 
 ## Where things live
 
@@ -48,6 +53,8 @@ firebase emulators:start --only firestore
 | `src/lib/rss-feeds.ts`, `news*.ts` | The news feeds, the 8-a-day edition schedule and the AI brief |
 | `src/lib/types.ts` | Firestore document types |
 | `firestore.rules` | Who can read and write what |
+| `tests/rules` | Emulator tests for `firestore.rules` |
+| `src/lib/member-posts.ts` | Limits, blocked words and report reasons for the community feed (`/feed`) and `/moderation` |
 
 ## Rules to follow
 
@@ -70,7 +77,12 @@ firebase emulators:start --only firestore
   Manager, not in the repo. (The Firebase web config in `src/firebase/config.ts`
   is public by design.)
 - Reserved usernames are listed in both `src/lib/usernames.ts` and
-  `firestore.rules`; keep the two lists the same.
+  `firestore.rules`; keep the two lists the same. So are the feed's blocked
+  words and post limits (`src/lib/member-posts.ts`).
+- Moderators have a `moderator` custom claim. Admins (the `admin` claim) add
+  and remove them on the Team tab of `/moderation`; `scripts/set-moderator.mjs`
+  makes someone an admin. Every moderator change is saved with a
+  `moderationLog` entry in the same write, which the rules require.
 
 ## Pull requests
 

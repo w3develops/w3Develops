@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-w3develops-rules \"node --test tests/rules/*.test.mjs\""
   },
   "engines": {
     "node": ">=20.9.0"
@@ -41,6 +42,7 @@
     "vaul": "^1.1.2"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@types/node": "^20.14.9",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

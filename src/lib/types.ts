@@ -1,4 +1,5 @@
 
+import type { ModerationAction } from './member-posts';
 import { FieldValue, Timestamp } from 'firebase/firestore';
 
 export interface NotificationSettings {
@@ -310,4 +311,87 @@ export interface SupportRequest {
   description: string;
   status: 'open' | 'in_progress' | 'closed';
   createdAt: Timestamp;
+}
+
+/**
+ * A short public post on the community feed (/feed). Members write their own;
+ * moderators and the auto-hide job (functions/src/reports.ts) change
+ * `status`. Hidden posts are readable only by moderators and the author.
+ */
+export interface MemberPost {
+  id: string;
+  authorId: string;
+  /** The author's username and photo when they posted, so the feed needs no profile lookups */
+  authorName: string;
+  authorPhoto: string;
+  text: string;
+  /** Up to 3 lowercase topics, like "react" (see src/lib/member-posts.ts) */
+  topics: string[];
+  /** An optional https link shown under the text */
+  linkUrl?: string;
+  status: 'visible' | 'hidden';
+  /** Who hid it: a moderator, or the auto-hide after several reports */
+  hiddenBy?: 'moderator' | 'reports';
+  /** The moderationLog entry for the latest moderator action on it */
+  moderationLogId?: string;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
+}
+
+/** A member's own feed settings (users/{uid}/private/feedPrefs); only they can read it */
+export interface FeedPrefs {
+  /** Topics whose posts come first in their feed */
+  topics?: string[];
+  /** Members whose posts they don't see; the muted member isn't told */
+  mutedIds?: string[];
+  /** Like muted, and these members also can't follow them */
+  blockedIds?: string[];
+}
+
+/** A report a member filed about another member or one of their posts (src/components/ReportUserButton.tsx) */
+export interface Report {
+  id: string;
+  reporterId: string;
+  reportedUserId: string;
+  /** Set when the report is about a post */
+  postId?: string;
+  reason: string;
+  details: string;
+  page: string;
+  status: 'open' | 'closed';
+  closedBy?: string;
+  closedAt?: Timestamp;
+  createdAt: Timestamp;
+}
+
+/** One moderator action, kept for the record; nobody can change or delete these */
+export interface ModerationLogEntry {
+  id: string;
+  /** The moderator's uid, or "system" for the auto-hide */
+  actorId: string;
+  action: ModerationAction;
+  targetUserId: string;
+  postId?: string;
+  /** Why, in the moderator's words; shown to the member for warnings */
+  note: string;
+  createdAt: Timestamp;
+}
+
+/** A member's warnings and suspension (memberStandings/{uid}); set by moderators, readable by the member */
+export interface MemberStanding {
+  id: string;
+  warnings: number;
+  lastWarning?: string;
+  /** They can't post until then */
+  suspendedUntil?: Timestamp | null;
+  lastLogId: string;
+  updatedAt: Timestamp;
+}
+
+/** A member of the moderation team (moderators/{uid}), written by the setModerator function */
+export interface Moderator {
+  id: string;
+  username: string;
+  addedBy: string;
+  addedAt: Timestamp;
 }

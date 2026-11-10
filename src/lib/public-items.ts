@@ -105,7 +105,13 @@ export function profileHasContent(profile: { bio?: unknown; skills?: unknown }):
  * (milliseconds; round it, so the cache gets reused).
  */
 export interface PublicListQuery {
-  collection: PublicCollection | 'soloProjects' | 'announcements';
+  collection: PublicCollection | 'soloProjects' | 'announcements' | 'memberPosts';
+  /**
+   * Only documents whose field has this value. Member posts must pass
+   * status == 'visible': the Admin SDK skips the rules, which would
+   * otherwise keep hidden posts out.
+   */
+  equals?: { field: string; value: string };
   orderBy: string;
   direction: 'asc' | 'desc';
   limit: number;
@@ -117,6 +123,7 @@ const fetchList = unstable_cache(
     const docs = await readList({
       collection: list.collection,
       where: list.after,
+      equals: list.equals,
       orderBy: { field: list.orderBy, direction: list.direction },
       limit: list.limit,
     });
