@@ -7,7 +7,7 @@ import { UserProfile, StudyGroup, GroupProject, SoloProject } from '@/lib/types'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Github, Linkedin, Twitter, BrainCircuit, Users, Lock, UserCheck, UserPlus, CalendarDays, ExternalLink, GraduationCap, GitBranch } from 'lucide-react';
+import { Github, Linkedin, Twitter, MessageSquare, BrainCircuit, Users, Lock, UserCheck, UserPlus, CalendarDays, ExternalLink, GraduationCap, GitBranch } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -322,6 +322,12 @@ export default function UserProfilePage({ userId, initialProfile }: { userId: st
                 <a href={ensureAbsoluteUrl(userProfile.socialLinks.twitter)} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
                   <Twitter className="w-6 h-6" />
                 </a>
+              )}
+              {userProfile.socialLinks?.discord && (
+                <span className="flex items-center gap-1.5 text-sm text-muted-foreground" title="Discord username">
+                  <MessageSquare className="w-5 h-5" aria-hidden="true" />
+                  <span className="sr-only">Discord: </span>{userProfile.socialLinks.discord}
+                </span>
               )}
             </div>
           </div>

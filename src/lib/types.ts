@@ -30,6 +30,7 @@ export interface UserProfile {
     github?: string;
     linkedin?: string;
     twitter?: string;
+    discord?: string; // a Discord username, not a link
   };
   skills?: string[];
   createdAt?: Timestamp | FieldValue;

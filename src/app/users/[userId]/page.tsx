@@ -51,7 +51,9 @@ export default async function Page({ params }: Props) {
   const profile = await getPublicProfile(userId);
   const publicProfile = profile as PublicProfile | null;
   const name = publicProfile?.username;
-  const socialLinks = Object.values(publicProfile?.socialLinks ?? {}).filter((link): link is string => Boolean(link));
+  // Discord is a username, not a link, so it isn't one of the profile's other pages
+  const { discord: _discord, ...linkedPages } = publicProfile?.socialLinks ?? {};
+  const socialLinks = Object.values(linkedPages).filter((link): link is string => Boolean(link));
   return (
     <>
       {publicProfile && name && profileHasContent(publicProfile) && (
