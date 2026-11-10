@@ -1,6 +1,9 @@
 'use client';
 
+import { useMemo } from 'react';
 import Link from 'next/link';
+import { collection, query, where } from 'firebase/firestore';
+import { useCollection, useFirestore } from '@/firebase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,7 +13,18 @@ import type { Meetup, UserProfile } from '@/lib/types';
 
 /** Meetups this member joined or organized */
 export default function MeetupsCard({ userProfile }: { userProfile: UserProfile }) {
-  const joined = useDocsByIds<Meetup>('meetups', userProfile.joinedMeetupIds);
+  const firestore = useFirestore();
+  // A meetup's attendee list is the record of who's going. Organizers are on
+  // it too, but their meetups belong under "Created"
+  const attendingQuery = useMemo(
+    () => query(collection(firestore, 'meetups'), where('attendeeIds', 'array-contains', userProfile.id)),
+    [firestore, userProfile.id],
+  );
+  const attending = useCollection<Meetup>(attendingQuery);
+  const joined = useMemo(
+    () => attending.data?.filter(meetup => meetup.creatorId !== userProfile.id) ?? null,
+    [attending.data, userProfile.id],
+  );
   const created = useDocsByIds<Meetup>('meetups', userProfile.createdMeetupIds);
 
   const meetupLink = (meetup: Meetup) => (
@@ -31,8 +45,8 @@ export default function MeetupsCard({ userProfile }: { userProfile: UserProfile 
           </TabsList>
           <TabsContent value="joined" className="pt-4">
             <ItemList
-              items={joined.data}
-              isLoading={joined.isLoading}
+              items={joined}
+              isLoading={attending.isLoading}
               renderItem={meetupLink}
               empty={
                 <p className="text-sm text-muted-foreground text-center py-4">

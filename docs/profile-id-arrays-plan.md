@@ -284,6 +284,18 @@ Visible changes to point out in the PR:
   open in an old tab still run the old code, which writes the other person's
   profile. If the rule were gone, their accept would fail.
 
+**Status (November 9, 2026): steps 2 and 3 done together**, since there was
+no data to keep in sync. `src/lib/hooks/useConnections.ts` runs the `memberIds`
+query; the dashboard, Finder, My Tasks and Joined Meetups read from it or from
+`attendeeIds`. Accepting now writes only the request and the connection, and
+joining a meetup only the meetup. The plan missed one reader: the Getting
+Started checklist (`src/components/account/GettingStarted.tsx`) ticked "Find a
+mentor, tutor or pair programming partner" from the profile arrays, and now
+checks the connection collections instead. Emulator tests covered both role
+directions for mentorships, tutorships, pairings, joining a meetup, and that
+accepting leaves both profiles untouched. The `UserProfile` fields stay until
+step 5. Step 4 can go out a week after this is live.
+
 ### Step 4: Remove the rule exception (rules only, after a grace period)
 
 Wait about a week after step 3 is live, so old tabs have been reloaded. Then:
