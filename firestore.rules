@@ -148,12 +148,6 @@ service cloud.firestore {
              && !listBefore.hasAny([request.auth.uid]);
     }
     
-    function isBeingAddedToList(userId, listAfter, listBefore) {
-      return listAfter.size() == listBefore.size() + 1
-             && listAfter.hasAll(listBefore)
-             && listAfter.hasAny([userId]);
-    }
-
     function isRemovingSelfFromList(listAfter, listBefore) {
       return request.auth != null
              && listBefore.size() == listAfter.size() + 1
@@ -227,51 +221,6 @@ service cloud.firestore {
              && hasRolesFromRequest(requestsCollection, offerer, seeker);
     }
 
-    // The shared connection as it will be once the save being checked is done
-    function connectionAfter(kind, otherId) {
-      return getAfter(/databases/$(database)/documents/$(kind)/$(connectionIdWith(otherId))).data;
-    }
-
-    // When someone accepts a request, they also update the requester's profile:
-    // they add themselves to one list (like mentorIds) and add the shared
-    // connection's ID to another (like mentorshipIds), and change nothing else.
-    function isAddingConnection(otherId, peopleField, idsField) {
-      let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
-      return request.auth != null
-             && changedKeys.hasOnly([peopleField, idsField])
-             && isBeingAddedToList(request.auth.uid, request.resource.data.get(peopleField, []), resource.data.get(peopleField, []))
-             && isBeingAddedToList(connectionIdWith(otherId), request.resource.data.get(idsField, []), resource.data.get(idsField, []));
-    }
-
-    // ...and only while accepting a request the profile's owner sent them,
-    // which the connection saved alongside names
-    function isAcceptingRequestFrom(userId, kind, requestsCollection) {
-      return isAcceptingRequest(requestsCollection, connectionAfter(kind, userId).requestId, userId);
-    }
-
-    function isAcceptingMentorship(userId) {
-        return (
-            (isAddingConnection(userId, 'mentorIds', 'mentorshipIds')
-              && connectionAfter('mentorships', userId).mentorId == request.auth.uid)
-            || (isAddingConnection(userId, 'menteeIds', 'mentorshipIds')
-              && connectionAfter('mentorships', userId).menteeId == request.auth.uid)
-          ) && isAcceptingRequestFrom(userId, 'mentorships', 'mentorshipRequests');
-    }
-
-    function isAcceptingTutorship(userId) {
-        return (
-            (isAddingConnection(userId, 'tutorIds', 'tutorshipIds')
-              && connectionAfter('tutorships', userId).tutorId == request.auth.uid)
-            || (isAddingConnection(userId, 'studentIds', 'tutorshipIds')
-              && connectionAfter('tutorships', userId).studentId == request.auth.uid)
-          ) && isAcceptingRequestFrom(userId, 'tutorships', 'tutorRequests');
-    }
-
-    function isAcceptingPairing(userId) {
-        return isAddingConnection(userId, 'pairPartnerIds', 'pairingIds')
-            && isAcceptingRequestFrom(userId, 'pairings', 'pairRequests');
-    }
-
     // Profiles are public, so they must never hold an email address.
     // Firebase Auth already keeps each member's email privately.
     match /users/{userId} {
@@ -287,7 +236,7 @@ service cloud.firestore {
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
           ((isVerified() && isAddingSelfToList(request.resource.data.followers, resource.data.get('followers', []))) ||
             isRemovingSelfFromList(request.resource.data.followers, resource.data.get('followers', [])))
-        ) || isAcceptingMentorship(userId) || isAcceptingTutorship(userId) || isAcceptingPairing(userId)
+        )
       );
     }
 
