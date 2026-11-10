@@ -15,6 +15,9 @@ import { useToast } from '@/components/ui/use-toast';
 import type { User } from 'firebase/auth';
 import type { Post } from '@/lib/news';
 import ZonedText from '@/components/ZonedText';
+import PostCarousel from '@/components/posts/PostCarousel';
+import PostTime from '@/components/posts/PostTime';
+import type { PostView } from '@/lib/post-view';
 
 const ITEMS_PER_PAGE = 25;
 
@@ -102,9 +105,16 @@ function NewsItem({ item, user, userProfile }: { item: Post, user: User | null, 
 /**
  * The news page. The headlines come from the server, which loads the current
  * edition on each visit; `initialAnnouncements` is the server's copy of the
- * announcements, shown until the live list loads.
+ * announcements, shown until the live list loads. `latestPosts` are
+ * w3Develops' own newest posts, and `communityPost` the latest community
+ * insights post (src/lib/posts.ts).
  */
-export default function NewsFeed({ newsItems, initialAnnouncements }: { newsItems: Post[]; initialAnnouncements: unknown[] | null }) {
+export default function NewsFeed({ newsItems, initialAnnouncements, latestPosts, communityPost }: {
+    newsItems: Post[];
+    initialAnnouncements: unknown[] | null;
+    latestPosts: PostView[];
+    communityPost: PostView | null;
+}) {
     const firestore = useFirestore();
     const { user } = useUser();
     const [currentPage, setCurrentPage] = useState(1);
@@ -172,7 +182,9 @@ export default function NewsFeed({ newsItems, initialAnnouncements }: { newsItem
                 </CardContent>
             </Card>
 
-            <section className="space-y-8">
+            <PostCarousel posts={latestPosts} />
+
+            <section className="space-y-8" aria-label="Headlines">
                 {newsItems.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">
                         The headlines couldn&apos;t be loaded right now. Please try again in a few minutes.
@@ -205,9 +217,17 @@ export default function NewsFeed({ newsItems, initialAnnouncements }: { newsItem
                             <Megaphone className="h-5 w-5 text-primary" />
                             Community Status
                         </CardTitle>
-                        <CardDescription>Official announcements from w3Develops.</CardDescription>
+                        <CardDescription>What&apos;s happening in the community, and official announcements from w3Develops.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
+                        {communityPost && (
+                            <Link href={`/news/posts/${communityPost.id}`} className="block rounded-md bg-primary/5 hover:bg-primary/10 transition-colors p-4 space-y-1">
+                                <span className="text-xs font-bold uppercase tracking-widest text-primary">Community insights</span>
+                                <span className="block font-bold leading-tight">{communityPost.title}</span>
+                                {communityPost.description && <span className="block text-sm text-muted-foreground">{communityPost.description}</span>}
+                                <span className="block text-[10px] text-muted-foreground"><PostTime ms={communityPost.createdAt} withTime /></span>
+                            </Link>
+                        )}
                         {isLoadingAnnouncements ? (
                             <div className="space-y-4">
                                 {[...Array(2)].map((_, i) => <div key={i} className="h-20 bg-muted rounded animate-pulse" />)}
@@ -223,7 +243,7 @@ export default function NewsFeed({ newsItems, initialAnnouncements }: { newsItem
                                     <span className="text-[10px] text-muted-foreground pt-1 block"><ZonedText render={tz => formatTimestamp(announcement.startTime, true, tz)} /></span>
                                 </div>
                             ))
-                        ) : (
+                        ) : !communityPost && (
                             <p className="text-sm text-center text-muted-foreground py-4">No recent announcements.</p>
                         )}
                     </CardContent>

@@ -1,8 +1,8 @@
 import { getPublicList, PUBLIC_ITEM_PAGES, type PublicCollection } from '@/lib/public-items';
 import { SITE_NAME, SITE_URL } from '@/lib/site-pages';
 
-// An RSS feed of what's new on w3Develops: the latest study groups, group
-// projects, book clubs, meetups, competitions and jobs, newest first.
+// An RSS feed of what's new on w3Develops: the latest posts, study groups,
+// group projects, book clubs, meetups, competitions and jobs, newest first.
 // Feed readers and sites that follow w3Develops use it; the layout points to
 // it from every page.
 
@@ -19,6 +19,7 @@ const KINDS: { collection: PublicCollection; label: string; titleField: 'name' |
   { collection: 'meetups', label: 'Meetup', titleField: 'name' },
   { collection: 'competitions', label: 'Competition', titleField: 'name' },
   { collection: 'jobs', label: 'Job', titleField: 'title' },
+  { collection: 'posts', label: 'Post', titleField: 'title' },
 ];
 
 const escape = (text: string) =>
@@ -59,7 +60,7 @@ export async function GET() {
     <title>${escape(`What's new on ${SITE_NAME}`)}</title>
     <link>${SITE_URL}</link>
     <atom:link href="${SITE_URL}/feed.xml" rel="self" type="application/rss+xml" />
-    <description>The latest study groups, group projects, book clubs, meetups, competitions and jobs on w3Develops, a free developer community.</description>
+    <description>The latest posts, study groups, group projects, book clubs, meetups, competitions and jobs on w3Develops, a free developer community.</description>
     <language>en</language>
 ${items.map(item => `    <item>
       <title>${escape(`${item.category}: ${item.title}`)}</title>

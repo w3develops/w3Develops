@@ -336,6 +336,13 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false; 
     }
+
+    // w3Develops' own posts (community insights and news roundups), written
+    // only by the scheduler in functions/src/posts.ts through the Admin SDK
+    match /posts/{postId} {
+      allow read: if true;
+      allow write: if false;
+    }
     
     match /mentorshipRequests/{requestId} {
         allow read: if request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid;

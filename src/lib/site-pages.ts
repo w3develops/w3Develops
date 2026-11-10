@@ -124,7 +124,7 @@ export const SITE_PAGES = {
   },
   '/news': {
     title: 'Tech News',
-    description: 'The latest tech headlines from dozens of sources, an AI community briefing refreshed eight times a day, and w3Develops announcements.',
+    description: 'The latest tech headlines from dozens of sources, daily w3Develops community insights and topic roundups, an AI community briefing refreshed eight times a day, and announcements.',
     section: 'News and media',
   },
   '/news/ai-community-brief': {
@@ -134,8 +134,8 @@ export const SITE_PAGES = {
   },
   '/news/archive': {
     title: 'News Archive',
-    description: 'Past w3Develops news and announcements.',
-    noindex: true,
+    description: 'Every w3Develops post: nightly community insights, plus daily roundups on hardware and robotics, software and security, crypto, business, marketing, sales, and open source.',
+    section: 'News and media',
   },
   '/podcast': {
     title: 'Podcast',

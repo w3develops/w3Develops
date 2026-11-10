@@ -1,5 +1,6 @@
 
 import { FieldValue, Timestamp } from 'firebase/firestore';
+import type { PostTopic } from '@/lib/post-topics';
 
 export interface NotificationSettings {
   dailyCodingNewsletter?: boolean;
@@ -317,5 +318,36 @@ export interface SupportRequest {
   subject: string;
   description: string;
   status: 'open' | 'in_progress' | 'closed';
+  createdAt: Timestamp;
+}
+
+// w3Develops' own posts: community insights and daily news roundups, one
+// topic per news refresh time (src/lib/post-topics.ts). Written only by the
+// scheduler in functions/src/posts.ts; everyone can read them. The document
+// ID is the Pacific date and topic, like "2026-11-09-crypto".
+export interface PostItem {
+  text: string; // a headline, or a group, meetup or competition name
+  link?: string; // https:// address or a path on this site
+  source?: string; // the publisher, for news stories
+  detail?: string; // a short note, like "Study group · 4 members"
+  at?: Timestamp; // a time to show in the reader's zone
+  atLabel?: string; // what `at` is, like "Starts" or "Published"
+}
+
+export interface PostSection {
+  heading: string;
+  items: PostItem[];
+}
+
+export interface BlogPost {
+  id: string;
+  topic: PostTopic;
+  title: string;
+  description: string; // a sentence or two for cards, search results and the RSS feed
+  intro: string;
+  sections: PostSection[];
+  outro?: string;
+  aiWritten: boolean; // true if an AI model wrote any of the text
+  editionId: string; // start of the news edition it went out in (UTC ISO time)
   createdAt: Timestamp;
 }

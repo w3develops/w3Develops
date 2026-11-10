@@ -21,6 +21,7 @@ export const PUBLIC_ITEM_PAGES = {
   meetups: '/meetups',
   competitions: '/competitions',
   jobs: '/job-board',
+  posts: '/news/posts',
 } as const;
 export type PublicCollection = keyof typeof PUBLIC_ITEM_PAGES;
 
@@ -110,6 +111,8 @@ export interface PublicListQuery {
   direction: 'asc' | 'desc';
   limit: number;
   after?: { field: string; op: '<' | '<=' | '>' | '>='; millis: number };
+  /** Only items whose `field` is `value` (needs a composite index with orderBy) */
+  equals?: { field: string; value: string };
 }
 
 const fetchList = unstable_cache(
@@ -117,6 +120,7 @@ const fetchList = unstable_cache(
     const docs = await readList({
       collection: list.collection,
       where: list.after,
+      equals: list.equals,
       orderBy: { field: list.orderBy, direction: list.direction },
       limit: list.limit,
     });
