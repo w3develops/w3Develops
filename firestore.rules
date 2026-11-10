@@ -28,6 +28,49 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.moderator == true;
     }
 
+    // ---- Moderators acting on members' groups, meetups and other items ----
+    // Every such action is saved with a new moderationLog entry in the same
+    // write (src/app/moderation/useItemModeration.ts), so it's on the record.
+
+    // True when this write creates moderationLog/<logId>
+    function isLoggedByModerator(logId) {
+      let logPath = /databases/$(database)/documents/moderationLog/$(logId);
+      return isModerator() && !exists(logPath) && existsAfter(logPath);
+    }
+
+    // Deleting an item, like studyGroups/abc, is logged as
+    // moderationLog/delete-studyGroups-abc
+    function isModeratorDeleting(kind, id) {
+      return isLoggedByModerator('delete-' + kind + '-' + id);
+    }
+
+    // A task, check-in, update or entry goes with its item (any time after
+    // the item's deletion was logged), or on its own with its own entry, like
+    // moderationLog/delete-studyGroups-abc-checkIns-xyz
+    function isModeratorDeletingPart(kind, id, part, partId) {
+      return isModerator()
+             && (existsAfter(/databases/$(database)/documents/moderationLog/$('delete-' + kind + '-' + id))
+                 || isLoggedByModerator('delete-' + kind + '-' + id + '-' + part + '-' + partId));
+    }
+
+    // A moderator edits only the item's wording (`keys`), naming a new
+    // moderationLog entry about this item in `moderationLogId`
+    function isModeratorEditing(kind, id, keys) {
+      let logId = request.resource.data.moderationLogId;
+      let logPath = /databases/$(database)/documents/moderationLog/$(logId);
+      return isModerator()
+             && logId is string
+             && changedKeys().hasOnly(keys.concat(['moderationLogId']))
+             && !exists(logPath)
+             && getAfter(logPath).data.action == 'edit-content'
+             && getAfter(logPath).data.contentPath == kind + '/' + id;
+    }
+
+    function isModeratorEditingGroup(kind, id) {
+      return isModeratorEditing(kind, id, ['name', 'name_lowercase', 'topic', 'description'])
+             && isValidGroup(request.resource.data);
+    }
+
     // Study groups, group projects and book clubs share these rules.
     // `kind` is the collection name, like 'studyGroups'.
     function groupData(kind, groupId) {
@@ -418,8 +461,10 @@ service cloud.firestore {
     match /competitions/{competitionId} {
       allow read: if true;
       allow create: if isVerified() && request.resource.data.creatorId == request.auth.uid;
-      allow update: if request.auth != null && resource.data.creatorId == request.auth.uid;
-      allow delete: if request.auth != null && resource.data.creatorId == request.auth.uid;
+      allow update: if (request.auth != null && resource.data.creatorId == request.auth.uid)
+                    || isModeratorEditing('competitions', competitionId, ['name', 'name_lowercase', 'description', 'rules', 'prize']);
+      allow delete: if (request.auth != null && resource.data.creatorId == request.auth.uid)
+                    || isModeratorDeleting('competitions', competitionId);
 
       match /entries/{entryId} {
         allow read: if true;
@@ -439,21 +484,27 @@ service cloud.firestore {
                           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['voterIds'])
                           && (isAddingSelfToList(request.resource.data.voterIds, resource.data.get('voterIds', []))
                               || isRemovingSelfFromList(request.resource.data.voterIds, resource.data.get('voterIds', []))));
-        allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+        allow delete: if (request.auth != null && resource.data.userId == request.auth.uid)
+                      || isModeratorDeletingPart('competitions', competitionId, 'entries', entryId);
       }
     }
 
     match /jobs/{jobId} {
       allow read: if true;
       allow create: if isVerified() && request.resource.data.postedById == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.postedById == request.auth.uid;
+      allow update: if (request.auth != null && resource.data.postedById == request.auth.uid)
+                    || isModeratorEditing('jobs', jobId, ['title', 'title_lowercase', 'companyName', 'location', 'description', 'applyUrl']);
+      allow delete: if (request.auth != null && resource.data.postedById == request.auth.uid)
+                    || isModeratorDeleting('jobs', jobId);
     }
 
     match /studyGroups/{groupId} {
       allow read: if true;
       allow create: if canCreateGroup() && hasNoAnytimeJoin();
-      allow update: if (isJoiningGroup() || isLeavingGroup() || isEditingGroup()) && hasNoAnytimeJoin();
-      allow delete: if request.auth != null && resource.data.creatorId == request.auth.uid;
+      allow update: if ((isJoiningGroup() || isLeavingGroup() || isEditingGroup()) && hasNoAnytimeJoin())
+                    || isModeratorEditingGroup('studyGroups', groupId);
+      allow delete: if (request.auth != null && resource.data.creatorId == request.auth.uid)
+                    || isModeratorDeleting('studyGroups', groupId);
 
       match /tasks/{taskId} {
         allow read: if true;
@@ -462,7 +513,8 @@ service cloud.firestore {
                       && request.resource.data.isCompleted == false;
         allow update: if isVerified() && isGroupMemberOf('studyGroups', groupId);
         allow delete: if (isGroupMemberOf('studyGroups', groupId) && resource.data.creatorId == request.auth.uid)
-                      || isGroupCreatorOf('studyGroups', groupId);
+                      || isGroupCreatorOf('studyGroups', groupId)
+                      || isModeratorDeletingPart('studyGroups', groupId, 'tasks', taskId);
       }
 
       match /checkIns/{checkInId} {
@@ -470,15 +522,17 @@ service cloud.firestore {
         allow create: if isGroupMemberOf('studyGroups', groupId) && isValidNewCheckIn();
         allow update: if isEditingOwnCheckIn();
         // Lets the creator clear check-ins when deleting the group
-        allow delete: if isGroupCreatorOf('studyGroups', groupId);
+        allow delete: if isGroupCreatorOf('studyGroups', groupId)
+                      || isModeratorDeletingPart('studyGroups', groupId, 'checkIns', checkInId);
       }
     }
 
     match /bookClubs/{bookClubId} {
       allow read: if true;
       allow create: if canCreateGroup();
-      allow update: if isJoiningGroup() || isLeavingGroup() || isEditingGroup();
-      allow delete: if request.auth != null && resource.data.creatorId == request.auth.uid;
+      allow update: if isJoiningGroup() || isLeavingGroup() || isEditingGroup() || isModeratorEditingGroup('bookClubs', bookClubId);
+      allow delete: if (request.auth != null && resource.data.creatorId == request.auth.uid)
+                    || isModeratorDeleting('bookClubs', bookClubId);
 
       match /tasks/{taskId} {
         allow read: if true;
@@ -487,7 +541,8 @@ service cloud.firestore {
                       && request.resource.data.isCompleted == false;
         allow update: if isVerified() && isGroupMemberOf('bookClubs', bookClubId);
         allow delete: if (isGroupMemberOf('bookClubs', bookClubId) && resource.data.creatorId == request.auth.uid)
-                      || isGroupCreatorOf('bookClubs', bookClubId);
+                      || isGroupCreatorOf('bookClubs', bookClubId)
+                      || isModeratorDeletingPart('bookClubs', bookClubId, 'tasks', taskId);
       }
 
       match /checkIns/{checkInId} {
@@ -495,15 +550,18 @@ service cloud.firestore {
         allow create: if isGroupMemberOf('bookClubs', bookClubId) && isValidNewCheckIn();
         allow update: if isEditingOwnCheckIn();
         // Lets the creator clear check-ins when deleting the group
-        allow delete: if isGroupCreatorOf('bookClubs', bookClubId);
+        allow delete: if isGroupCreatorOf('bookClubs', bookClubId)
+                      || isModeratorDeletingPart('bookClubs', bookClubId, 'checkIns', checkInId);
       }
     }
 
     match /groupProjects/{groupProjectId} {
       allow read: if true;
       allow create: if canCreateGroup() && hasNoAnytimeJoin();
-      allow update: if (isJoiningGroup() || isLeavingGroup() || isEditingGroup()) && hasNoAnytimeJoin();
-      allow delete: if request.auth != null && resource.data.creatorId == request.auth.uid;
+      allow update: if ((isJoiningGroup() || isLeavingGroup() || isEditingGroup()) && hasNoAnytimeJoin())
+                    || isModeratorEditingGroup('groupProjects', groupProjectId);
+      allow delete: if (request.auth != null && resource.data.creatorId == request.auth.uid)
+                    || isModeratorDeleting('groupProjects', groupProjectId);
 
       match /tasks/{taskId} {
         allow read: if true;
@@ -512,7 +570,8 @@ service cloud.firestore {
                       && request.resource.data.isCompleted == false;
         allow update: if isVerified() && isGroupMemberOf('groupProjects', groupProjectId);
         allow delete: if (isGroupMemberOf('groupProjects', groupProjectId) && resource.data.creatorId == request.auth.uid)
-                      || isGroupCreatorOf('groupProjects', groupProjectId);
+                      || isGroupCreatorOf('groupProjects', groupProjectId)
+                      || isModeratorDeletingPart('groupProjects', groupProjectId, 'tasks', taskId);
       }
 
       match /checkIns/{checkInId} {
@@ -520,7 +579,8 @@ service cloud.firestore {
         allow create: if isGroupMemberOf('groupProjects', groupProjectId) && isValidNewCheckIn();
         allow update: if isEditingOwnCheckIn();
         // Lets the creator clear check-ins when deleting the group
-        allow delete: if isGroupCreatorOf('groupProjects', groupProjectId);
+        allow delete: if isGroupCreatorOf('groupProjects', groupProjectId)
+                      || isModeratorDeletingPart('groupProjects', groupProjectId, 'checkIns', checkInId);
       }
     }
 
@@ -530,27 +590,31 @@ service cloud.firestore {
                     && request.resource.data.creatorId == request.auth.uid
                     && request.resource.data.attendeeIds == [request.auth.uid];
       allow update: if isMeetupCreator(meetupId) || 
-                    (isVerified() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['attendeeIds']) && isAddingSelfToList(request.resource.data.attendeeIds, resource.data.attendeeIds));
-      allow delete: if isMeetupCreator(meetupId);
+                    (isVerified() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['attendeeIds']) && isAddingSelfToList(request.resource.data.attendeeIds, resource.data.attendeeIds))
+                    || isModeratorEditing('meetups', meetupId, ['name', 'name_lowercase', 'topic', 'description', 'locationAddress', 'virtualLink']);
+      allow delete: if isMeetupCreator(meetupId) || isModeratorDeleting('meetups', meetupId);
 
       match /updates/{updateId} {
         allow read: if true;
         allow create: if isMeetupCreator(meetupId) && request.resource.data.creatorId == request.auth.uid;
-        allow update, delete: if false;
+        allow update: if false;
+        allow delete: if isModeratorDeletingPart('meetups', meetupId, 'updates', updateId);
       }
 
       match /tasks/{taskId} {
-        allow read: if isMeetupAttendee(meetupId);
+        // Moderators can list them to delete them with the meetup
+        allow read: if isMeetupAttendee(meetupId) || isModerator();
         allow create: if isVerified() && isMeetupAttendee(meetupId) && request.resource.data.creatorId == request.auth.uid && request.resource.data.isCompleted == false;
         allow update: if isMeetupAttendee(meetupId);
-        allow delete: if (isMeetupAttendee(meetupId) && resource.data.creatorId == request.auth.uid) || isMeetupCreator(meetupId);
+        allow delete: if (isMeetupAttendee(meetupId) && resource.data.creatorId == request.auth.uid) || isMeetupCreator(meetupId)
+                      || isModeratorDeletingPart('meetups', meetupId, 'tasks', taskId);
       }
       
       match /checkIns/{checkInId} {
         allow read: if true;
         allow create: if isMeetupAttendee(meetupId) && isValidNewCheckIn();
         allow update: if isEditingOwnCheckIn();
-        allow delete: if false;
+        allow delete: if isModeratorDeletingPart('meetups', meetupId, 'checkIns', checkInId);
       }
     }
     
@@ -561,7 +625,10 @@ service cloud.firestore {
                     && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
                     && request.resource.data.projectUrl is string && request.resource.data.projectUrl.size() > 0
                     && request.resource.data.description is string && request.resource.data.description.size() <= 2000;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow update: if (request.auth != null && resource.data.userId == request.auth.uid)
+                    || isModeratorEditing('soloProjects', soloProjectId, ['name', 'description', 'projectUrl']);
+      allow delete: if (request.auth != null && resource.data.userId == request.auth.uid)
+                    || isModeratorDeleting('soloProjects', soloProjectId);
     }
 
     match /users/{userId}/notifications/{notificationId} {
@@ -759,14 +826,25 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // The items moderators can edit or delete (edit-content and
+    // delete-content log entries), like "studyGroups/abc" or
+    // "meetups/abc/checkIns/xyz"
+    function isModeratedContentPath(path) {
+      return path is string
+             && path.matches('(studyGroups|groupProjects|bookClubs|meetups|competitions|jobs|soloProjects)/[A-Za-z0-9_-]+(/(tasks|checkIns|updates|entries)/[A-Za-z0-9_-]+)?');
+    }
+
     // Every moderator action, for the record. Written by moderators with the
     // action itself, or by the auto-hide job; never changed or removed.
     match /moderationLog/{logId} {
       allow read: if isModerator();
       allow create: if isModerator()
-                    && request.resource.data.keys().hasOnly(['actorId', 'action', 'targetUserId', 'postId', 'note', 'createdAt'])
+                    && request.resource.data.keys().hasOnly(['actorId', 'action', 'targetUserId', 'postId', 'contentPath', 'note', 'createdAt'])
                     && request.resource.data.actorId == request.auth.uid
-                    && request.resource.data.action in ['hide', 'restore', 'delete', 'dismiss', 'warn', 'suspend', 'unsuspend']
+                    && request.resource.data.action in ['hide', 'restore', 'delete', 'dismiss', 'warn', 'suspend', 'unsuspend', 'edit-content', 'delete-content']
+                    && (!(request.resource.data.action in ['edit-content', 'delete-content']) || isModeratedContentPath(request.resource.data.contentPath))
+                    && (request.resource.data.action != 'delete-content'
+                        || logId == 'delete-' + request.resource.data.contentPath.replace('/', '-'))
                     && request.resource.data.targetUserId is string
                     && (!('postId' in request.resource.data) || request.resource.data.postId is string)
                     && (request.resource.data.action != 'delete' || logId == 'delete-' + request.resource.data.postId)

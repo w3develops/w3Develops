@@ -24,6 +24,7 @@ import { formatTimestamp } from '@/lib/utils';
 import type { MemberPost, MemberStanding, ModerationLogEntry, Report, UserProfile } from '@/lib/types';
 import ModerationTeam from './ModerationTeam';
 import { useModerationActions, type ActionRequest, type ModeratorAction } from './useModerationActions';
+import { MODERATED_ITEMS, type ModeratedKind } from '@/lib/moderated-items';
 
 const REASON_LABELS: Record<string, string> = { ...REPORT_REASONS, ...POST_REPORT_REASONS };
 
@@ -189,6 +190,21 @@ function ReviewPost({ postId, reports, onAction }: { postId: string; reports: Re
   );
 }
 
+/** Names the item an edit or deletion was about, with a link while it still exists */
+function ContentPathLabel({ path, deleted }: { path: string; deleted: boolean }) {
+  const [kind, id, part] = path.split('/');
+  const config = MODERATED_ITEMS[kind as ModeratedKind];
+  if (!config) return <span className="text-xs text-muted-foreground"> ({path})</span>;
+  const partNoun = part === 'checkIns' ? 'check-in' : part === 'entries' ? 'entry' : part?.replace(/s$/, '');
+  const withArticle = (noun: string) => `${/^[aeiou]/.test(noun) ? 'an' : 'a'} ${noun}`;
+  const what = partNoun ? `${withArticle(partNoun)} in ${withArticle(config.noun)}` : withArticle(config.noun);
+  return (
+    <span className="text-xs text-muted-foreground">
+      {' '}({deleted && !part ? what : <Link href={kind === 'soloProjects' ? config.listPath : `${config.listPath}/${id}`} className="underline">{what}</Link>})
+    </span>
+  );
+}
+
 function LogEntries({ entries }: { entries: ModerationLogEntry[] }) {
   const memberIds = [...new Set(entries.flatMap(entry => [entry.actorId, entry.targetUserId]).filter(id => id !== 'system'))];
   const { data: members } = useDocsByIds<UserProfile>('users', memberIds);
@@ -203,6 +219,7 @@ function LogEntries({ entries }: { entries: ModerationLogEntry[] }) {
           <strong>{name(entry.actorId)}</strong>: {MODERATION_ACTIONS[entry.action] ?? entry.action}
           {' · '}<Link href={`/users/${entry.targetUserId}`} className="underline">{name(entry.targetUserId)}</Link>
           {entry.postId && <span className="text-xs text-muted-foreground"> (post {entry.postId.slice(0, 8)})</span>}
+          {entry.contentPath && <ContentPathLabel path={entry.contentPath} deleted={entry.action === 'delete-content'} />}
           {entry.note && <p className="text-muted-foreground">“{entry.note}”</p>}
         </li>
       ))}

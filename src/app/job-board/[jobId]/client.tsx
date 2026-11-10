@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { formatTimestamp } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import ZonedText from '@/components/ZonedText';
+import ModeratorItemControls from '@/components/moderation/ModeratorItemControls';
 
 function JobDetailsSkeleton() {
     return (
@@ -71,6 +72,7 @@ export default function JobDetailsPageClient({ params, initialJob }: { params: {
                     <div className="flex items-center gap-2"><MapPin className="h-4 w-4" />{job.location}</div>
                     <div className="flex items-center gap-2"><Calendar className="h-4 w-4" />Posted <ZonedText render={tz => formatTimestamp(job.createdAt, false, tz)} /> by {job.postedByUsername}</div>
                 </div>
+                <div className="pt-2"><ModeratorItemControls kind="jobs" id={jobId} item={job as unknown as Record<string, unknown>} /></div>
             </CardHeader>
             <CardContent>
                 <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
