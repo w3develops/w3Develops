@@ -39,7 +39,6 @@ export interface UserProfile {
   following?: string[];
   followInfoPrivate?: boolean;
   createdMeetupIds?: string[];
-  joinedMeetupIds?: string[];
   soloProjectIds?: string[];
   starredSoloProjectIds?: string[];
   heartedArticleLinks?: string[]; // links of news articles the member hearted
@@ -50,20 +49,12 @@ export interface UserProfile {
   mentorshipStatus?: MentorshipStatus;
   mentoringSkills?: string[];
   seekingSkills?: string[];
-  mentorIds?: string[];
-  menteeIds?: string[];
-  mentorshipIds?: string[];
   tutorRole?: TutorRole;
   tutorStatus?: TutorStatus;
   tutoringSkills?: string[];
   seekingTutoringSkills?: string[];
-  tutorIds?: string[];
-  studentIds?: string[];
-  tutorshipIds?: string[];
   pairProgrammingStatus?: PairProgrammingStatus;
   pairProgrammingSkills?: string[];
-  pairPartnerIds?: string[];
-  pairingIds?: string[];
 }
 
 export interface GlobalAnnouncement {

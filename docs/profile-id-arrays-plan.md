@@ -321,6 +321,16 @@ from followers.
 - Update `docs/tech-debt-audit.md`, moving "The users doc is a grab bag" to
   Done, or noting what's left.
 
+**Status (November 10, 2026): steps 4 and 5 written and tested, together.**
+Steps 2 and 3 went live at 06:38 UTC on November 10. The rules exception and
+its seven helpers are removed, and the nine fields are gone from
+`UserProfile`. A fresh run of the step 0 script found none of the fields on
+any profile, so there's no data to delete. In the emulator: owners can still
+edit their profile and anyone can follow or unfollow, while writing someone
+else's connection lists or bio is denied; the new accept flow still passes,
+and the pre-step-3 accept batch is now refused, as expected. **Deploy the
+rules on or after November 17**, when old tabs have been reloaded.
+
 Before step 5, any step can be undone by reverting its PR, and the data is
 still complete. Step 5 is the only one that loses information, and only
 information that step 0 showed is duplicated.

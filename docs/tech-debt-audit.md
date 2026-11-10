@@ -1,6 +1,6 @@
 # w3Develops tech debt audit
 
-Started November 2, 2026. Updated November 7, 2026.
+Started November 2, 2026. Updated November 10, 2026.
 
 ## Done
 
@@ -32,8 +32,8 @@ Started November 2, 2026. Updated November 7, 2026.
 - **Google Analytics stays.** It's disclosed on `/cookies`, and the live site sends page views to `G-4X3H3B54J2`.
 - **Contact emails** work ([w3develops/w3Develops#519](https://github.com/w3develops/w3Develops/issues/519)).
 - **Podcast page works again.** The playlist ID was right; YouTube's RSS feed returns 404 for every channel and playlist. When the feed can't be read, `/podcast` now shows YouTube's embedded playlist player and a link to the playlist, instead of an error. The news feeds no longer use YouTube.
+- **Profiles no longer keep copies of connections.** Mentorships, tutorships, pairings and joined meetups are read from their own docs (`memberIds`, `attendeeIds`) through `useConnections`, accepting a request no longer writes either profile, and the rule that let the accepter edit the requester's profile is gone. See `docs/profile-id-arrays-plan.md`.
 
 ## Still to do
 
-- **The users doc is a grab bag.** Group membership now comes from the groups, but meetups (`joinedMeetupIds`) and mentorships (`mentorIds`, `menteeIds`, …) still keep hand-synced ID arrays on profiles.
 - **`npm audit` warnings (12).** They come from `@grpc/grpc-js` 1.9 (via Firebase) and `minimatch` 10 (via typescript-eslint). Neither affects the site: the gRPC issues are for running gRPC servers, and minimatch only runs in the lint tools. They'll clear when Firebase and typescript-eslint update those dependencies. Don't run `npm audit fix --force`, which would downgrade Firebase and the Next lint config.
