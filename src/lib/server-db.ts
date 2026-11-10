@@ -24,7 +24,7 @@ export interface ServerDoc {
 export interface ServerQuery {
   collection: string;
   where?: { field: string; op: '<' | '<=' | '>' | '>='; millis: number };
-  /** Only documents whose `field` is `value` */
+  /** Only documents whose field has this value, like status == 'visible' */
   equals?: { field: string; value: string };
   orderBy?: { field: string; direction: 'asc' | 'desc' };
   limit: number;

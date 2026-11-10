@@ -14,3 +14,4 @@ export { onSoloProject } from './solo.js';
 export { meetingReminders } from './reminders.js';
 export { onReport } from './reports.js';
 export { scheduledPosts } from './posts.js';
+export { setModerator } from './moderators.js';

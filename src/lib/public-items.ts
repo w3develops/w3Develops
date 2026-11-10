@@ -106,13 +106,17 @@ export function profileHasContent(profile: { bio?: unknown; skills?: unknown }):
  * (milliseconds; round it, so the cache gets reused).
  */
 export interface PublicListQuery {
-  collection: PublicCollection | 'soloProjects' | 'announcements';
+  collection: PublicCollection | 'soloProjects' | 'announcements' | 'memberPosts';
+  /**
+   * Only documents whose field has this value. Member posts must pass
+   * status == 'visible': the Admin SDK skips the rules, which would
+   * otherwise keep hidden posts out. Needs a composite index with orderBy.
+   */
+  equals?: { field: string; value: string };
   orderBy: string;
   direction: 'asc' | 'desc';
   limit: number;
   after?: { field: string; op: '<' | '<=' | '>' | '>='; millis: number };
-  /** Only items whose `field` is `value` (needs a composite index with orderBy) */
-  equals?: { field: string; value: string };
 }
 
 const fetchList = unstable_cache(

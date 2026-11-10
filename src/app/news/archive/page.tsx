@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import PostCard from '@/components/posts/PostCard';
+import BlogPostCard from '@/components/posts/BlogPostCard';
 import { POST_TOPICS, isPostTopic, postTopic } from '@/lib/post-topics';
 import { getArchivePage } from '@/lib/posts';
 import { pageMetadata } from '@/lib/site-pages';
@@ -68,7 +68,7 @@ export default async function NewsArchivePage({ searchParams }: Props) {
       ) : (
         <ul className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {page.posts.map(post => (
-            <li key={post.id}><PostCard post={post} /></li>
+            <li key={post.id}><BlogPostCard post={post} /></li>
           ))}
         </ul>
       )}

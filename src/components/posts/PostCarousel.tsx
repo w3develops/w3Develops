@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Newspaper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import PostCard from '@/components/posts/PostCard';
+import BlogPostCard from '@/components/posts/BlogPostCard';
 import type { PostView } from '@/lib/post-view';
 
 /**
@@ -49,7 +49,7 @@ export default function PostCarousel({ posts }: { posts: PostView[] }) {
       >
         {posts.map(post => (
           <li key={post.id} className="snap-start shrink-0 w-[85%] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.7rem)]">
-            <PostCard post={post} />
+            <BlogPostCard post={post} />
           </li>
         ))}
       </ul>

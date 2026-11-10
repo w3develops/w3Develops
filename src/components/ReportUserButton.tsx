@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { Flag } from 'lucide-react';
 import Link from 'next/link';
 import { useFirestore, useUser } from '@/firebase';
@@ -11,6 +11,8 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
+import { POST_REPORT_REASONS } from '@/lib/member-posts';
+import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 
 // The reasons the Firestore rules accept (see match /reports)
 export const REPORT_REASONS = {
@@ -21,17 +23,21 @@ export const REPORT_REASONS = {
   inactive: "Inactive in a group they joined",
   other: 'Something else',
 } as const;
-type ReportReason = keyof typeof REPORT_REASONS;
+type ReportReason = keyof typeof REPORT_REASONS | keyof typeof POST_REPORT_REASONS;
 
 const MAX_DETAILS = 1000;
 
 /**
- * Lets a signed-in member privately report another member to the
- * w3Develops team. Reports are saved where only the team can read them.
+ * Lets a signed-in member privately report another member, or one of their
+ * posts (pass `postId`), to the w3Develops team. Reports are saved where only
+ * moderators can read them. A post report is saved as "<postId>_<uid>", so
+ * each member reports a post once; enough of them hide the post until a
+ * moderator looks (functions/src/reports.ts).
  */
-export default function ReportUserButton({ reportedUserId, username }: { reportedUserId: string; username?: string }) {
+export default function ReportUserButton({ reportedUserId, username, postId }: { reportedUserId: string; username?: string; postId?: string }) {
   const { user } = useUser();
   const firestore = useFirestore();
+  const ensureVerified = useVerifiedGuard();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<ReportReason | ''>('');
@@ -40,25 +46,37 @@ export default function ReportUserButton({ reportedUserId, username }: { reporte
 
   if (!user || user.uid === reportedUserId) return null;
 
+  const reasons: Record<string, string> = postId ? POST_REPORT_REASONS : REPORT_REASONS;
+
   const send = async () => {
     if (!reason) return;
+    if (postId && !ensureVerified()) return;
     setIsSending(true);
+    const report = {
+      reporterId: user.uid,
+      reportedUserId,
+      ...(postId && { postId }),
+      reason,
+      details: details.trim(),
+      page: window.location.pathname,
+      status: 'open',
+      createdAt: serverTimestamp(),
+    };
     try {
-      await addDoc(collection(firestore, 'reports'), {
-        reporterId: user.uid,
-        reportedUserId,
-        reason,
-        details: details.trim(),
-        page: window.location.pathname,
-        status: 'open',
-        createdAt: serverTimestamp(),
-      });
+      if (postId) await setDoc(doc(firestore, 'reports', `${postId}_${user.uid}`), report);
+      else await addDoc(collection(firestore, 'reports'), report);
       toast({ title: 'Report sent', description: 'Thank you. The w3Develops team will look into it.' });
       setOpen(false);
       setReason('');
       setDetails('');
     } catch {
-      toast({ variant: 'destructive', title: "Couldn't send the report", description: 'Please try again, or email team@w3develops.org.' });
+      toast({
+        variant: 'destructive',
+        title: "Couldn't send the report",
+        description: postId
+          ? "You may have reported this post already. If not, please try again, or email team@w3develops.org."
+          : 'Please try again, or email team@w3develops.org.',
+      });
     } finally {
       setIsSending(false);
     }
@@ -73,7 +91,7 @@ export default function ReportUserButton({ reportedUserId, username }: { reporte
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Report {username || 'this member'}</DialogTitle>
+          <DialogTitle>{postId ? `Report this post by ${username || 'this member'}` : `Report ${username || 'this member'}`}</DialogTitle>
           <DialogDescription>
             Reports are private: {username || 'the member'} won&apos;t see who sent it. See our{' '}
             <Link href="/code-of-conduct" target="_blank" className="underline">Code of Conduct</Link>.
@@ -81,7 +99,7 @@ export default function ReportUserButton({ reportedUserId, username }: { reporte
         </DialogHeader>
         <div className="grid gap-4">
           <RadioGroup value={reason} onValueChange={value => setReason(value as ReportReason)} aria-label="Reason">
-            {(Object.entries(REPORT_REASONS) as [ReportReason, string][]).map(([value, label]) => (
+            {(Object.entries(reasons) as [ReportReason, string][]).map(([value, label]) => (
               <div key={value} className="flex items-center gap-2">
                 <RadioGroupItem value={value} id={`reason-${value}`} />
                 <Label htmlFor={`reason-${value}`} className="font-normal">{label}</Label>

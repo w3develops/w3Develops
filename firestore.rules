@@ -21,6 +21,13 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).affectedKeys();
     }
 
+    // Moderators have the `moderator` custom claim on their Firebase Auth
+    // account (scripts/set-moderator.mjs). They review reported posts on
+    // /moderation.
+    function isModerator() {
+      return request.auth != null && request.auth.token.moderator == true;
+    }
+
     // Study groups, group projects and book clubs share these rules.
     // `kind` is the collection name, like 'studyGroups'.
     function groupData(kind, groupId) {
@@ -148,12 +155,6 @@ service cloud.firestore {
              && !listBefore.hasAny([request.auth.uid]);
     }
     
-    function isBeingAddedToList(userId, listAfter, listBefore) {
-      return listAfter.size() == listBefore.size() + 1
-             && listAfter.hasAll(listBefore)
-             && listAfter.hasAny([userId]);
-    }
-
     function isRemovingSelfFromList(listAfter, listBefore) {
       return request.auth != null
              && listBefore.size() == listAfter.size() + 1
@@ -227,68 +228,34 @@ service cloud.firestore {
              && hasRolesFromRequest(requestsCollection, offerer, seeker);
     }
 
-    // The shared connection as it will be once the save being checked is done
-    function connectionAfter(kind, otherId) {
-      return getAfter(/databases/$(database)/documents/$(kind)/$(connectionIdWith(otherId))).data;
-    }
-
-    // When someone accepts a request, they also update the requester's profile:
-    // they add themselves to one list (like mentorIds) and add the shared
-    // connection's ID to another (like mentorshipIds), and change nothing else.
-    function isAddingConnection(otherId, peopleField, idsField) {
-      let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
-      return request.auth != null
-             && changedKeys.hasOnly([peopleField, idsField])
-             && isBeingAddedToList(request.auth.uid, request.resource.data.get(peopleField, []), resource.data.get(peopleField, []))
-             && isBeingAddedToList(connectionIdWith(otherId), request.resource.data.get(idsField, []), resource.data.get(idsField, []));
-    }
-
-    // ...and only while accepting a request the profile's owner sent them,
-    // which the connection saved alongside names
-    function isAcceptingRequestFrom(userId, kind, requestsCollection) {
-      return isAcceptingRequest(requestsCollection, connectionAfter(kind, userId).requestId, userId);
-    }
-
-    function isAcceptingMentorship(userId) {
-        return (
-            (isAddingConnection(userId, 'mentorIds', 'mentorshipIds')
-              && connectionAfter('mentorships', userId).mentorId == request.auth.uid)
-            || (isAddingConnection(userId, 'menteeIds', 'mentorshipIds')
-              && connectionAfter('mentorships', userId).menteeId == request.auth.uid)
-          ) && isAcceptingRequestFrom(userId, 'mentorships', 'mentorshipRequests');
-    }
-
-    function isAcceptingTutorship(userId) {
-        return (
-            (isAddingConnection(userId, 'tutorIds', 'tutorshipIds')
-              && connectionAfter('tutorships', userId).tutorId == request.auth.uid)
-            || (isAddingConnection(userId, 'studentIds', 'tutorshipIds')
-              && connectionAfter('tutorships', userId).studentId == request.auth.uid)
-          ) && isAcceptingRequestFrom(userId, 'tutorships', 'tutorRequests');
-    }
-
-    function isAcceptingPairing(userId) {
-        return isAddingConnection(userId, 'pairPartnerIds', 'pairingIds')
-            && isAcceptingRequestFrom(userId, 'pairings', 'pairRequests');
-    }
-
     // Profiles are public, so they must never hold an email address.
     // Firebase Auth already keeps each member's email privately.
+    // `createdAt` is when the account was made, set once at signup and never
+    // changed, so the rules can tell how old an account is (isOldEnoughToPost).
     match /users/{userId} {
       allow read: if true;
       allow create: if isOwner(userId) && !('email' in request.resource.data)
+                    && (!('createdAt' in request.resource.data) || request.resource.data.createdAt == request.time)
                     && (!('username' in request.resource.data || 'username_lowercase' in request.resource.data)
                         || hasClaimedUsername(request.resource.data));
       allow delete: if isOwner(userId);
       allow update: if !('email' in request.resource.data) && (
-        (isOwner(userId) && (!setsUsername(request.resource.data, resource.data) || hasClaimedUsername(request.resource.data))) ||
+        (isOwner(userId) && !changedKeys().hasAny(['createdAt'])
+          && (!setsUsername(request.resource.data, resource.data) || hasClaimedUsername(request.resource.data))) ||
         (
           request.resource.data.diff(resource.data).affectedKeys().size() == 1 &&
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
-          ((isVerified() && isAddingSelfToList(request.resource.data.followers, resource.data.get('followers', []))) ||
+          ((isVerified() && !hasBlocked(userId, request.auth.uid)
+              && isAddingSelfToList(request.resource.data.followers, resource.data.get('followers', []))) ||
             isRemovingSelfFromList(request.resource.data.followers, resource.data.get('followers', [])))
-        ) || isAcceptingMentorship(userId) || isAcceptingTutorship(userId) || isAcceptingPairing(userId)
+        )
       );
+    }
+
+    // True when `userId` has blocked `otherId` (users/{userId}/private/feedPrefs)
+    function hasBlocked(userId, otherId) {
+      let prefsPath = /databases/$(database)/documents/users/$(userId)/private/feedPrefs;
+      return exists(prefsPath) && get(prefsPath).data.get('blockedIds', []).hasAny([otherId]);
     }
 
     // Names nobody can sign up with, so no one can pose as the site's staff.
@@ -612,14 +579,22 @@ service cloud.firestore {
     // (src/lib/notification-prefs.ts). Only the member can see them.
     match /users/{userId}/private/{docId} {
       allow read, delete: if isOwner(userId);
-      allow create, update: if isOwner(userId) && docId == 'notificationPrefs'
-                    && request.resource.data.keys().hasOnly(['follows', 'groupMembers', 'groupActivity', 'requests', 'following', 'meetingReminders'])
-                    && (!('follows' in request.resource.data) || request.resource.data.follows is bool)
-                    && (!('groupMembers' in request.resource.data) || request.resource.data.groupMembers is bool)
-                    && (!('groupActivity' in request.resource.data) || request.resource.data.groupActivity is bool)
-                    && (!('requests' in request.resource.data) || request.resource.data.requests is bool)
-                    && (!('following' in request.resource.data) || request.resource.data.following is bool)
-                    && (!('meetingReminders' in request.resource.data) || request.resource.data.meetingReminders is bool);
+      allow create, update: if isOwner(userId) && (
+        (docId == 'notificationPrefs'
+          && request.resource.data.keys().hasOnly(['follows', 'groupMembers', 'groupActivity', 'requests', 'following', 'meetingReminders'])
+          && (!('follows' in request.resource.data) || request.resource.data.follows is bool)
+          && (!('groupMembers' in request.resource.data) || request.resource.data.groupMembers is bool)
+          && (!('groupActivity' in request.resource.data) || request.resource.data.groupActivity is bool)
+          && (!('requests' in request.resource.data) || request.resource.data.requests is bool)
+          && (!('following' in request.resource.data) || request.resource.data.following is bool)
+          && (!('meetingReminders' in request.resource.data) || request.resource.data.meetingReminders is bool))
+        // The feed's followed topics, muted and blocked members (FeedPrefs in src/lib/types.ts)
+        || (docId == 'feedPrefs'
+          && request.resource.data.keys().hasOnly(['topics', 'mutedIds', 'blockedIds'])
+          && request.resource.data.get('topics', []) is list && request.resource.data.get('topics', []).size() <= 30
+          && request.resource.data.get('mutedIds', []) is list && request.resource.data.get('mutedIds', []).size() <= 500
+          && request.resource.data.get('blockedIds', []) is list && request.resource.data.get('blockedIds', []).size() <= 500)
+      );
     }
 
     // Each member's activity feed and notifications, written only by the
@@ -633,21 +608,202 @@ service cloud.firestore {
                     && request.resource.data.read is bool;
     }
 
-    // Private reports about members (src/components/ReportUserButton.tsx).
-    // Members can only file them; the team reads them in the Firebase console.
+    // Private reports about members or their posts
+    // (src/components/ReportUserButton.tsx). Members can only file them;
+    // moderators read them on /moderation and close them once handled.
     match /reports/{reportId} {
-      allow read, update, delete: if false;
+      allow read: if isModerator();
+      allow update: if isModerator()
+                    && changedKeys().hasOnly(['status', 'closedBy', 'closedAt'])
+                    && resource.data.status == 'open'
+                    && request.resource.data.status == 'closed'
+                    && request.resource.data.closedBy == request.auth.uid
+                    && request.resource.data.closedAt == request.time;
+      allow delete: if false;
       allow create: if request.auth != null
-                    && request.resource.data.keys().hasOnly(['reporterId', 'reportedUserId', 'reason', 'details', 'page', 'status', 'createdAt'])
+                    && request.resource.data.keys().hasOnly(['reporterId', 'reportedUserId', 'postId', 'reason', 'details', 'page', 'status', 'createdAt'])
                     && request.resource.data.reporterId == request.auth.uid
                     && request.resource.data.reportedUserId is string
                     && request.resource.data.reportedUserId != request.auth.uid
                     && exists(/databases/$(database)/documents/users/$(request.resource.data.reportedUserId))
-                    && request.resource.data.reason in ['harassment', 'spam', 'impersonation', 'inappropriate', 'inactive', 'other']
+                    && request.resource.data.reason in ['harassment', 'spam', 'impersonation', 'inappropriate', 'inactive', 'other', 'off-topic', 'unsafe']
                     && request.resource.data.details is string && request.resource.data.details.size() <= 1000
                     && request.resource.data.page is string && request.resource.data.page.size() <= 300
                     && request.resource.data.status == 'open'
+                    && request.resource.data.createdAt == request.time
+                    && (!('postId' in request.resource.data) || isReportingPost(reportId));
+    }
+
+    // A post report is named "<postId>_<reporter's uid>", so each member can
+    // report a post only once, and the auto-hide (functions/src/reports.ts)
+    // counts different members. It names the post's real author.
+    function isReportingPost(reportId) {
+      let data = request.resource.data;
+      let postPath = /databases/$(database)/documents/memberPosts/$(data.postId);
+      return isVerified()
+             && data.postId is string
+             && reportId == data.postId + '_' + request.auth.uid
+             && exists(postPath)
+             && get(postPath).data.authorId == data.reportedUserId;
+    }
+
+    // ---- Member posts: the public feed on /feed ----
+    // Limits are in src/lib/member-posts.ts; keep them in step.
+
+    // Words a post can't contain, as whole words in any case. Keep in step
+    // with BLOCKED_WORDS in src/lib/member-posts.ts.
+    function hasBlockedWord(text) {
+      return text.lower().matches('(?s)(.*[^a-z0-9_])?(fuck|fucking|fucker|motherfucker|shit|bullshit|cunt|bitch|whore|slut|porn|porno|nudes|onlyfans|xxx|nigger|nigga|faggot|fag|retard|kys|free\\s+robux|free\\s+vbucks)([^a-z0-9_].*)?');
+    }
+
+    // Text up to 500 characters, up to 3 topics, and an optional https link
+    function isValidPostContent(data) {
+      return data.text is string && data.text.size() > 0 && data.text.size() <= 500
+             && !hasBlockedWord(data.text)
+             && data.topics is list && data.topics.size() <= 3
+             && (data.topics.size() == 0 || data.topics.join(',').matches('[a-z0-9-]{1,30}(,[a-z0-9-]{1,30}){0,2}'))
+             && (!('linkUrl' in data) || (data.linkUrl is string && data.linkUrl.size() <= 500 && data.linkUrl.matches('https://[^\\s]+')));
+    }
+
+    // Accounts must be at least a day old to post (MIN_ACCOUNT_AGE_MS)
+    function isOldEnoughToPost(profile) {
+      return profile.createdAt is timestamp
+             && profile.createdAt < request.time - duration.value(1, 'd');
+    }
+
+    function isSuspended(userId) {
+      let standingPath = /databases/$(database)/documents/memberStandings/$(userId);
+      return exists(standingPath)
+             && get(standingPath).data.get('suspendedUntil', null) is timestamp
+             && get(standingPath).data.suspendedUntil > request.time;
+    }
+
+    // The same save must count the post in postLimits (see below), which is
+    // what caps posts per hour
+    function isCountedPost(postId) {
+      let limitsPath = /databases/$(database)/documents/postLimits/$(request.auth.uid);
+      return getAfter(limitsPath).data.lastPostId == postId
+             && (!exists(limitsPath) || get(limitsPath).data.lastPostId != postId);
+    }
+
+    function canCreatePost(postId) {
+      let data = request.resource.data;
+      let profile = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return isVerified()
+             && data.keys().hasOnly(['authorId', 'authorName', 'authorPhoto', 'text', 'topics', 'linkUrl', 'status', 'createdAt'])
+             && data.authorId == request.auth.uid
+             && data.authorName == profile.username
+             && data.authorPhoto == profile.get('profilePictureUrl', '')
+             && data.status == 'visible'
+             && data.createdAt == request.time
+             && isValidPostContent(data)
+             && isOldEnoughToPost(profile)
+             && !isSuspended(request.auth.uid)
+             && isCountedPost(postId);
+    }
+
+    // Authors can change what their post says, not who wrote it or whether
+    // it's hidden
+    function isEditingOwnPost() {
+      return request.auth != null
+             && resource.data.authorId == request.auth.uid
+             && changedKeys().hasOnly(['text', 'topics', 'linkUrl', 'updatedAt'])
+             && request.resource.data.updatedAt == request.time
+             && isValidPostContent(request.resource.data)
+             && !isSuspended(request.auth.uid);
+    }
+
+    // A moderator hides or restores a post in the same save as a new
+    // moderationLog entry about it, so every action is on the record
+    function isModeratingPost(postId) {
+      let logId = request.resource.data.moderationLogId;
+      let logPath = /databases/$(database)/documents/moderationLog/$(logId);
+      return isModerator()
+             && changedKeys().hasOnly(['status', 'hiddenBy', 'moderationLogId'])
+             && request.resource.data.status in ['visible', 'hidden']
+             && (request.resource.data.status == 'visible'
+                   ? !('hiddenBy' in request.resource.data)
+                   : request.resource.data.hiddenBy == 'moderator')
+             && logId is string
+             && !exists(logPath)
+             && getAfter(logPath).data.postId == postId
+             && getAfter(logPath).data.action == (request.resource.data.status == 'hidden' ? 'hide' : 'restore');
+    }
+
+    match /memberPosts/{postId} {
+      // Visible posts are public, like profiles. Hidden ones only to
+      // moderators and the author, so the author can see why.
+      allow read: if resource.data.status == 'visible'
+                  || isModerator()
+                  || (request.auth != null && resource.data.authorId == request.auth.uid);
+      allow create: if canCreatePost(postId);
+      allow update: if isEditingOwnPost() || isModeratingPost(postId);
+      // Moderators log a deletion as moderationLog/delete-<postId>
+      allow delete: if (request.auth != null && resource.data.authorId == request.auth.uid)
+                    || (isModerator()
+                        && !exists(/databases/$(database)/documents/moderationLog/$('delete-' + postId))
+                        && existsAfter(/databases/$(database)/documents/moderationLog/$('delete-' + postId)));
+    }
+
+    // How many posts each member has made in the current hour, saved with
+    // every new post. A new window starts an hour after the last one began.
+    // Keep the cap (5) in step with POSTS_PER_HOUR.
+    match /postLimits/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId)
+                    && request.resource.data.keys().hasOnly(['windowStart', 'count', 'lastPostId'])
+                    && request.resource.data.lastPostId is string
+                    && (resource == null || resource.data.lastPostId != request.resource.data.lastPostId)
+                    && !exists(/databases/$(database)/documents/memberPosts/$(request.resource.data.lastPostId))
+                    && existsAfter(/databases/$(database)/documents/memberPosts/$(request.resource.data.lastPostId))
+                    && ((request.resource.data.count == 1
+                          && request.resource.data.windowStart == request.time
+                          && (resource == null || request.time >= resource.data.windowStart + duration.value(1, 'h')))
+                        || (resource != null
+                          && request.resource.data.windowStart == resource.data.windowStart
+                          && request.resource.data.count == resource.data.count + 1
+                          && request.resource.data.count <= 5));
+      allow delete: if false;
+    }
+
+    // Every moderator action, for the record. Written by moderators with the
+    // action itself, or by the auto-hide job; never changed or removed.
+    match /moderationLog/{logId} {
+      allow read: if isModerator();
+      allow create: if isModerator()
+                    && request.resource.data.keys().hasOnly(['actorId', 'action', 'targetUserId', 'postId', 'note', 'createdAt'])
+                    && request.resource.data.actorId == request.auth.uid
+                    && request.resource.data.action in ['hide', 'restore', 'delete', 'dismiss', 'warn', 'suspend', 'unsuspend']
+                    && request.resource.data.targetUserId is string
+                    && (!('postId' in request.resource.data) || request.resource.data.postId is string)
+                    && (request.resource.data.action != 'delete' || logId == 'delete-' + request.resource.data.postId)
+                    && request.resource.data.note is string && request.resource.data.note.size() <= 500
                     && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
+    // Who is on the moderation team, for the Team tab on /moderation.
+    // Written only by the setModerator function, which also sets the claim.
+    match /moderators/{userId} {
+      allow read: if isModerator();
+      allow write: if false;
+    }
+
+    // A member's warnings and suspension. Members can read their own, so the
+    // feed can tell them; moderators change them with a moderationLog entry.
+    match /memberStandings/{userId} {
+      allow read: if isOwner(userId) || isModerator();
+      allow create, update: if isModerator()
+                    && request.resource.data.keys().hasOnly(['warnings', 'lastWarning', 'suspendedUntil', 'lastLogId', 'updatedAt'])
+                    && request.resource.data.warnings is int
+                    && (!('lastWarning' in request.resource.data) || (request.resource.data.lastWarning is string && request.resource.data.lastWarning.size() <= 500))
+                    && (request.resource.data.get('suspendedUntil', null) == null || request.resource.data.suspendedUntil is timestamp)
+                    && request.resource.data.updatedAt == request.time
+                    && request.resource.data.lastLogId is string
+                    && !exists(/databases/$(database)/documents/moderationLog/$(request.resource.data.lastLogId))
+                    && getAfter(/databases/$(database)/documents/moderationLog/$(request.resource.data.lastLogId)).data.targetUserId == userId
+                    && getAfter(/databases/$(database)/documents/moderationLog/$(request.resource.data.lastLogId)).data.action in ['warn', 'suspend', 'unsuspend'];
+      allow delete: if false;
     }
 
     match /feedback/{feedbackId} {
