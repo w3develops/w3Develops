@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useUser, useFirestore, useDoc, useCollection } from '@/firebase';
 import { useState, useMemo, type ReactNode } from "react";
 import { useDocsByIds } from "@/lib/hooks/useDocsByIds";
+import { useConnections } from "@/lib/hooks/useConnections";
 import { LoadingSkeleton } from "@/components/layout/loading-skeleton";
 import { HowItWorks, SignInToJoin, type ProgramStep } from "@/components/ProgramPublicInfo";
 import { Label } from "@/components/ui/label";
@@ -15,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { X, Search, GraduationCap, GitBranch } from "lucide-react";
 import { UserProfile } from "@/lib/types";
-import { doc, DocumentReference, updateDoc, writeBatch, serverTimestamp, collection, addDoc, query, where, arrayUnion } from "firebase/firestore";
+import { doc, DocumentReference, updateDoc, writeBatch, serverTimestamp, collection, addDoc, query, where } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { useToast } from "@/components/ui/use-toast";
 import { topics } from "@/lib/constants";
@@ -26,17 +27,18 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { useDebounce } from "@/lib/hooks/useDebounce";
 
-type ProfileList = 'mentoringSkills' | 'seekingSkills' | 'mentorIds' | 'menteeIds' | 'mentorshipIds'
-    | 'tutoringSkills' | 'seekingTutoringSkills' | 'tutorIds' | 'studentIds' | 'tutorshipIds'
-    | 'pairProgrammingSkills' | 'pairPartnerIds' | 'pairingIds';
+type SkillsList = 'mentoringSkills' | 'seekingSkills' | 'tutoringSkills' | 'seekingTutoringSkills' | 'pairProgrammingSkills';
 
-/** A kind of person you can connect with: a mentor, a mentee, a pairing partner... */
+/**
+ * A kind of person you can connect with: a mentor, a mentee, a pairing
+ * partner... In programs with roles, connections name each side's person in
+ * `{singular}Id`, like `mentorId`.
+ */
 interface Side {
     singular: string;
     plural: string;
     title: string;
-    skills: ProfileList;   // the skills people list for this side
-    ids: ProfileList;      // the people you're connected with on this side
+    skills: SkillsList;    // the skills people list for this side
 }
 
 // Mentorship, tutoring and pair programming work the same way: people open
@@ -57,7 +59,6 @@ interface ConfigBase {
     connectionsCollection: string;
     connectionsRoute: string;
     statusField: 'mentorshipStatus' | 'tutorStatus' | 'pairProgrammingStatus';
-    connectionIdsField: ProfileList;
 }
 
 /**
@@ -105,7 +106,7 @@ const icons = { 'graduation-cap': GraduationCap, 'git-branch': GitBranch };
 
 const hasRoles = (config: MatchingConfig): config is RolesConfig => 'roleField' in config;
 const sidesOf = (config: MatchingConfig): Side[] => hasRoles(config) ? [config.offerer, config.seeker] : [config.partner];
-const listOf = (profile: UserProfile, field: ProfileList) => (profile[field] as string[] | undefined) || [];
+const listOf = (profile: UserProfile, field: SkillsList) => (profile[field] as string[] | undefined) || [];
 const connectionIdFor = (a: string, b: string) => [a, b].sort().join('_');
 
 function SetupForm({ config, user, userProfile }: { config: MatchingConfig; user: User; userProfile: UserProfile }) {
@@ -288,10 +289,10 @@ export function MatchingDashboard({ config, user, userProfile, title, children }
         batch.update(doc(firestore, config.requestsCollection, request.id), { status: newStatus });
         let batchUpdateData = {};
 
+        // Accepting saves the shared connection, which is the record of who's
+        // in it; profiles don't keep their own copy
         if (newStatus === 'accepted') {
             const connectionId = connectionIdFor(request.fromUid, user.uid);
-            const requesterUpdate: Record<string, unknown> = { [config.connectionIdsField]: arrayUnion(connectionId) };
-            const currentUserUpdate: Record<string, unknown> = { [config.connectionIdsField]: arrayUnion(connectionId) };
             const connection: Record<string, unknown> = {
                 id: connectionId,
                 // The rules check the connection against the request it came from
@@ -304,25 +305,12 @@ export function MatchingDashboard({ config, user, userProfile, title, children }
                 const { offerer, seeker } = config;
                 // The requester asked me to be their offerer, or offered to be mine
                 const iAmOfferer = request.type === `seeking_${offerer.singular}`;
-                if (iAmOfferer) {
-                    requesterUpdate[offerer.ids] = arrayUnion(user.uid);
-                    currentUserUpdate[seeker.ids] = arrayUnion(request.fromUid);
-                } else {
-                    requesterUpdate[seeker.ids] = arrayUnion(user.uid);
-                    currentUserUpdate[offerer.ids] = arrayUnion(request.fromUid);
-                }
                 connection[`${offerer.singular}Id`] = iAmOfferer ? user.uid : request.fromUid;
                 connection[`${seeker.singular}Id`] = iAmOfferer ? request.fromUid : user.uid;
-            } else {
-                // Partners are alike, so each simply gains the other
-                requesterUpdate[config.partner.ids] = arrayUnion(user.uid);
-                currentUserUpdate[config.partner.ids] = arrayUnion(request.fromUid);
             }
 
-            batch.update(doc(firestore, 'users', request.fromUid), requesterUpdate);
-            batch.update(doc(firestore, 'users', user.uid), currentUserUpdate);
             batch.set(doc(firestore, config.connectionsCollection, connectionId), connection);
-            batchUpdateData = { requesterUpdate, currentUserUpdate };
+            batchUpdateData = { connection };
         }
 
         try {
@@ -350,12 +338,21 @@ export function MatchingDashboard({ config, user, userProfile, title, children }
         return `wants to be your ${request.type === `seeking_${offerer.singular}` ? seeker.singular : offerer.singular}.`;
     };
 
+    // The connections themselves say who's in them, and who has which role
+    const { data: connections } = useConnections(config.connectionsCollection, user.uid);
+    const peopleOn = (side: Side) => (connections ?? []).flatMap(connection => {
+        if (!hasRoles(config)) return connection.memberIds.filter(id => id !== user.uid);
+        // My mentors are the mentors of the connections where I'm the mentee
+        const opposite = side === config.offerer ? config.seeker : config.offerer;
+        return connection[`${opposite.singular}Id`] === user.uid ? [connection[`${side.singular}Id`] as string] : [];
+    });
+
     // A program has one or two sides, so the second may load nothing
-    const { data: firstSide } = useDocsByIds<UserProfile>('users', listOf(userProfile, sides[0].ids));
-    const { data: secondSide } = useDocsByIds<UserProfile>('users', sides[1] ? listOf(userProfile, sides[1].ids) : []);
+    const { data: firstSide } = useDocsByIds<UserProfile>('users', peopleOn(sides[0]));
+    const { data: secondSide } = useDocsByIds<UserProfile>('users', sides[1] ? peopleOn(sides[1]) : []);
 
     const connectionList = (people: UserProfile[] | null, side: Side) => (
-        <div key={side.ids}>
+        <div key={side.singular}>
             <h3 className="font-semibold mb-2">Your {side.title}s</h3>
             {people && people.length > 0 ? (
                 <ul className="divide-y">
@@ -448,6 +445,9 @@ function Finder({ config, currentUserProfile }: { config: MatchingConfig; curren
     ), [firestore, currentUserProfile.id, config.requestsCollection]);
     const { data: receivedRequests, isLoading: receivedLoading } = useCollection<MatchingRequest>(receivedRequestsQuery);
 
+    const { data: connections } = useConnections(config.connectionsCollection, currentUserProfile.id);
+    const connectedIds = useMemo(() => new Set((connections ?? []).map(connection => connection.id)), [connections]);
+
     const allRequests = useMemo(() => {
         const combined = new Map<string, MatchingRequest>();
         (sentRequests || []).forEach(req => combined.set(req.id, req));
@@ -502,7 +502,7 @@ function Finder({ config, currentUserProfile }: { config: MatchingConfig; curren
                         (req.fromUid === person.id && req.toUid === currentUserProfile.id)
                     );
                     const connectionId = connectionIdFor(currentUserProfile.id, person.id);
-                    const isConnected = listOf(currentUserProfile, config.connectionIdsField).includes(connectionId);
+                    const isConnected = connectedIds.has(connectionId);
 
                     let button;
                     if (isConnected) {

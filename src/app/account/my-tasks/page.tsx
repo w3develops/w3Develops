@@ -3,6 +3,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useUser, useFirestore, useDoc, useCollection } from '@/firebase';
+import { useConnections } from '@/lib/hooks/useConnections';
 import { Task, UserProfile, Group, Mentorship, Tutorship, Pairing } from '@/lib/types';
 import { collection, query, where, orderBy, getDocs, doc, documentId, DocumentReference, Query } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -139,9 +140,13 @@ export default function MyTasksPage() {
     const groupProjectIds = useMemo(() => (groupProjects || []).map(g => g.id), [groupProjects]);
     const bookClubIds = useMemo(() => (bookClubs || []).map(g => g.id), [bookClubs]);
     
-    const mentorshipIds = useMemo(() => userProfile?.mentorshipIds || [], [userProfile]);
-    const tutorshipIds = useMemo(() => userProfile?.tutorshipIds || [], [userProfile]);
-    const pairingIds = useMemo(() => userProfile?.pairingIds || [], [userProfile]);
+    // Likewise, a connection's member list is the record of who's in it
+    const { data: mentorships } = useConnections('mentorships', user?.uid);
+    const { data: tutorships } = useConnections('tutorships', user?.uid);
+    const { data: pairings } = useConnections('pairings', user?.uid);
+    const mentorshipIds = useMemo(() => (mentorships || []).map(c => c.id), [mentorships]);
+    const tutorshipIds = useMemo(() => (tutorships || []).map(c => c.id), [tutorships]);
+    const pairingIds = useMemo(() => (pairings || []).map(c => c.id), [pairings]);
 
     if (isUserLoading || isProfileLoading || !userProfile) {
         return <LoadingSkeleton />;

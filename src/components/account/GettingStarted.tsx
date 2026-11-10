@@ -37,18 +37,22 @@ const noSubscription = () => () => {};
 export default function GettingStarted({ user, profile }: { user: User; profile: UserProfile }) {
   const firestore = useFirestore();
   const [inAGroup, setInAGroup] = useState<boolean | null>(null);
+  const [connected, setConnected] = useState<boolean | null>(null);
   // Hidden on the server and until the browser's choice is known
   const dismissedBefore = useSyncExternalStore(noSubscription, readDismissed, () => true);
   const [dismissedNow, setDismissedNow] = useState(false);
   const dismissed = dismissedBefore || dismissedNow;
 
+  // Groups, mentorships, tutorships and pairings all list their members
   useEffect(() => {
     let cancelled = false;
-    Promise.all(Object.values(GROUP_KINDS).map(kind =>
-      getDocs(query(collection(firestore, kind.collection), where('memberIds', 'array-contains', user.uid), limit(1)))
-    ))
-      .then(results => { if (!cancelled) setInAGroup(results.some(snap => !snap.empty)); })
-      .catch(() => { if (!cancelled) setInAGroup(false); });
+    const isMemberOfAny = (collections: string[]) => Promise.all(collections.map(name =>
+      getDocs(query(collection(firestore, name), where('memberIds', 'array-contains', user.uid), limit(1)))
+    )).then(results => results.some(snap => !snap.empty), () => false);
+    isMemberOfAny(Object.values(GROUP_KINDS).map(kind => kind.collection))
+      .then(result => { if (!cancelled) setInAGroup(result); });
+    isMemberOfAny(['mentorships', 'tutorships', 'pairings'])
+      .then(result => { if (!cancelled) setConnected(result); });
     return () => { cancelled = true; };
   }, [firestore, user.uid]);
 
@@ -71,8 +75,7 @@ export default function GettingStarted({ user, profile }: { user: User; profile:
       link: { href: '/studygroups', label: 'Find a group' },
     },
     {
-      done: hasAny(profile.mentorIds) || hasAny(profile.menteeIds) || hasAny(profile.tutorIds)
-        || hasAny(profile.studentIds) || hasAny(profile.pairPartnerIds),
+      done: connected === true,
       title: 'Find a mentor, tutor or pair programming partner',
       description: 'Get one-on-one help, or offer it to someone else.',
       link: { href: '/mentorship', label: 'Explore mentorship' },
@@ -86,8 +89,8 @@ export default function GettingStarted({ user, profile }: { user: User; profile:
   ];
 
   const doneCount = steps.filter(step => step.done).length;
-  // Wait for the group check, so a finished list doesn't flash up and vanish
-  if (dismissed || inAGroup === null || doneCount === steps.length) return null;
+  // Wait for the membership checks, so a finished list doesn't flash up and vanish
+  if (dismissed || inAGroup === null || connected === null || doneCount === steps.length) return null;
 
   const dismiss = () => {
     setDismissedNow(true);

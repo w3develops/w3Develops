@@ -15,9 +15,8 @@ export const MENTORSHIP: RolesConfig = {
     connectionsRoute: '/mentorships',
     roleField: 'mentorshipRole',
     statusField: 'mentorshipStatus',
-    connectionIdsField: 'mentorshipIds',
-    offerer: { singular: 'mentor', plural: 'mentors', title: 'Mentor', skills: 'mentoringSkills', ids: 'mentorIds' },
-    seeker: { singular: 'mentee', plural: 'mentees', title: 'Mentee', skills: 'seekingSkills', ids: 'menteeIds' },
+    offerer: { singular: 'mentor', plural: 'mentors', title: 'Mentor', skills: 'mentoringSkills' },
+    seeker: { singular: 'mentee', plural: 'mentees', title: 'Mentee', skills: 'seekingSkills' },
 };
 
 export const TUTORING: RolesConfig = {
@@ -32,9 +31,8 @@ export const TUTORING: RolesConfig = {
     connectionsRoute: '/tutorships',
     roleField: 'tutorRole',
     statusField: 'tutorStatus',
-    connectionIdsField: 'tutorshipIds',
-    offerer: { singular: 'tutor', plural: 'tutors', title: 'Tutor', skills: 'tutoringSkills', ids: 'tutorIds' },
-    seeker: { singular: 'student', plural: 'students', title: 'Student', skills: 'seekingTutoringSkills', ids: 'studentIds' },
+    offerer: { singular: 'tutor', plural: 'tutors', title: 'Tutor', skills: 'tutoringSkills' },
+    seeker: { singular: 'student', plural: 'students', title: 'Student', skills: 'seekingTutoringSkills' },
 };
 
 export const PAIR_PROGRAMMING: PartnersConfig = {
@@ -48,8 +46,7 @@ export const PAIR_PROGRAMMING: PartnersConfig = {
     connectionsCollection: 'pairings',
     connectionsRoute: '/pairings',
     statusField: 'pairProgrammingStatus',
-    connectionIdsField: 'pairingIds',
-    partner: { singular: 'partner', plural: 'partners', title: 'Partner', skills: 'pairProgrammingSkills', ids: 'pairPartnerIds' },
+    partner: { singular: 'partner', plural: 'partners', title: 'Partner', skills: 'pairProgrammingSkills' },
     text: {
         profileTitle: 'Your Pairing Profile',
         openLabel: 'Open to Pairing',
