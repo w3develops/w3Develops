@@ -137,6 +137,11 @@ export const SITE_PAGES = {
     description: 'The latest tech headlines from dozens of sources, daily w3Develops community insights and topic roundups, an AI community briefing refreshed eight times a day, and announcements.',
     section: 'News and media',
   },
+  '/news/write': {
+    title: 'Write for w3Develops',
+    description: 'Apply to write tutorials, career stories and developer guides for the w3Develops news page, then submit articles for review.',
+    section: 'News and media',
+  },
   '/news/ai-community-brief': {
     title: 'AI Community Briefing',
     description: 'A short briefing on the tech headlines that matter to developers, sorted by topic and ranked by importance, refreshed eight times a day.',

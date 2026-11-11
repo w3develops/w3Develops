@@ -492,3 +492,38 @@ export interface Moderator {
   addedBy: string;
   addedAt: Timestamp;
 }
+
+/** An application to write articles for /news (writerApplications/{uid}) */
+export interface WriterApplication {
+  id: string;
+  /** About them and what they'd like to write */
+  about: string;
+  /** 1 to 3 https links to things they've written */
+  links: string[];
+  topics: string[];
+  status: 'pending' | 'approved' | 'rejected';
+  reviewedBy?: string;
+  reviewedAt?: Timestamp;
+  /** The moderator's note, shown to the applicant */
+  note?: string;
+  createdAt: Timestamp;
+}
+
+/** A member's article for /news (articles/{id}); body is Markdown */
+export interface Article {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorPhoto: string;
+  title: string;
+  summary: string;
+  body: string;
+  topic: import('./articles').ArticleTopic;
+  status: 'draft' | 'submitted' | 'published' | 'rejected';
+  /** The editor's note when sending it back */
+  editorNote?: string;
+  reviewedBy?: string;
+  publishedAt?: Timestamp;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}

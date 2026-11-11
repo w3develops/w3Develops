@@ -356,6 +356,97 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+
+    // ---- Member articles on /news (src/lib/articles.ts) ----
+    // Members apply to write; moderators approve them as writers; writers
+    // draft and submit articles; moderators publish or send them back.
+
+    function isWriter(userId) {
+      return exists(/databases/$(database)/documents/writers/$(userId));
+    }
+
+    function isValidWriterApplication(data) {
+      return data.about is string && data.about.size() > 0 && data.about.size() <= 1000
+             && !hasBlockedWord(data.about)
+             && data.links is list && data.links.size() >= 1 && data.links.size() <= 3
+             && data.links.join(' ').matches('https://[^\\s]{1,300}( https://[^\\s]{1,300}){0,2}')
+             && data.topics is list && data.topics.size() <= 5;
+    }
+
+    match /writerApplications/{userId} {
+      allow read: if isOwner(userId) || isModerator();
+      allow create: if isOwner(userId) && isVerified()
+                    && request.resource.data.keys().hasOnly(['about', 'links', 'topics', 'status', 'createdAt'])
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.createdAt == request.time
+                    && isValidWriterApplication(request.resource.data);
+      // Applying again after a "not yet", or a moderator's decision
+      allow update: if (isOwner(userId) && resource.data.status == 'rejected'
+                        && changedKeys().hasOnly(['about', 'links', 'topics', 'status', 'createdAt', 'reviewedBy', 'reviewedAt', 'note'])
+                        && request.resource.data.keys().hasOnly(['about', 'links', 'topics', 'status', 'createdAt'])
+                        && request.resource.data.status == 'pending'
+                        && request.resource.data.createdAt == request.time
+                        && isValidWriterApplication(request.resource.data))
+                    || (isModerator() && resource.data.status == 'pending'
+                        && changedKeys().hasOnly(['status', 'reviewedBy', 'reviewedAt', 'note'])
+                        && request.resource.data.status in ['approved', 'rejected']
+                        && request.resource.data.reviewedBy == request.auth.uid
+                        && request.resource.data.reviewedAt == request.time
+                        && request.resource.data.note is string && request.resource.data.note.size() <= 500
+                        && (request.resource.data.status == 'rejected' || existsAfter(/databases/$(database)/documents/writers/$(userId))));
+      allow delete: if isOwner(userId);
+    }
+
+    // Approved writers, public so their articles can say so
+    match /writers/{userId} {
+      allow read: if true;
+      allow create: if isModerator()
+                    && request.resource.data.keys().hasOnly(['approvedBy', 'approvedAt'])
+                    && request.resource.data.approvedBy == request.auth.uid
+                    && request.resource.data.approvedAt == request.time;
+      allow update: if false;
+      allow delete: if isModerator();
+    }
+
+    function isValidArticle(data) {
+      return data.title is string && data.title.size() >= 10 && data.title.size() <= 120
+             && data.summary is string && data.summary.size() > 0 && data.summary.size() <= 300
+             && data.body is string && data.body.size() > 0 && data.body.size() <= 20000
+             && data.topic in ['programming', 'career', 'ai', 'security', 'open-source', 'community', 'other']
+             && !hasBlockedWord(data.title) && !hasBlockedWord(data.summary) && !hasBlockedWord(data.body);
+    }
+
+    match /articles/{articleId} {
+      allow read: if resource.data.status == 'published'
+                  || isModerator()
+                  || (request.auth != null && resource.data.authorId == request.auth.uid);
+      allow create: if isVerified() && isWriter(request.auth.uid)
+                    && request.resource.data.keys().hasOnly(['authorId', 'authorName', 'authorPhoto', 'title', 'summary', 'body', 'topic', 'status', 'createdAt', 'updatedAt'])
+                    && request.resource.data.authorId == request.auth.uid
+                    && request.resource.data.authorName == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username
+                    && request.resource.data.authorPhoto == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('profilePictureUrl', '')
+                    && request.resource.data.status in ['draft', 'submitted']
+                    && request.resource.data.createdAt == request.time
+                    && request.resource.data.updatedAt == request.time
+                    && isValidArticle(request.resource.data);
+      // Writers change their drafts, submit them, and fix ones sent back;
+      // moderators publish or send back submitted ones
+      allow update: if (request.auth != null && resource.data.authorId == request.auth.uid
+                        && isWriter(request.auth.uid)
+                        && resource.data.status in ['draft', 'submitted', 'rejected']
+                        && changedKeys().hasOnly(['title', 'summary', 'body', 'topic', 'status', 'updatedAt'])
+                        && request.resource.data.status in ['draft', 'submitted']
+                        && request.resource.data.updatedAt == request.time
+                        && isValidArticle(request.resource.data))
+                    || (isModerator()
+                        && changedKeys().hasOnly(['status', 'editorNote', 'publishedAt', 'reviewedBy'])
+                        && request.resource.data.reviewedBy == request.auth.uid
+                        && request.resource.data.get('editorNote', '') is string && request.resource.data.get('editorNote', '').size() <= 500
+                        && ((resource.data.status == 'submitted' && request.resource.data.status == 'published' && request.resource.data.publishedAt == request.time)
+                            || (resource.data.status in ['submitted', 'published'] && request.resource.data.status == 'rejected')));
+      allow delete: if (request.auth != null && resource.data.authorId == request.auth.uid && resource.data.status != 'published')
+                    || isModerator();
+    }
     
     match /mentorshipRequests/{requestId} {
         allow read: if request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid;
