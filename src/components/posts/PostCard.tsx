@@ -15,6 +15,8 @@ import { useToast } from '@/components/ui/use-toast';
 import ReportUserButton from '@/components/ReportUserButton';
 import ZonedText from '@/components/ZonedText';
 import PostFields, { AudienceSelect, draftFields, draftProblem, type PostDraft } from './PostFields';
+import { LikeButton, RepliesToggle, ReplyThread } from './PostReplies';
+import AppealButton from './AppealButton';
 import { formatTimestamp } from '@/lib/utils';
 import type { MemberPost, PostAudience } from '@/lib/types';
 
@@ -36,10 +38,12 @@ interface PostCardProps {
   children?: React.ReactNode;
   /** The signed-in member's account is private, so their own posts stay followers-only */
   privateAccount?: boolean;
+  /** Show the replies straight away, as on the post's own page */
+  repliesOpen?: boolean;
 }
 
 /** One post on the feed or the moderation page */
-export default function PostCard({ post, onMute, onBlock, children, privateAccount = false }: PostCardProps) {
+export default function PostCard({ post, onMute, onBlock, children, privateAccount = false, repliesOpen = false }: PostCardProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -50,6 +54,7 @@ export default function PostCard({ post, onMute, onBlock, children, privateAccou
   const [audience, setAudience] = useState<PostAudience>(post.audience);
   const [keepImage, setKeepImage] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [showReplies, setShowReplies] = useState(repliesOpen);
   const isAuthor = user?.uid === post.authorId;
 
   const save = async () => {
@@ -104,7 +109,7 @@ export default function PostCard({ post, onMute, onBlock, children, privateAccou
             <div className="flex flex-wrap items-baseline gap-x-2">
               <Link href={`/users/${post.authorId}`} className="font-semibold hover:underline">{post.authorName}</Link>
               <span className="text-xs text-muted-foreground">
-                <ZonedText render={tz => formatTimestamp(post.createdAt, true, tz)} />
+                <Link href={`/feed/${post.id}`} className="hover:underline"><ZonedText render={tz => formatTimestamp(post.createdAt, true, tz)} /></Link>
                 {post.updatedAt && ' · edited'}
                 {post.audience === 'followers' && (
                   <span className="ml-2 inline-flex items-center gap-1"><Users className="h-3 w-3" aria-hidden="true" />Followers</span>
@@ -121,6 +126,11 @@ export default function PostCard({ post, onMute, onBlock, children, privateAccou
                     : 'Hidden by a moderator.'}
                 {isAuthor && ' Only you and moderators can see it.'}
               </p>
+            )}
+            {post.status === 'hidden' && isAuthor && post.moderationLogId && (
+              <div className="mt-2">
+                <AppealButton logId={post.moderationLogId} action={post.hiddenBy === 'moderator' ? 'hide' : 'auto-hide'} postId={post.id} />
+              </div>
             )}
           </div>
           {user && !isAuthor && (onMute || onBlock) && (
@@ -155,7 +165,13 @@ export default function PostCard({ post, onMute, onBlock, children, privateAccou
         )}
 
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap items-center gap-1">
+            {post.status === 'visible' && (
+              <>
+                <LikeButton post={post} />
+                <RepliesToggle post={post} open={showReplies} onToggle={() => setShowReplies(open => !open)} />
+              </>
+            )}
             {post.topics.map(topic => <Badge key={topic} variant="secondary">#{topic}</Badge>)}
           </div>
           <div className="flex items-center gap-1">
@@ -169,6 +185,7 @@ export default function PostCard({ post, onMute, onBlock, children, privateAccou
             )}
           </div>
         </div>
+        {showReplies && post.status === 'visible' && <ReplyThread post={post} />}
         {children}
       </CardContent>
 

@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useUser } from '@/firebase';
+import { useEffect, useMemo, useState } from 'react';
+import { collection, limit, query, where } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser } from '@/firebase';
+import type { Appeal, Report } from '@/lib/types';
 
 export interface StaffRoles {
   /** Can review reports on /moderation (the `moderator` claim) */
@@ -45,4 +47,27 @@ export function useStaffRoles(): StaffRoles | null {
 export function useIsModerator(): boolean | null {
   const roles = useStaffRoles();
   return roles === null ? null : roles.moderator;
+}
+
+/**
+ * How many things wait for a moderator: reported posts, replies and members
+ * (reports about the same post or reply count once) plus open appeals. Null
+ * for everyone else. The /moderation tabs show the same lists.
+ */
+export function useModerationCount(): number | null {
+  const isModerator = useIsModerator();
+  const firestore = useFirestore();
+  const reportsQuery = useMemo(
+    () => (isModerator ? query(collection(firestore, 'reports'), where('status', '==', 'open'), limit(200)) : null),
+    [firestore, isModerator],
+  );
+  const appealsQuery = useMemo(
+    () => (isModerator ? query(collection(firestore, 'appeals'), where('status', '==', 'open'), limit(200)) : null),
+    [firestore, isModerator],
+  );
+  const { data: reports } = useCollection<Report>(reportsQuery);
+  const { data: appeals } = useCollection<Appeal>(appealsQuery);
+  if (!isModerator || !reports || !appeals) return null;
+  const items = new Set(reports.map(report => (report.postId ? `${report.postId}/${report.replyId ?? ''}` : report.id)));
+  return items.size + appeals.length;
 }

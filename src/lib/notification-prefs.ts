@@ -9,6 +9,7 @@ export const NOTIFICATION_PREFS = [
   { id: 'groupActivity', label: 'Group check-ins and tasks', description: 'When members of your groups post check-ins, or add or finish tasks.', default: true },
   { id: 'requests', label: 'Mentorship, tutoring and pairing', description: 'When someone sends you a request, or accepts yours.', default: true },
   { id: 'following', label: 'People you follow', description: 'When someone you follow joins a group or starts a solo project.', default: true },
+  { id: 'replies', label: 'Replies to your posts', description: 'When someone replies to one of your posts on the community feed.', default: true },
   { id: 'meetingReminders', label: 'Meeting reminders', description: 'About 30 minutes before your groups meet, for groups with a set time.', default: false },
 ] as const;
 

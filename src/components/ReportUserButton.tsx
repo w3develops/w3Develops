@@ -32,9 +32,10 @@ const MAX_DETAILS = 1000;
  * posts (pass `postId`), to the w3Develops team. Reports are saved where only
  * moderators can read them. A post report is saved as "<postId>_<uid>", so
  * each member reports a post once; enough of them hide the post until a
- * moderator looks (functions/src/reports.ts).
+ * moderator looks (functions/src/reports.ts). A reply to a post (pass
+ * `postId` and `replyId`) is saved as "<postId>_<replyId>_<uid>".
  */
-export default function ReportUserButton({ reportedUserId, username, postId }: { reportedUserId: string; username?: string; postId?: string }) {
+export default function ReportUserButton({ reportedUserId, username, postId, replyId }: { reportedUserId: string; username?: string; postId?: string; replyId?: string }) {
   const { user } = useUser();
   const firestore = useFirestore();
   const ensureVerified = useVerifiedGuard();
@@ -56,6 +57,7 @@ export default function ReportUserButton({ reportedUserId, username, postId }: {
       reporterId: user.uid,
       reportedUserId,
       ...(postId && { postId }),
+      ...(postId && replyId && { replyId }),
       reason,
       details: details.trim(),
       page: window.location.pathname,
@@ -63,7 +65,7 @@ export default function ReportUserButton({ reportedUserId, username, postId }: {
       createdAt: serverTimestamp(),
     };
     try {
-      if (postId) await setDoc(doc(firestore, 'reports', `${postId}_${user.uid}`), report);
+      if (postId) await setDoc(doc(firestore, 'reports', [postId, replyId, user.uid].filter(Boolean).join('_')), report);
       else await addDoc(collection(firestore, 'reports'), report);
       toast({ title: 'Report sent', description: 'Thank you. The w3Develops team will look into it.' });
       setOpen(false);
@@ -74,7 +76,7 @@ export default function ReportUserButton({ reportedUserId, username, postId }: {
         variant: 'destructive',
         title: "Couldn't send the report",
         description: postId
-          ? "You may have reported this post already. If not, please try again, or email team@w3develops.org."
+          ? "You may have reported this already. If not, please try again, or email team@w3develops.org."
           : 'Please try again, or email team@w3develops.org.',
       });
     } finally {
@@ -85,13 +87,13 @@ export default function ReportUserButton({ reportedUserId, username, postId }: {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-muted-foreground">
-          <Flag className="w-4 h-4 mr-2" aria-hidden="true" /> Report
+        <Button variant="ghost" size="sm" className={replyId ? 'h-7 text-xs text-muted-foreground' : 'text-muted-foreground'}>
+          <Flag className={replyId ? 'w-3 h-3 mr-1' : 'w-4 h-4 mr-2'} aria-hidden="true" /> Report
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{postId ? `Report this post by ${username || 'this member'}` : `Report ${username || 'this member'}`}</DialogTitle>
+          <DialogTitle>{replyId ? `Report this reply by ${username || 'this member'}` : postId ? `Report this post by ${username || 'this member'}` : `Report ${username || 'this member'}`}</DialogTitle>
           <DialogDescription>
             Reports are private: {username || 'the member'} won&apos;t see who sent it. See our{' '}
             <Link href="/code-of-conduct" target="_blank" className="underline">Code of Conduct</Link>.

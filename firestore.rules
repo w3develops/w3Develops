@@ -284,11 +284,14 @@ service cloud.firestore {
       allow delete: if isOwner(userId);
       allow update: if !('email' in request.resource.data) && (
         (isOwner(userId) && !changedKeys().hasAny(['createdAt'])
+          && request.resource.data.get('privateAccount', false) is bool
           && (!setsUsername(request.resource.data, resource.data) || hasClaimedUsername(request.resource.data))) ||
         (
           request.resource.data.diff(resource.data).affectedKeys().size() == 1 &&
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) &&
-          ((isVerified() && !hasBlocked(userId, request.auth.uid)
+          // A private account's followers are added by the account itself,
+          // when it accepts a follow request (match /followRequests)
+          ((isVerified() && !hasBlocked(userId, request.auth.uid) && !hasPrivateAccount(userId)
               && isAddingSelfToList(request.resource.data.followers, resource.data.get('followers', []))) ||
             isRemovingSelfFromList(request.resource.data.followers, resource.data.get('followers', [])))
         )
@@ -648,13 +651,14 @@ service cloud.firestore {
       allow read, delete: if isOwner(userId);
       allow create, update: if isOwner(userId) && (
         (docId == 'notificationPrefs'
-          && request.resource.data.keys().hasOnly(['follows', 'groupMembers', 'groupActivity', 'requests', 'following', 'meetingReminders'])
+          && request.resource.data.keys().hasOnly(['follows', 'groupMembers', 'groupActivity', 'requests', 'following', 'meetingReminders', 'replies'])
           && (!('follows' in request.resource.data) || request.resource.data.follows is bool)
           && (!('groupMembers' in request.resource.data) || request.resource.data.groupMembers is bool)
           && (!('groupActivity' in request.resource.data) || request.resource.data.groupActivity is bool)
           && (!('requests' in request.resource.data) || request.resource.data.requests is bool)
           && (!('following' in request.resource.data) || request.resource.data.following is bool)
-          && (!('meetingReminders' in request.resource.data) || request.resource.data.meetingReminders is bool))
+          && (!('meetingReminders' in request.resource.data) || request.resource.data.meetingReminders is bool)
+          && (!('replies' in request.resource.data) || request.resource.data.replies is bool))
         // The feed's followed topics, muted and blocked members (FeedPrefs in src/lib/types.ts)
         || (docId == 'feedPrefs'
           && request.resource.data.keys().hasOnly(['topics', 'mutedIds', 'blockedIds', 'privateAccount'])
@@ -689,7 +693,7 @@ service cloud.firestore {
                     && request.resource.data.closedAt == request.time;
       allow delete: if false;
       allow create: if request.auth != null
-                    && request.resource.data.keys().hasOnly(['reporterId', 'reportedUserId', 'postId', 'reason', 'details', 'page', 'status', 'createdAt'])
+                    && request.resource.data.keys().hasOnly(['reporterId', 'reportedUserId', 'postId', 'replyId', 'reason', 'details', 'page', 'status', 'createdAt'])
                     && request.resource.data.reporterId == request.auth.uid
                     && request.resource.data.reportedUserId is string
                     && request.resource.data.reportedUserId != request.auth.uid
@@ -699,20 +703,26 @@ service cloud.firestore {
                     && request.resource.data.page is string && request.resource.data.page.size() <= 300
                     && request.resource.data.status == 'open'
                     && request.resource.data.createdAt == request.time
+                    && (!('replyId' in request.resource.data) || 'postId' in request.resource.data)
                     && (!('postId' in request.resource.data) || isReportingPost(reportId));
     }
 
-    // A post report is named "<postId>_<reporter's uid>", so each member can
-    // report a post only once, and the auto-hide (functions/src/reports.ts)
-    // counts different members. It names the post's real author.
+    // A post report is named "<postId>_<reporter's uid>", and a reply report
+    // "<postId>_<replyId>_<reporter's uid>", so each member can report each
+    // only once, and the auto-hide (functions/src/reports.ts) counts
+    // different members. It names the real author.
     function isReportingPost(reportId) {
       let data = request.resource.data;
       let postPath = /databases/$(database)/documents/memberPosts/$(data.postId);
       return isVerified()
              && data.postId is string
-             && reportId == data.postId + '_' + request.auth.uid
-             && exists(postPath)
-             && get(postPath).data.authorId == data.reportedUserId;
+             && (('replyId' in data)
+                 ? (data.replyId is string
+                    && reportId == data.postId + '_' + data.replyId + '_' + request.auth.uid
+                    && get(/databases/$(database)/documents/memberPosts/$(data.postId)/replies/$(data.replyId)).data.authorId == data.reportedUserId)
+                 : (reportId == data.postId + '_' + request.auth.uid
+                    && exists(postPath)
+                    && get(postPath).data.authorId == data.reportedUserId));
     }
 
     // ---- Member posts: the public feed on /feed ----
@@ -733,10 +743,21 @@ service cloud.firestore {
              && (!('linkUrl' in data) || (data.linkUrl is string && data.linkUrl.size() <= 500 && data.linkUrl.matches('https://[^\\s]+')));
     }
 
-    // A private account's posts are for followers only (feedPrefs.privateAccount)
+    // A private account's posts are for followers only, and people ask to
+    // follow it. The flag is on the public profile (users.privateAccount);
+    // accounts made private before that have it in feedPrefs.
     function hasPrivateAccount(userId) {
       let prefsPath = /databases/$(database)/documents/users/$(userId)/private/feedPrefs;
-      return exists(prefsPath) && get(prefsPath).data.get('privateAccount', false) == true;
+      return get(/databases/$(database)/documents/users/$(userId)).data.get('privateAccount', false) == true
+             || (exists(prefsPath) && get(prefsPath).data.get('privateAccount', false) == true);
+    }
+
+    // Whether the signed-in member can see a visible post: everyone can see
+    // public ones; followers-only ones are for the author's followers
+    function canSeePost(post) {
+      return post.status == 'visible'
+             && (post.audience == 'public'
+                 || (request.auth != null && (post.authorId == request.auth.uid || isFollowerOf(post.authorId))));
     }
 
     // Who a post is for: everyone, or the author's followers. Members with a
@@ -844,17 +865,181 @@ service cloud.firestore {
       // Visible public posts are public, like profiles; visible
       // followers-only posts are for the author's followers. Hidden ones only
       // to moderators and the author, so the author can see why.
-      allow read: if (resource.data.status == 'visible'
-                      && (resource.data.audience == 'public' || isFollowerOf(resource.data.authorId)))
+      allow read: if canSeePost(resource.data)
                   || isModerator()
                   || (request.auth != null && resource.data.authorId == request.auth.uid);
       allow create: if canCreatePost(postId);
-      allow update: if isEditingOwnPost(postId) || isModeratingPost(postId) || isRemovingPostImage(postId);
+      allow update: if isEditingOwnPost(postId) || isModeratingPost(postId) || isRemovingPostImage(postId)
+                    || isCountingLike(postId);
       // Moderators log a deletion as moderationLog/delete-<postId>
       allow delete: if (request.auth != null && resource.data.authorId == request.auth.uid)
                     || (isModerator()
                         && !exists(/databases/$(database)/documents/moderationLog/$('delete-' + postId))
                         && existsAfter(/databases/$(database)/documents/moderationLog/$('delete-' + postId)));
+    }
+
+    // A like is saved as memberPosts/<postId>/likes/<uid>, with the post's
+    // likeCount changed by one in the same save
+    function isCountingLike(postId) {
+      let likePath = /databases/$(database)/documents/memberPosts/$(postId)/likes/$(request.auth.uid);
+      let before = resource.data.get('likeCount', 0);
+      return request.auth != null
+             && changedKeys().hasOnly(['likeCount'])
+             && ((request.resource.data.likeCount == before + 1 && !exists(likePath) && existsAfter(likePath))
+                 || (request.resource.data.likeCount == before - 1 && exists(likePath) && !existsAfter(likePath)));
+    }
+
+    // Who liked what isn't shown; each member reads only their own likes
+    match /memberPosts/{postId}/likes/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isVerified()
+                    && request.resource.data.keys().hasOnly(['createdAt'])
+                    && request.resource.data.createdAt == request.time
+                    && canSeePost(get(/databases/$(database)/documents/memberPosts/$(postId)).data)
+                    && getAfter(/databases/$(database)/documents/memberPosts/$(postId)).data.get('likeCount', 0)
+                         == get(/databases/$(database)/documents/memberPosts/$(postId)).data.get('likeCount', 0) + 1;
+      allow update: if false;
+      // A deleted post's likes go with it (functions/src/post-checks.ts)
+      allow delete: if isOwner(userId)
+                    && (!exists(/databases/$(database)/documents/memberPosts/$(postId))
+                        || getAfter(/databases/$(database)/documents/memberPosts/$(postId)).data.get('likeCount', 0)
+                             == get(/databases/$(database)/documents/memberPosts/$(postId)).data.get('likeCount', 0) - 1);
+    }
+
+    // The same save must count the reply in replyLimits (see below)
+    function isCountedReply(postId, replyId) {
+      let limitsPath = /databases/$(database)/documents/replyLimits/$(request.auth.uid);
+      return getAfter(limitsPath).data.lastReplyId == replyId
+             && getAfter(limitsPath).data.lastPostId == postId
+             && (!exists(limitsPath) || get(limitsPath).data.lastReplyId != replyId);
+    }
+
+    function canCreateReply(postId, replyId) {
+      let data = request.resource.data;
+      let post = get(/databases/$(database)/documents/memberPosts/$(postId)).data;
+      let profile = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return isVerified()
+             && data.keys().hasOnly(['authorId', 'authorName', 'authorPhoto', 'text', 'status', 'createdAt'])
+             && data.authorId == request.auth.uid
+             && data.authorName == profile.username
+             && data.authorPhoto == profile.get('profilePictureUrl', '')
+             && data.status == 'visible'
+             && data.createdAt == request.time
+             && data.text is string && data.text.size() > 0 && data.text.size() <= 500
+             && !hasBlockedWord(data.text)
+             && canSeePost(post)
+             && !hasBlocked(post.authorId, request.auth.uid)
+             && !isSuspended(request.auth.uid)
+             && isCountedReply(postId, replyId);
+    }
+
+    // A moderator hides or restores a reply with a moderationLog entry about it
+    function isModeratingReply(postId, replyId) {
+      let logId = request.resource.data.moderationLogId;
+      let logPath = /databases/$(database)/documents/moderationLog/$(logId);
+      return isModerator()
+             && changedKeys().hasOnly(['status', 'hiddenBy', 'moderationLogId'])
+             && request.resource.data.status in ['visible', 'hidden']
+             && (request.resource.data.status == 'visible'
+                   ? !('hiddenBy' in request.resource.data)
+                   : request.resource.data.hiddenBy == 'moderator')
+             && logId is string
+             && !exists(logPath)
+             && getAfter(logPath).data.postId == postId
+             && getAfter(logPath).data.replyId == replyId
+             && getAfter(logPath).data.action == (request.resource.data.status == 'hidden' ? 'hide' : 'restore');
+    }
+
+    // Replies to a post, readable by whoever can see the post. replyCount on
+    // the post is kept by functions/src/replies.ts, which also checks the
+    // text and tells the post's author.
+    match /memberPosts/{postId}/replies/{replyId} {
+      allow read: if (resource.data.status == 'visible'
+                      && canSeePost(get(/databases/$(database)/documents/memberPosts/$(postId)).data))
+                  || isModerator()
+                  || (request.auth != null && resource.data.authorId == request.auth.uid);
+      allow create: if canCreateReply(postId, replyId);
+      allow update: if isModeratingReply(postId, replyId);
+      // The reply's author, the post's author, or a moderator who logs it as
+      // moderationLog/delete-<postId>-<replyId>
+      allow delete: if (request.auth != null
+                        && (resource.data.authorId == request.auth.uid
+                            || get(/databases/$(database)/documents/memberPosts/$(postId)).data.authorId == request.auth.uid))
+                    || (isModerator()
+                        && !exists(/databases/$(database)/documents/moderationLog/$('delete-' + postId + '-' + replyId))
+                        && existsAfter(/databases/$(database)/documents/moderationLog/$('delete-' + postId + '-' + replyId)));
+    }
+
+    // Like postLimits, for replies: up to 30 an hour. Keep in step with
+    // REPLIES_PER_HOUR in src/lib/member-posts.ts.
+    match /replyLimits/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId)
+                    && request.resource.data.keys().hasOnly(['windowStart', 'count', 'lastPostId', 'lastReplyId'])
+                    && request.resource.data.lastPostId is string
+                    && request.resource.data.lastReplyId is string
+                    && (resource == null || resource.data.lastReplyId != request.resource.data.lastReplyId)
+                    && !exists(/databases/$(database)/documents/memberPosts/$(request.resource.data.lastPostId)/replies/$(request.resource.data.lastReplyId))
+                    && existsAfter(/databases/$(database)/documents/memberPosts/$(request.resource.data.lastPostId)/replies/$(request.resource.data.lastReplyId))
+                    && ((request.resource.data.count == 1
+                          && request.resource.data.windowStart == request.time
+                          && (resource == null || request.time >= resource.data.windowStart + duration.value(1, 'h')))
+                        || (resource != null
+                          && request.resource.data.windowStart == resource.data.windowStart
+                          && request.resource.data.count == resource.data.count + 1
+                          && request.resource.data.count <= 30));
+      allow delete: if false;
+    }
+
+    // Asking to follow a private account, named "<their uid>_<your uid>".
+    // They accept by adding you to their followers and deleting the request
+    // in one save; functions/src/follows.ts then adds them to your following.
+    match /followRequests/{requestId} {
+      allow read: if request.auth != null
+                  && (resource == null || resource.data.fromId == request.auth.uid || resource.data.toId == request.auth.uid);
+      allow create: if isVerified()
+                    && request.resource.data.keys().hasOnly(['fromId', 'toId', 'fromName', 'fromPhoto', 'createdAt'])
+                    && request.resource.data.fromId == request.auth.uid
+                    && request.resource.data.toId is string
+                    && request.resource.data.toId != request.auth.uid
+                    && requestId == request.resource.data.toId + '_' + request.auth.uid
+                    && request.resource.data.fromName == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username
+                    && request.resource.data.fromPhoto == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('profilePictureUrl', '')
+                    && request.resource.data.createdAt == request.time
+                    && hasPrivateAccount(request.resource.data.toId)
+                    && !hasBlocked(request.resource.data.toId, request.auth.uid)
+                    && !isFollowerOf(request.resource.data.toId);
+      allow update: if false;
+      allow delete: if request.auth != null
+                    && (resource.data.fromId == request.auth.uid || resource.data.toId == request.auth.uid);
+    }
+
+    // A member asks moderators to look again at an action about them: a
+    // hidden post, a warning or a suspension. Named after the moderationLog
+    // entry, so there's one appeal per action. Moderators answer it.
+    match /appeals/{logId} {
+      allow read: if isModerator()
+                  || (request.auth != null && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasOnly(['userId', 'action', 'postId', 'text', 'status', 'createdAt'])
+                    && request.resource.data.userId == request.auth.uid
+                    && get(/databases/$(database)/documents/moderationLog/$(logId)).data.targetUserId == request.auth.uid
+                    && request.resource.data.action == get(/databases/$(database)/documents/moderationLog/$(logId)).data.action
+                    && request.resource.data.action in ['hide', 'auto-hide', 'warn', 'suspend', 'remove-image']
+                    && (!('postId' in request.resource.data)
+                        || request.resource.data.postId == get(/databases/$(database)/documents/moderationLog/$(logId)).data.postId)
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 1000
+                    && request.resource.data.status == 'open'
+                    && request.resource.data.createdAt == request.time;
+      allow update: if isModerator()
+                    && resource.data.status == 'open'
+                    && changedKeys().hasOnly(['status', 'response', 'closedBy', 'closedAt'])
+                    && request.resource.data.status in ['upheld', 'reversed']
+                    && request.resource.data.response is string && request.resource.data.response.size() <= 500
+                    && request.resource.data.closedBy == request.auth.uid
+                    && request.resource.data.closedAt == request.time;
+      allow delete: if false;
     }
 
     // How many posts each member has made in the current hour, saved with
@@ -891,7 +1076,7 @@ service cloud.firestore {
     match /moderationLog/{logId} {
       allow read: if isModerator();
       allow create: if isModerator()
-                    && request.resource.data.keys().hasOnly(['actorId', 'action', 'targetUserId', 'postId', 'contentPath', 'note', 'createdAt'])
+                    && request.resource.data.keys().hasOnly(['actorId', 'action', 'targetUserId', 'postId', 'replyId', 'contentPath', 'note', 'createdAt'])
                     && request.resource.data.actorId == request.auth.uid
                     && request.resource.data.action in ['hide', 'restore', 'delete', 'dismiss', 'warn', 'suspend', 'unsuspend', 'remove-image', 'edit-content', 'delete-content']
                     && (!(request.resource.data.action in ['edit-content', 'delete-content']) || isModeratedContentPath(request.resource.data.contentPath))
@@ -899,7 +1084,10 @@ service cloud.firestore {
                         || logId == 'delete-' + request.resource.data.contentPath.replace('/', '-'))
                     && request.resource.data.targetUserId is string
                     && (!('postId' in request.resource.data) || request.resource.data.postId is string)
-                    && (request.resource.data.action != 'delete' || logId == 'delete-' + request.resource.data.postId)
+                    && (!('replyId' in request.resource.data) || (request.resource.data.replyId is string && 'postId' in request.resource.data))
+                    && (request.resource.data.action != 'delete'
+                        || logId == 'delete-' + request.resource.data.postId
+                                     + (('replyId' in request.resource.data) ? '-' + request.resource.data.replyId : ''))
                     && request.resource.data.note is string && request.resource.data.note.size() <= 500
                     && request.resource.data.createdAt == request.time;
       allow update, delete: if false;
@@ -917,7 +1105,7 @@ service cloud.firestore {
     match /memberStandings/{userId} {
       allow read: if isOwner(userId) || isModerator();
       allow create, update: if isModerator()
-                    && request.resource.data.keys().hasOnly(['warnings', 'lastWarning', 'suspendedUntil', 'lastLogId', 'updatedAt'])
+                    && request.resource.data.keys().hasOnly(['warnings', 'lastWarning', 'suspendedUntil', 'lastLogId', 'warnLogId', 'suspendLogId', 'updatedAt'])
                     && request.resource.data.warnings is int
                     && (!('lastWarning' in request.resource.data) || (request.resource.data.lastWarning is string && request.resource.data.lastWarning.size() <= 500))
                     && (request.resource.data.get('suspendedUntil', null) == null || request.resource.data.suspendedUntil is timestamp)

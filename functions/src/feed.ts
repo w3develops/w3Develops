@@ -8,7 +8,8 @@ import { getPrefs, type PrefId } from './prefs.js';
 const KEEP_DAYS = 60;
 
 export type FeedType = 'follow' | 'group_join' | 'group_leave' | 'checkin' | 'task_added' | 'task_done'
-  | 'request' | 'request_accepted' | 'solo_project' | 'reminder';
+  | 'request' | 'request_accepted' | 'solo_project' | 'reminder'
+  | 'follow_request' | 'reply' | 'moderation' | 'appeal';
 
 export interface FeedEntry {
   /** The member whose feed it goes in */
@@ -31,6 +32,11 @@ export interface FeedEntry {
   category?: PrefId;
   /** Shown instead of the actor's username, for entries with no member behind them */
   actorName?: string;
+  /**
+   * Names the entry instead of the event, so a later entry with the same key
+   * replaces it (and shows as unread again) rather than adding another
+   */
+  key?: string;
 }
 
 export interface Member {
@@ -75,7 +81,7 @@ export async function writeFeed(eventId: string, entries: FeedEntry[], members: 
       const actor = members.get(entry.actorId);
       const notify = wantsBell(entry);
       const ref = db.collection('users').doc(entry.recipientId).collection('feed')
-        .doc(`${eventId}-${entry.type}-${entry.actorId}`.slice(0, 1500));
+        .doc((entry.key ?? `${eventId}-${entry.type}-${entry.actorId}`).slice(0, 1500));
       batch.set(ref, {
         type: entry.type,
         actorId: entry.actorId,

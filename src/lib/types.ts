@@ -41,6 +41,8 @@ export interface UserProfile {
   followers?: string[];
   following?: string[];
   followInfoPrivate?: boolean;
+  /** Feed posts are for followers only, and people ask to follow (src/lib/hooks/useFeedPrefs.ts) */
+  privateAccount?: boolean;
   createdMeetupIds?: string[];
   soloProjectIds?: string[];
   starredSoloProjectIds?: string[];
@@ -175,7 +177,8 @@ export interface Notification {
 export interface FeedEntry {
     id: string;
     type: 'follow' | 'group_join' | 'group_leave' | 'checkin' | 'task_added' | 'task_done'
-        | 'request' | 'request_accepted' | 'solo_project' | 'reminder';
+        | 'request' | 'request_accepted' | 'solo_project' | 'reminder'
+        | 'follow_request' | 'reply' | 'moderation' | 'appeal';
     actorId: string;
     actorName: string;
     actorPhoto: string;
@@ -373,8 +376,49 @@ export interface MemberPost {
   hiddenBy?: 'moderator' | 'reports' | 'auto-check';
   /** The moderationLog entry for the latest moderator action on it */
   moderationLogId?: string;
+  /** Kept by firestore.rules (likes) and functions/src/replies.ts (replies) */
+  likeCount?: number;
+  replyCount?: number;
   createdAt: Timestamp;
   updatedAt?: Timestamp;
+}
+
+/** A reply to a feed post (memberPosts/{postId}/replies/{id}) */
+export interface PostReply {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorPhoto: string;
+  text: string;
+  status: 'visible' | 'hidden';
+  hiddenBy?: 'moderator' | 'reports' | 'auto-check';
+  moderationLogId?: string;
+  createdAt: Timestamp;
+}
+
+/** Someone asking to follow a private account (followRequests/<toId>_<fromId>) */
+export interface FollowRequest {
+  id: string;
+  fromId: string;
+  toId: string;
+  fromName: string;
+  fromPhoto: string;
+  createdAt: Timestamp;
+}
+
+/** A member asking moderators to look again at an action (appeals/{moderationLogId}) */
+export interface Appeal {
+  id: string;
+  userId: string;
+  action: 'hide' | 'auto-hide' | 'warn' | 'suspend' | 'remove-image';
+  postId?: string;
+  text: string;
+  status: 'open' | 'upheld' | 'reversed';
+  /** The moderator's answer, shown to the member */
+  response?: string;
+  closedBy?: string;
+  closedAt?: Timestamp;
+  createdAt: Timestamp;
 }
 
 /** A member's own feed settings (users/{uid}/private/feedPrefs); only they can read it */
@@ -385,7 +429,7 @@ export interface FeedPrefs {
   mutedIds?: string[];
   /** Like muted, and these members also can't follow them */
   blockedIds?: string[];
-  /** All their posts are for followers only */
+  /** All their posts are for followers only. Now kept on the profile (UserProfile.privateAccount); older accounts have it here. */
   privateAccount?: boolean;
 }
 
@@ -394,8 +438,9 @@ export interface Report {
   id: string;
   reporterId: string;
   reportedUserId: string;
-  /** Set when the report is about a post */
+  /** Set when the report is about a post, or a reply to one (with replyId) */
   postId?: string;
+  replyId?: string;
   reason: string;
   details: string;
   page: string;
@@ -413,6 +458,8 @@ export interface ModerationLogEntry {
   action: ModerationAction;
   targetUserId: string;
   postId?: string;
+  /** Set when the action was about a reply to the post */
+  replyId?: string;
   /** For edits and deletions of members' items, like "studyGroups/abc" (src/lib/moderated-items.ts) */
   contentPath?: string;
   /** Why, in the moderator's words; shown to the member for warnings */
@@ -428,6 +475,9 @@ export interface MemberStanding {
   /** They can't post until then */
   suspendedUntil?: Timestamp | null;
   lastLogId: string;
+  /** The moderationLog entries for their latest warning and suspension, which they can appeal */
+  warnLogId?: string;
+  suspendLogId?: string;
   updatedAt: Timestamp;
 }
 

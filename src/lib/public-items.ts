@@ -56,7 +56,7 @@ export async function getPublicItem(collectionName: PublicCollection, id: string
 // document (timezone, sign-in times, settings, connection IDs) stays out of
 // the page's HTML; members never have an email address stored there.
 const PUBLIC_PROFILE_FIELDS = [
-  'username', 'profilePictureUrl', 'bio', 'socialLinks', 'skills', 'createdAt', 'followInfoPrivate',
+  'username', 'profilePictureUrl', 'bio', 'socialLinks', 'skills', 'createdAt', 'followInfoPrivate', 'privateAccount',
   'mentorshipRole', 'tutorRole', 'pairProgrammingStatus', 'soloProjectIds',
 ] as const;
 
@@ -143,6 +143,28 @@ const fetchMemberPosts = unstable_cache(readPublicList, ['public-list-member-pos
   revalidate: ITEM_CACHE_SECONDS,
   tags: [MEMBER_POSTS_CACHE_TAG],
 });
+
+// One member post for its own page (/feed/<id>), only while it's visible and
+// public: the Admin SDK skips the rules, which keep the rest private
+const fetchMemberPost = unstable_cache(
+  async (postId: string) => {
+    const post = await readDoc('memberPosts', postId);
+    if (!post || post.data.status !== 'visible' || post.data.audience !== 'public') return null;
+    return toPlain({ ...post.data, id: post.id }) as Record<string, unknown>;
+  },
+  ['public-member-post'],
+  { revalidate: ITEM_CACHE_SECONDS, tags: [MEMBER_POSTS_CACHE_TAG] },
+);
+
+/** A visible public member post as a plain object, or null */
+export async function getPublicMemberPost(postId: string): Promise<Record<string, unknown> | null> {
+  try {
+    return await fetchMemberPost(postId);
+  } catch (error) {
+    console.warn(`Could not read memberPosts/${postId} on the server:`, error);
+    return null;
+  }
+}
 
 /**
  * A list page's items as plain objects for a browser component, which shows

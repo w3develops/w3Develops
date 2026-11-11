@@ -12,6 +12,8 @@ export interface ActionRequest {
   action: ModeratorAction;
   targetUserId: string;
   postId?: string;
+  /** With postId, the action is about this reply to the post */
+  replyId?: string;
   note: string;
   /** Open reports this action settles; they're closed in the same save */
   reportIds?: string[];
@@ -32,23 +34,26 @@ export function useModerationActions() {
   const { user } = useUser();
 
   return useCallback(
-    async ({ action, targetUserId, postId, note, reportIds = [], days }: ActionRequest) => {
+    async ({ action, targetUserId, postId, replyId, note, reportIds = [], days }: ActionRequest) => {
       if (!user) throw new Error('Not signed in');
       const batch = writeBatch(firestore);
-      // A deletion's entry is named after the post, so the rules can find it
+      // A deletion's entry is named after the post (and reply), so the rules can find it
       const logRef = action === 'delete' && postId
-        ? doc(firestore, 'moderationLog', `delete-${postId}`)
+        ? doc(firestore, 'moderationLog', replyId ? `delete-${postId}-${replyId}` : `delete-${postId}`)
         : doc(collection(firestore, 'moderationLog'));
       batch.set(logRef, {
         actorId: user.uid,
         action,
         targetUserId,
         ...(postId && { postId }),
+        ...(postId && replyId && { replyId }),
         note: note.trim(),
         createdAt: serverTimestamp(),
       });
 
-      const postRef = postId ? doc(firestore, 'memberPosts', postId) : null;
+      const postRef = postId
+        ? (replyId ? doc(firestore, 'memberPosts', postId, 'replies', replyId) : doc(firestore, 'memberPosts', postId))
+        : null;
       if (postRef && action === 'hide') {
         batch.update(postRef, { status: 'hidden', hiddenBy: 'moderator', moderationLogId: logRef.id });
       } else if (postRef && action === 'restore') {
@@ -70,6 +75,11 @@ export function useModerationActions() {
           updatedAt: serverTimestamp(),
         };
         if (current?.lastWarning) standing.lastWarning = current.lastWarning;
+        // So the member can appeal their latest warning or suspension (appeals/{logId})
+        if (current?.warnLogId) standing.warnLogId = current.warnLogId;
+        if (current?.suspendLogId) standing.suspendLogId = current.suspendLogId;
+        if (action === 'warn') standing.warnLogId = logRef.id;
+        if (action === 'suspend') standing.suspendLogId = logRef.id;
         if (action === 'warn') standing.lastWarning = note.trim();
         if (action === 'suspend') standing.suspendedUntil = Timestamp.fromMillis(Date.now() + (days ?? 1) * 24 * 60 * 60 * 1000);
         if (action === 'unsuspend') standing.suspendedUntil = null;

@@ -10,6 +10,7 @@ export const PREF_DEFAULTS = {
   requests: true,
   following: true,
   meetingReminders: false,
+  replies: true,
 };
 export type PrefId = keyof typeof PREF_DEFAULTS;
 

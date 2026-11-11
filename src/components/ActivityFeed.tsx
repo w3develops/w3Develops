@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { collection, limit, orderBy, query, type Query } from 'firebase/firestore';
-import { AlarmClock, CheckSquare, FolderGit2, Handshake, ListPlus, LogIn, LogOut, MailPlus, MessageSquare, UserPlus } from 'lucide-react';
+import { AlarmClock, CheckSquare, FolderGit2, Handshake, ListPlus, LogIn, LogOut, MailPlus, MessageCircle, MessageSquare, Scale, ShieldAlert, UserPlus, UserRoundPlus } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +24,10 @@ const ICONS: Record<FeedEntry['type'], React.ReactNode> = {
     request_accepted: <Handshake className="h-4 w-4 text-green-600" aria-hidden="true" />,
     solo_project: <FolderGit2 className="h-4 w-4 text-purple-600" aria-hidden="true" />,
     reminder: <AlarmClock className="h-4 w-4 text-primary" aria-hidden="true" />,
+    follow_request: <UserRoundPlus className="h-4 w-4 text-primary" aria-hidden="true" />,
+    reply: <MessageCircle className="h-4 w-4 text-blue-500" aria-hidden="true" />,
+    moderation: <ShieldAlert className="h-4 w-4 text-amber-600" aria-hidden="true" />,
+    appeal: <Scale className="h-4 w-4 text-primary" aria-hidden="true" />,
 };
 
 function ActivityItem({ entry, now }: { entry: FeedEntry; now: number | null }) {

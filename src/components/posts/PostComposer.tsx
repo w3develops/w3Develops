@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import ZonedText from '@/components/ZonedText';
+import AppealButton from './AppealButton';
 import PostFields, { AudienceSelect, EMPTY_DRAFT, draftFields, draftProblem, type PostDraft } from './PostFields';
 import { needsEmailVerification } from '@/lib/hooks/useVerifiedGuard';
 import { useNow } from '@/lib/hooks/useClientValues';
@@ -82,9 +83,14 @@ export default function PostComposer({ profile, standing, privateAccount }: Post
   const suspendedUntil = standing?.suspendedUntil ? millis(standing.suspendedUntil) : null;
   if (suspendedUntil !== null && suspendedUntil > now) {
     return notice(
-      <>Moderators have paused your posting until{' '}
-        <ZonedText render={tz => formatTimestamp(standing!.suspendedUntil as Timestamp, true, tz)} />. To appeal, email{' '}
-        <a href="mailto:w3DevelopsSupport@googlegroups.com" className="text-primary underline">w3DevelopsSupport@googlegroups.com</a>.</>,
+      <>Moderators have paused your posting and replies until{' '}
+        <ZonedText render={tz => formatTimestamp(standing!.suspendedUntil as Timestamp, true, tz)} />.{' '}
+        {standing?.suspendLogId ? (
+          <span className="mt-2 block"><AppealButton logId={standing.suspendLogId} action="suspend" /></span>
+        ) : (
+          <>To appeal, email{' '}
+            <a href="mailto:w3DevelopsSupport@googlegroups.com" className="text-primary underline">w3DevelopsSupport@googlegroups.com</a>.</>
+        )}</>,
     );
   }
 
