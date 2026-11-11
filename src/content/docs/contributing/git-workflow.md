@@ -1,8 +1,7 @@
 ---
-title: "Git workflow"
-description: "How changes get into main."
+title: Git workflow
+description: How changes get into main.
 ---
-
 Every push to `main` deploys the live site, so `main` must always work.
 
 1. Nobody commits to `main` directly; every change is a pull request.

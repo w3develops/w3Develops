@@ -28,6 +28,7 @@ const navLinks = [
     { href: "/mentorship", label: "Mentorship", icon: Users },
     { href: "/podcast", label: "Podcast", icon: Podcast },
     { href: "/news", label: "News", icon: Rss },
+    { href: "/docs", label: "Docs", icon: BookOpen },
 ];
 
 

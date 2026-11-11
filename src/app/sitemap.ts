@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { INDEXABLE_PATHS, SITE_URL } from '@/lib/site-pages';
 import { listPublicItemPages } from '@/lib/public-items';
+import { DOC_SLUGS, docHref } from '@/lib/docs';
 
 // Rebuilt at most once an hour, so new groups, meetups and jobs get listed
 export const revalidate = 3600;
@@ -18,5 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${SITE_URL}${path}`,
     ...(lastModified && { lastModified }),
   }));
-  return [...mainPages, ...itemPages];
+  // The docs (/docs and its pages)
+  const docPages = DOC_SLUGS.map(slug => ({ url: `${SITE_URL}${docHref(slug)}` }));
+  return [...mainPages, ...docPages.filter(doc => !mainPages.some(main => main.url === doc.url)), ...itemPages];
 }

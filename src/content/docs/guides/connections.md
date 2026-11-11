@@ -1,8 +1,7 @@
 ---
-title: "Mentorship, tutoring and pairing"
-description: "One-to-one help from other members."
+title: Mentorship, tutoring and pairing
+description: One-to-one help from other members.
 ---
-
 - **[Mentorship](https://w3develops.org/mentorship):** find a mentor, or mentor someone, for longer-term guidance.
 - **[Tutor](https://w3develops.org/tutor):** get or give help with a specific topic.
 - **[Pair programming](https://w3develops.org/pair-programming):** get matched with someone to code with in real time.

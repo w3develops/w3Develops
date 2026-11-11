@@ -62,6 +62,11 @@ export const SITE_PAGES = {
     description: 'A new classic coding interview problem every day, with an example and hints. Practice algorithms and data structures with the w3Develops community.',
     section: 'Learn and build together',
   },
+  '/docs': {
+    title: 'Docs',
+    description: 'Guides to using w3Develops (study groups, projects, the community feed, events and safety) and docs for contributors.',
+    section: 'Learn and build together',
+  },
   '/project-ideas': {
     title: 'Project Ideas',
     description: 'Coding project ideas for beginners to advanced developers, by track: frontend, backend, full stack, DevOps, data and mobile. Build one solo or with a team.',

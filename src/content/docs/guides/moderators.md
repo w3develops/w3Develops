@@ -1,8 +1,7 @@
 ---
-title: "For moderators"
-description: "Reviewing reports and keeping the community safe."
+title: For moderators
+description: Reviewing reports and keeping the community safe.
 ---
-
 Moderators work on [/moderation](https://w3develops.org/moderation). Every action is saved in the log.
 
 | Tab | What it's for |

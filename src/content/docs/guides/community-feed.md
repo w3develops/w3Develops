@@ -1,8 +1,7 @@
 ---
-title: "Community feed"
-description: "Short posts about what members are learning and building."
+title: Community feed
+description: Short posts about what members are learning and building.
 ---
-
 The [community feed](https://w3develops.org/feed) is for short posts: progress, questions, wins and useful links.
 
 ## Posting
@@ -20,4 +19,4 @@ Turn on **Private account** in the "Your feed" card. Your posts become followers
 
 Like and reply to posts, follow members and topics, and mute or block people you don't want to see. Posts from people and topics you follow come first.
 
-<Note>Posts and replies go through an automatic safety check and a blocked-word list. Hidden posts can be appealed. See [Safety and reporting](/guides/safety).</Note>
+> Posts and replies go through an automatic safety check and a blocked-word list. Hidden posts can be appealed. See [Safety and reporting](/docs/guides/safety).

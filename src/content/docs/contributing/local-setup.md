@@ -1,8 +1,7 @@
 ---
-title: "Local setup"
-description: "Run w3Develops on your computer."
+title: Local setup
+description: Run w3Develops on your computer.
 ---
-
 You need Node.js 22 and, to test Firestore rules, Java 21 and the Firebase CLI.
 
 ```bash

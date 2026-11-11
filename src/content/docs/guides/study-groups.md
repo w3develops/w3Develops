@@ -1,8 +1,7 @@
 ---
-title: "Study groups and book clubs"
-description: "Learn a topic with others, with regular check-ins."
+title: Study groups and book clubs
+description: Learn a topic with others, with regular check-ins.
 ---
-
 A study group is a small group learning the same thing, like JavaScript or system design. Book clubs work the same way around one book.
 
 ## Join or start one
