@@ -24,6 +24,7 @@ import { MODERATION_ACTIONS, POST_REPORT_REASONS, SUSPENSION_DAYS } from '@/lib/
 import { formatTimestamp } from '@/lib/utils';
 import type { Appeal, MemberPost, MemberStanding, ModerationLogEntry, PostReply, Report, UserProfile } from '@/lib/types';
 import ModerationTeam from './ModerationTeam';
+import WritingReview from './WritingReview';
 import { useModerationActions, type ActionRequest, type ModeratorAction } from './useModerationActions';
 import { MODERATED_ITEMS, type ModeratedKind } from '@/lib/moderated-items';
 
@@ -417,6 +418,7 @@ function Queue({ isAdmin }: { isAdmin: boolean }) {
           <TabsTrigger value="members">Member reports ({memberReports.length})</TabsTrigger>
           <TabsTrigger value="appeals">Appeals ({appeals.length})</TabsTrigger>
           <TabsTrigger value="hidden">Hidden ({otherHidden.length})</TabsTrigger>
+          <TabsTrigger value="writing">Writing</TabsTrigger>
           <TabsTrigger value="log">Log</TabsTrigger>
           <TabsTrigger value="team">Team</TabsTrigger>
         </TabsList>
@@ -457,6 +459,10 @@ function Queue({ isAdmin }: { isAdmin: boolean }) {
         <TabsContent value="hidden" className="space-y-4">
           {hidden && otherHidden.length === 0 && <p className="text-muted-foreground">No other hidden posts.</p>}
           {otherHidden.map(post => <ReviewPost key={post.id} postId={post.id} reports={[]} onAction={setPending} />)}
+        </TabsContent>
+
+        <TabsContent value="writing">
+          <WritingReview />
         </TabsContent>
 
         <TabsContent value="team">
