@@ -57,6 +57,11 @@ export const SITE_PAGES = {
     description: 'Build a real application with a remote team. Free collaborative coding projects that give you Git, teamwork and portfolio experience.',
     section: 'Learn and build together',
   },
+  '/algorithms-daily': {
+    title: 'Algorithms Daily',
+    description: 'A new classic coding interview problem every day, with an example and hints. Practice algorithms and data structures with the w3Develops community.',
+    section: 'Learn and build together',
+  },
   '/book-clubs': {
     title: 'Book Clubs',
     description: 'Read programming and tech books together with other developers, talk through each chapter and keep each other going.',
