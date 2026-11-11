@@ -107,6 +107,11 @@ export const SITE_PAGES = {
     description: 'Join the conversation with w3Develops members on our official Discord server.',
     noindex: true,
   },
+  '/events': {
+    title: 'Events',
+    description: 'Upcoming w3Develops meetups and coding competitions in one calendar, in your time zone, with one-click add to your own calendar.',
+    section: 'Events and challenges',
+  },
   '/competitions': {
     title: 'Coding Competitions',
     description: 'Test your skills in w3Develops community coding challenges. See active and upcoming competitions and submit your entry.',
