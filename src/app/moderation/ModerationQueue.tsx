@@ -256,13 +256,17 @@ function ReviewReply({ postId, replyId, reports, onAction }: { postId: string; r
           <p className="text-sm text-muted-foreground">This reply was deleted.</p>
         )}
         <div className="space-y-3 border-t pt-3">
-          <p className="text-sm font-medium">{reports.length} open {reports.length === 1 ? 'report' : 'reports'}</p>
+          {reports.length > 0 && <p className="text-sm font-medium">{reports.length} open {reports.length === 1 ? 'report' : 'reports'}</p>}
           <ReportList reports={reports} />
           <div className="flex items-center gap-2"><span className="text-xs">Author:</span><StandingSummary userId={authorId} /></div>
         </div>
         <ActionButtons
           labels={REPLY_BUTTONS}
-          actions={[...(reply ? [reply.status === 'visible' ? 'hide' as const : 'restore' as const, 'delete' as const] : []), 'dismiss', 'warn', 'suspend', 'unsuspend']}
+          actions={[
+            ...(reply ? [reply.status === 'visible' ? 'hide' as const : 'restore' as const, 'delete' as const] : []),
+            ...(reports.length ? ['dismiss' as const] : []),
+            'warn', 'suspend', 'unsuspend',
+          ]}
           onPick={pick}
         />
       </CardContent>
@@ -297,12 +301,14 @@ function AppealCard({ appeal, onAction }: { appeal: Appeal; onAction: (pending: 
     <Card>
       <CardContent className="p-4 space-y-3">
         <p className="text-sm">
-          <Link href={`/users/${appeal.userId}`} className="font-semibold underline">{name}</Link>: {APPEALED[appeal.action]}.
+          <Link href={`/users/${appeal.userId}`} className="font-semibold underline">{name}</Link>:{' '}
+          {appeal.replyId ? APPEALED[appeal.action].replace('post', 'reply') : APPEALED[appeal.action]}.
           <span className="ml-2 text-xs text-muted-foreground"><ZonedText render={tz => formatTimestamp(appeal.createdAt, true, tz)} /></span>
         </p>
         <blockquote className="border-l-2 pl-3 text-sm whitespace-pre-wrap break-words">{appeal.text}</blockquote>
         <StandingSummary userId={appeal.userId} />
-        {appeal.postId && <ReviewPost postId={appeal.postId} reports={[]} onAction={onAction} />}
+        {appeal.postId && appeal.replyId && <ReviewReply postId={appeal.postId} replyId={appeal.replyId} reports={[]} onAction={onAction} />}
+        {appeal.postId && !appeal.replyId && <ReviewPost postId={appeal.postId} reports={[]} onAction={onAction} />}
         {(appeal.action === 'suspend' || appeal.action === 'warn') && (
           <ActionButtons actions={['unsuspend']} onPick={action => onAction({ action, targetUserId: appeal.userId, title: ACTION_BUTTONS[action] })} />
         )}
@@ -311,7 +317,7 @@ function AppealCard({ appeal, onAction }: { appeal: Appeal; onAction: (pending: 
           <Textarea id={`appeal-answer-${appeal.id}`} value={response} onChange={e => setResponse(e.target.value)} maxLength={500}
             placeholder="What you decided and why, kindly and briefly." />
           <p className="text-xs text-muted-foreground">
-            Reversing doesn&apos;t undo anything by itself: restore the post or lift the suspension above first.
+            Reversing doesn&apos;t undo anything by itself: restore it or lift the suspension above first.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

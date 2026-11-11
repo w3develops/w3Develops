@@ -950,6 +950,20 @@ service cloud.firestore {
              && getAfter(logPath).data.action == (request.resource.data.status == 'hidden' ? 'hide' : 'restore');
     }
 
+    // The reply's author changes its text; it shows as edited. Hidden
+    // replies stay hidden, and functions/src/replies.ts checks the new text.
+    function isEditingOwnReply(postId) {
+      return request.auth != null
+             && resource.data.authorId == request.auth.uid
+             && changedKeys().hasOnly(['text', 'updatedAt'])
+             && request.resource.data.updatedAt == request.time
+             && request.resource.data.text is string
+             && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 500
+             && !hasBlockedWord(request.resource.data.text)
+             && !isSuspended(request.auth.uid)
+             && exists(/databases/$(database)/documents/memberPosts/$(postId));
+    }
+
     // Replies to a post, readable by whoever can see the post. replyCount on
     // the post is kept by functions/src/replies.ts, which also checks the
     // text and tells the post's author.
@@ -959,7 +973,7 @@ service cloud.firestore {
                   || isModerator()
                   || (request.auth != null && resource.data.authorId == request.auth.uid);
       allow create: if canCreateReply(postId, replyId);
-      allow update: if isModeratingReply(postId, replyId);
+      allow update: if isModeratingReply(postId, replyId) || isEditingOwnReply(postId);
       // The reply's author, the post's author, or a moderator who logs it as
       // moderationLog/delete-<postId>-<replyId>
       allow delete: if (request.auth != null
@@ -1015,19 +1029,21 @@ service cloud.firestore {
     }
 
     // A member asks moderators to look again at an action about them: a
-    // hidden post, a warning or a suspension. Named after the moderationLog
+    // hidden post or reply, a warning or a suspension. Named after the moderationLog
     // entry, so there's one appeal per action. Moderators answer it.
     match /appeals/{logId} {
       allow read: if isModerator()
                   || (request.auth != null && (resource == null || resource.data.userId == request.auth.uid));
       allow create: if request.auth != null
-                    && request.resource.data.keys().hasOnly(['userId', 'action', 'postId', 'text', 'status', 'createdAt'])
+                    && request.resource.data.keys().hasOnly(['userId', 'action', 'postId', 'replyId', 'text', 'status', 'createdAt'])
                     && request.resource.data.userId == request.auth.uid
                     && get(/databases/$(database)/documents/moderationLog/$(logId)).data.targetUserId == request.auth.uid
                     && request.resource.data.action == get(/databases/$(database)/documents/moderationLog/$(logId)).data.action
                     && request.resource.data.action in ['hide', 'auto-hide', 'warn', 'suspend', 'remove-image']
                     && (!('postId' in request.resource.data)
                         || request.resource.data.postId == get(/databases/$(database)/documents/moderationLog/$(logId)).data.postId)
+                    && (!('replyId' in request.resource.data)
+                        || request.resource.data.replyId == get(/databases/$(database)/documents/moderationLog/$(logId)).data.get('replyId', null))
                     && request.resource.data.text is string
                     && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 1000
                     && request.resource.data.status == 'open'

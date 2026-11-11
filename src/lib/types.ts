@@ -394,6 +394,8 @@ export interface PostReply {
   hiddenBy?: 'moderator' | 'reports' | 'auto-check';
   moderationLogId?: string;
   createdAt: Timestamp;
+  /** Set when the author edited it */
+  updatedAt?: Timestamp;
 }
 
 /** Someone asking to follow a private account (followRequests/<toId>_<fromId>) */
@@ -412,6 +414,8 @@ export interface Appeal {
   userId: string;
   action: 'hide' | 'auto-hide' | 'warn' | 'suspend' | 'remove-image';
   postId?: string;
+  /** Set when the appeal is about a reply to the post */
+  replyId?: string;
   text: string;
   status: 'open' | 'upheld' | 'reversed';
   /** The moderator's answer, shown to the member */
