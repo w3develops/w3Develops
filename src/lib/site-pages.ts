@@ -57,6 +57,11 @@ export const SITE_PAGES = {
     description: 'Build a real application with a remote team. Free collaborative coding projects that give you Git, teamwork and portfolio experience.',
     section: 'Learn and build together',
   },
+  '/algorithms-daily': {
+    title: 'Algorithms Daily',
+    description: 'A new classic coding interview problem every day, with an example and hints. Practice algorithms and data structures with the w3Develops community.',
+    section: 'Learn and build together',
+  },
   '/project-ideas': {
     title: 'Project Ideas',
     description: 'Coding project ideas for beginners to advanced developers, by track: frontend, backend, full stack, DevOps, data and mobile. Build one solo or with a team.',
