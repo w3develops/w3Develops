@@ -308,9 +308,26 @@ describe('replies', () => {
     await assertSucceeds(deleteDoc(doc(as('bob'), 'memberPosts', 'pub', 'replies', 'r2')));
   });
 
-  test('replies cannot be edited by their author', async () => {
+  test('the author can edit a reply’s text, marked as edited', async () => {
     await reply(as('alice'), 'alice', 'pub', 'r1');
-    await assertFails(updateDoc(doc(as('alice'), 'memberPosts', 'pub', 'replies', 'r1'), { text: 'changed' }));
+    const ref = db => doc(db, 'memberPosts', 'pub', 'replies', 'r1');
+    await assertFails(updateDoc(ref(as('alice')), { text: 'changed' })); // no updatedAt
+    await assertFails(updateDoc(ref(as('bob')), { text: 'changed', updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(ref(as('alice')), { text: 'what the fuck', updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(ref(as('alice')), { text: '', updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(ref(as('alice')), { text: 'a'.repeat(501), updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(ref(as('alice')), { text: 'ok', status: 'visible', authorName: 'admin', updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(ref(as('alice')), { text: 'Saturday works, 10am?', updatedAt: serverTimestamp() }));
+  });
+
+  test('editing can’t un-hide a reply, and suspended members can’t edit', async () => {
+    await reply(as('alice'), 'alice', 'pub', 'r1');
+    const ref = db => doc(db, 'memberPosts', 'pub', 'replies', 'r1');
+    await seed(db => updateDoc(ref(db), { status: 'hidden', hiddenBy: 'auto-check' }));
+    await assertFails(updateDoc(ref(as('alice')), { text: 'fixed', status: 'visible', updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(ref(as('alice')), { text: 'fixed', updatedAt: serverTimestamp() }));
+    await seed(db => setDoc(doc(db, 'memberStandings', 'alice'), { warnings: 1, suspendedUntil: Timestamp.fromMillis(Date.now() + DAY), lastLogId: 'x', updatedAt: Timestamp.now() }));
+    await assertFails(updateDoc(ref(as('alice')), { text: 'again', updatedAt: serverTimestamp() }));
   });
 
   test('moderators hide, restore and delete replies with a log entry', async () => {
@@ -386,6 +403,19 @@ describe('appeals', () => {
     await assertFails(appeal(as('bob'), 'hideLog', { text: 'a'.repeat(1001) }));
     await assertFails(appeal(as('bob'), 'restoreLog', { action: 'restore', postId: 'pub' }));
     await assertFails(appeal(as('bob'), 'missingLog'));
+  });
+
+  test('a member can appeal a hidden reply, naming the right reply', async () => {
+    await seed(db => setDoc(doc(db, 'moderationLog', 'replyHide'), { actorId: 'mod', action: 'hide', targetUserId: 'bob', postId: 'pub', replyId: 'r9', note: '', createdAt: Timestamp.now() }));
+    const replyAppeal = (extra = {}) => setDoc(doc(as('bob'), 'appeals', 'replyHide'), {
+      userId: 'bob', action: 'hide', postId: 'pub', replyId: 'r9', text: 'Please look again', status: 'open', createdAt: serverTimestamp(), ...extra,
+    });
+    await assertFails(replyAppeal({ replyId: 'other' }));
+    await assertSucceeds(replyAppeal());
+  });
+
+  test('a post appeal cannot claim a reply', async () => {
+    await assertFails(appeal(as('bob'), 'hideLog', { replyId: 'r1' }));
   });
 
   test('only the member and moderators can read an appeal', async () => {

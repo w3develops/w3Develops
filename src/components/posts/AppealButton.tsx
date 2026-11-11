@@ -24,6 +24,8 @@ interface AppealButtonProps {
   logId: string;
   action: Appeal['action'];
   postId?: string;
+  /** With postId, the appeal is about this reply to the post */
+  replyId?: string;
 }
 
 /**
@@ -31,7 +33,7 @@ interface AppealButtonProps {
  * once per action (firestore.rules: match /appeals). Once sent, it shows
  * where the appeal stands, and the moderator's answer.
  */
-export default function AppealButton({ logId, action, postId }: AppealButtonProps) {
+export default function AppealButton({ logId, action, postId, replyId }: AppealButtonProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -61,6 +63,7 @@ export default function AppealButton({ logId, action, postId }: AppealButtonProp
         userId: user.uid,
         action,
         ...(postId && { postId }),
+        ...(postId && replyId && { replyId }),
         text: text.trim(),
         status: 'open',
         createdAt: serverTimestamp(),
@@ -81,7 +84,7 @@ export default function AppealButton({ logId, action, postId }: AppealButtonProp
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Appeal {WHAT[action]}</DialogTitle>
+          <DialogTitle>Appeal {replyId ? 'hiding your reply' : WHAT[action]}</DialogTitle>
           <DialogDescription>
             Tell the moderators why you think this was a mistake. A moderator reviews every appeal, and you&apos;ll get the answer in your notifications.
           </DialogDescription>

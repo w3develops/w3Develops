@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Timestamp, collection, deleteDoc, doc, getDoc, increment, limit, orderBy, query, serverTimestamp, where, writeBatch } from 'firebase/firestore';
+import { Timestamp, collection, deleteDoc, doc, getDoc, increment, limit, orderBy, query, serverTimestamp, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { Heart, MessageCircle } from 'lucide-react';
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import ReportUserButton from '@/components/ReportUserButton';
 import ZonedText from '@/components/ZonedText';
+import AppealButton from './AppealButton';
 import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { useIsModerator } from '@/lib/hooks/useIsModerator';
 import { useModerationActions } from '@/app/moderation/useModerationActions';
@@ -90,8 +91,31 @@ function ReplyItem({ post, reply }: { post: MemberPost; reply: PostReply }) {
   const isModerator = useIsModerator();
   const moderate = useModerationActions();
   const [isWorking, setIsWorking] = useState(false);
+  const [draft, setDraft] = useState<string | null>(null);
   const isAuthor = user?.uid === reply.authorId;
   const isPostAuthor = user?.uid === post.authorId;
+
+  const saveEdit = async () => {
+    const text = (draft ?? '').trim();
+    if (!text || text === reply.text) {
+      setDraft(null);
+      return;
+    }
+    const blocked = findBlockedWord(text);
+    if (blocked) {
+      toast({ variant: 'destructive', title: "Can't save that", description: `Replies can't include “${blocked}”. Please follow the Code of Conduct.` });
+      return;
+    }
+    setIsWorking(true);
+    try {
+      await updateDoc(doc(firestore, 'memberPosts', post.id, 'replies', reply.id), { text, updatedAt: serverTimestamp() });
+      setDraft(null);
+    } catch {
+      toast({ variant: 'destructive', title: "Couldn't save your reply", description: 'You may be paused from posting. Please try again later.' });
+    } finally {
+      setIsWorking(false);
+    }
+  };
 
   const remove = async (asModerator: boolean) => {
     setIsWorking(true);
@@ -119,11 +143,32 @@ function ReplyItem({ post, reply }: { post: MemberPost; reply: PostReply }) {
       <div className="min-w-0 flex-1 rounded-md bg-muted/50 px-3 py-2">
         <div className="flex flex-wrap items-baseline gap-x-2">
           <Link href={`/users/${reply.authorId}`} className="text-sm font-semibold hover:underline">{reply.authorName}</Link>
-          <span className="text-xs text-muted-foreground"><ZonedText render={tz => formatTimestamp(reply.createdAt, true, tz)} /></span>
+          <span className="text-xs text-muted-foreground">
+            <ZonedText render={tz => formatTimestamp(reply.createdAt, true, tz)} />
+            {reply.updatedAt && ' · edited'}
+          </span>
           {reply.status === 'hidden' && <span className="text-xs text-muted-foreground">· hidden, only you and moderators see it</span>}
         </div>
-        <p className="whitespace-pre-wrap break-words text-sm">{reply.text}</p>
+        {draft === null ? (
+          <p className="whitespace-pre-wrap break-words text-sm">{reply.text}</p>
+        ) : (
+          <form className="mt-1 space-y-2" onSubmit={e => { e.preventDefault(); saveEdit(); }}>
+            <Textarea value={draft} onChange={e => setDraft(e.target.value)} maxLength={MAX_REPLY_LENGTH} rows={2} aria-label="Edit your reply" autoFocus />
+            <div className="flex gap-2">
+              <Button type="submit" size="sm" className="h-7 text-xs" disabled={isWorking || !draft.trim()}>{isWorking ? 'Saving...' : 'Save'}</Button>
+              <Button type="button" size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setDraft(null)} disabled={isWorking}>Cancel</Button>
+            </div>
+          </form>
+        )}
+        {reply.status === 'hidden' && isAuthor && reply.moderationLogId && (
+          <div className="my-1">
+            <AppealButton logId={reply.moderationLogId} action={reply.hiddenBy === 'moderator' ? 'hide' : 'auto-hide'} postId={post.id} replyId={reply.id} />
+          </div>
+        )}
         <div className="-ml-2 flex flex-wrap items-center">
+          {isAuthor && draft === null && (
+            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setDraft(reply.text)} disabled={isWorking}>Edit</Button>
+          )}
           {(isAuthor || isPostAuthor) && (
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => remove(false)} disabled={isWorking}>
               {isAuthor ? 'Delete' : 'Remove'}
