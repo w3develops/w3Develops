@@ -160,6 +160,7 @@ function ReportList({ reports }: { reports: Report[] }) {
           {report.reporterId === AUTO_CHECK_REPORTER && <Badge variant="secondary" className="mr-2">Automatic check</Badge>}
           <Badge variant="outline" className="mr-2">{REASON_LABELS[report.reason] ?? report.reason}</Badge>
           {report.details && <span className="text-muted-foreground">“{report.details}”</span>}
+          {report.messageText && <span className="mt-1 block rounded-md bg-muted p-2">Reported message: “{report.messageText}”</span>}
           <span className="ml-2 text-xs text-muted-foreground"><ZonedText render={tz => formatTimestamp(report.createdAt, true, tz)} /></span>
         </li>
       ))}

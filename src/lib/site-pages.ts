@@ -97,6 +97,11 @@ export const SITE_PAGES = {
     description: 'Find a pair programming partner by skill and write code together in real time with a shared editor.',
     section: 'Find people to work with',
   },
+  '/messages': {
+    title: 'Messages',
+    description: 'Private one-to-one messages between w3Develops members aged 18 and over.',
+    noindex: true,
+  },
   '/meetups': {
     title: 'Meetups',
     description: 'Find and host local and online developer meetups to connect with the w3Develops community.',

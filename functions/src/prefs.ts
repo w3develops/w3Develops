@@ -12,6 +12,7 @@ export const PREF_DEFAULTS = {
   meetingReminders: false,
   replies: true,
   mentions: true,
+  messages: true,
 };
 export type PrefId = keyof typeof PREF_DEFAULTS;
 

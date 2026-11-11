@@ -45,6 +45,12 @@ export default function PrivacyPage() {
                         requests; and notes, tasks and messages you post in those spaces.
                     </li>
                     <li>
+                        <strong>Direct messages and your birth date, if you use messages.</strong> Messages are for members 18
+                        and over, so we ask for your birth date once. Only you can see it, and it&apos;s used only to check your
+                        age. Your messages are seen only by you and the person you&apos;re writing to; if one of you reports a
+                        message, a copy of that one message goes to our moderators.
+                    </li>
+                    <li>
                         <strong>Things you send us.</strong> Feedback, support requests and job applications. Applications include
                         your name, email, résumé and portfolio links, and cover letter.
                     </li>

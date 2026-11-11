@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import FollowButton from '@/components/FollowButton';
 import ReportUserButton from '@/components/ReportUserButton';
+import { Button } from '@/components/ui/button';
 import { formatTimestamp } from '@/lib/utils';
 import ZonedText from '@/components/ZonedText';
 
@@ -333,6 +334,9 @@ export default function UserProfilePage({ userId, initialProfile }: { userId: st
           </div>
           <div className="flex flex-col gap-2 self-center md:self-start">
              <FollowButton targetUserId={userProfile.id} targetUserFollowers={userProfile.followers || []} targetIsPrivate={userProfile.privateAccount === true} />
+             {currentUser && currentUser.uid !== userProfile.id && (
+                <Button asChild variant="outline"><Link href={`/messages?with=${userProfile.id}`}>Message</Link></Button>
+             )}
              <ReportUserButton reportedUserId={userProfile.id} username={userProfile.username} />
           </div>
         </CardContent>

@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { collection, limit, orderBy, query, type Query } from 'firebase/firestore';
-import { AtSign, AlarmClock, CheckSquare, FolderGit2, Handshake, ListPlus, LogIn, LogOut, MailPlus, MessageCircle, MessageSquare, Scale, ShieldAlert, UserPlus, UserRoundPlus } from 'lucide-react';
+import { AtSign, AlarmClock, Mail, CheckSquare, FolderGit2, Handshake, ListPlus, LogIn, LogOut, MailPlus, MessageCircle, MessageSquare, Scale, ShieldAlert, UserPlus, UserRoundPlus } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,6 +29,7 @@ const ICONS: Record<FeedEntry['type'], React.ReactNode> = {
     moderation: <ShieldAlert className="h-4 w-4 text-amber-600" aria-hidden="true" />,
     appeal: <Scale className="h-4 w-4 text-primary" aria-hidden="true" />,
     mention: <AtSign className="h-4 w-4 text-primary" aria-hidden="true" />,
+    message: <Mail className="h-4 w-4 text-primary" aria-hidden="true" />,
 };
 
 function ActivityItem({ entry, now }: { entry: FeedEntry; now: number | null }) {

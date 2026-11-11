@@ -651,7 +651,7 @@ service cloud.firestore {
       allow read, delete: if isOwner(userId);
       allow create, update: if isOwner(userId) && (
         (docId == 'notificationPrefs'
-          && request.resource.data.keys().hasOnly(['follows', 'groupMembers', 'groupActivity', 'requests', 'following', 'meetingReminders', 'replies', 'mentions'])
+          && request.resource.data.keys().hasOnly(['follows', 'groupMembers', 'groupActivity', 'requests', 'following', 'meetingReminders', 'replies', 'mentions', 'messages'])
           && (!('follows' in request.resource.data) || request.resource.data.follows is bool)
           && (!('groupMembers' in request.resource.data) || request.resource.data.groupMembers is bool)
           && (!('groupActivity' in request.resource.data) || request.resource.data.groupActivity is bool)
@@ -659,7 +659,8 @@ service cloud.firestore {
           && (!('following' in request.resource.data) || request.resource.data.following is bool)
           && (!('meetingReminders' in request.resource.data) || request.resource.data.meetingReminders is bool)
           && (!('replies' in request.resource.data) || request.resource.data.replies is bool)
-          && (!('mentions' in request.resource.data) || request.resource.data.mentions is bool))
+          && (!('mentions' in request.resource.data) || request.resource.data.mentions is bool)
+          && (!('messages' in request.resource.data) || request.resource.data.messages is bool))
         // The feed's followed topics, muted and blocked members (FeedPrefs in src/lib/types.ts)
         || (docId == 'feedPrefs'
           && request.resource.data.keys().hasOnly(['topics', 'mutedIds', 'blockedIds', 'privateAccount'])
@@ -681,6 +682,76 @@ service cloud.firestore {
                     && request.resource.data.read is bool;
     }
 
+    // ---- Direct messages (/messages), for members 18 and over ----
+
+    // A member's birth date, entered once on /messages and never changed,
+    // so they can't move it to get past the age limit. Only they can read it.
+    match /ages/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId)
+                    && request.resource.data.keys().hasOnly(['birthDate', 'confirmedAt'])
+                    && request.resource.data.birthDate is timestamp
+                    && request.resource.data.birthDate < request.time
+                    && request.resource.data.birthDate > timestamp.date(1900, 1, 1)
+                    && request.resource.data.confirmedAt == request.time;
+      allow update, delete: if false;
+    }
+
+    // 18 years, counting leap days, have passed since their birth date
+    function isAdult(userId) {
+      let agePath = /databases/$(database)/documents/ages/$(userId);
+      return exists(agePath) && get(agePath).data.birthDate + duration.value(6575, 'd') <= request.time;
+    }
+
+    // Two members can message when both are adults, verified (the sender),
+    // and neither has blocked the other
+    function canMessage(otherId) {
+      return isVerified() && isAdult(request.auth.uid) && isAdult(otherId)
+             && !hasBlocked(otherId, request.auth.uid) && !hasBlocked(request.auth.uid, otherId);
+    }
+
+    // A conversation between two members is named "<uid>_<uid>", the two
+    // uids sorted, so there's one per pair
+    match /conversations/{conversationId} {
+      allow read: if request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasOnly(['memberIds', 'createdAt', 'lastMessageAt', 'lastMessageText', 'lastSenderId', 'readAt'])
+                    && request.resource.data.memberIds.size() == 2
+                    && request.resource.data.memberIds.hasAny([request.auth.uid])
+                    && request.resource.data.memberIds[0] < request.resource.data.memberIds[1]
+                    && conversationId == request.resource.data.memberIds[0] + '_' + request.resource.data.memberIds[1]
+                    && canMessage(request.resource.data.memberIds[0] == request.auth.uid ? request.resource.data.memberIds[1] : request.resource.data.memberIds[0])
+                    && request.resource.data.createdAt == request.time;
+      // Members update the latest-message preview with each message, and
+      // when they last read it
+      allow update: if request.auth != null && resource.data.memberIds.hasAny([request.auth.uid])
+                    && changedKeys().hasOnly(['lastMessageAt', 'lastMessageText', 'lastSenderId', 'readAt'])
+                    && (!changedKeys().hasAny(['lastMessageAt', 'lastMessageText', 'lastSenderId'])
+                        || (request.resource.data.lastSenderId == request.auth.uid && request.resource.data.lastMessageAt == request.time
+                            && request.resource.data.lastMessageText is string && request.resource.data.lastMessageText.size() <= 140))
+                    && request.resource.data.get('readAt', {}).keys().hasOnly(resource.data.memberIds)
+                    && request.resource.data.get('readAt', {}).diff(resource.data.get('readAt', {})).affectedKeys().hasOnly([request.auth.uid]);
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if request.auth != null
+                    && get(/databases/$(database)/documents/conversations/$(conversationId)).data.memberIds.hasAny([request.auth.uid]);
+        allow create: if request.auth != null
+                      && request.resource.data.keys().hasOnly(['senderId', 'text', 'createdAt'])
+                      && request.resource.data.senderId == request.auth.uid
+                      && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000
+                      && !hasBlockedWord(request.resource.data.text)
+                      && request.resource.data.createdAt == request.time
+                      && !isSuspended(request.auth.uid)
+                      // getAfter: the first message is saved with its conversation
+                      && getAfter(/databases/$(database)/documents/conversations/$(conversationId)).data.memberIds.hasAny([request.auth.uid])
+                      && canMessage(conversationId.replace(request.auth.uid, '').replace('_', ''));
+        allow update: if false;
+        // Senders can take back their own messages
+        allow delete: if request.auth != null && resource.data.senderId == request.auth.uid;
+      }
+    }
+
     // Private reports about members or their posts
     // (src/components/ReportUserButton.tsx). Members can only file them;
     // moderators read them on /moderation and close them once handled.
@@ -694,7 +765,7 @@ service cloud.firestore {
                     && request.resource.data.closedAt == request.time;
       allow delete: if false;
       allow create: if request.auth != null
-                    && request.resource.data.keys().hasOnly(['reporterId', 'reportedUserId', 'postId', 'replyId', 'reason', 'details', 'page', 'status', 'createdAt'])
+                    && request.resource.data.keys().hasOnly(['reporterId', 'reportedUserId', 'postId', 'replyId', 'conversationId', 'messageId', 'messageText', 'reason', 'details', 'page', 'status', 'createdAt'])
                     && request.resource.data.reporterId == request.auth.uid
                     && request.resource.data.reportedUserId is string
                     && request.resource.data.reportedUserId != request.auth.uid
@@ -705,7 +776,22 @@ service cloud.firestore {
                     && request.resource.data.status == 'open'
                     && request.resource.data.createdAt == request.time
                     && (!('replyId' in request.resource.data) || 'postId' in request.resource.data)
-                    && (!('postId' in request.resource.data) || isReportingPost(reportId));
+                    && (!('postId' in request.resource.data) || isReportingPost(reportId))
+                    && (!('messageId' in request.resource.data) || isReportingMessage(reportId));
+    }
+
+    // A message report is named "<messageId>_<reporter's uid>" and carries a
+    // copy of that one message, so moderators can judge it without reading
+    // the conversation. Only someone in the conversation can report it.
+    function isReportingMessage(reportId) {
+      let data = request.resource.data;
+      let message = get(/databases/$(database)/documents/conversations/$(data.conversationId)/messages/$(data.messageId)).data;
+      return data.conversationId is string && data.messageId is string
+             && reportId == data.messageId + '_' + request.auth.uid
+             && get(/databases/$(database)/documents/conversations/$(data.conversationId)).data.memberIds.hasAny([request.auth.uid])
+             && message.senderId == data.reportedUserId
+             && data.messageText == message.text
+             && !('postId' in data);
     }
 
     // A post report is named "<postId>_<reporter's uid>", and a reply report
