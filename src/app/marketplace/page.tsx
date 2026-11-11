@@ -1,28 +1,14 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Metadata } from 'next';
 import { pageMetadata } from '@/lib/site-pages';
+import { getPublicList } from '@/lib/public-items';
+import ServiceDirectory from './ServiceDirectory';
+
+// Rendered with the current listings at most every five minutes
+export const revalidate = 300;
 
 export const metadata: Metadata = pageMetadata('/marketplace');
 
-export default function MarketplacePage() {
-    return (
-        <div className="max-w-4xl mx-auto p-4 md:p-10">
-            <Card>
-                <CardHeader>
-                    <CardTitle as="h1" className="font-headline text-3xl">Marketplace</CardTitle>
-                    <CardDescription>
-                        Community-driven marketplace for services and products.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-center py-12">
-                        <h3 className="text-xl font-semibold">Under Construction</h3>
-                        <p className="text-muted-foreground mt-2">
-                            This page is coming soon. Stay tuned!
-                        </p>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-    );
+export default async function MarketplacePage() {
+  const initial = await getPublicList({ collection: 'serviceListings', orderBy: 'updatedAt', direction: 'desc', limit: 200 });
+  return <ServiceDirectory initial={initial} />;
 }
