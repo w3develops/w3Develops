@@ -200,7 +200,7 @@ export default function PostComposer({ profile, standing, privateAccount }: Post
         </div>
         <p className="text-xs text-muted-foreground">
           {audience === 'public' ? 'Anyone can see this post.' : 'Only your followers can see this post.'}{' '}
-          Follow the <Link href="/code-of-conduct" className="underline">Code of Conduct</Link>.
+          Mention someone with @username. Follow the <Link href="/code-of-conduct" className="underline">Code of Conduct</Link>.
         </p>
       </CardContent>
     </Card>

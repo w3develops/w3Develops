@@ -651,14 +651,15 @@ service cloud.firestore {
       allow read, delete: if isOwner(userId);
       allow create, update: if isOwner(userId) && (
         (docId == 'notificationPrefs'
-          && request.resource.data.keys().hasOnly(['follows', 'groupMembers', 'groupActivity', 'requests', 'following', 'meetingReminders', 'replies'])
+          && request.resource.data.keys().hasOnly(['follows', 'groupMembers', 'groupActivity', 'requests', 'following', 'meetingReminders', 'replies', 'mentions'])
           && (!('follows' in request.resource.data) || request.resource.data.follows is bool)
           && (!('groupMembers' in request.resource.data) || request.resource.data.groupMembers is bool)
           && (!('groupActivity' in request.resource.data) || request.resource.data.groupActivity is bool)
           && (!('requests' in request.resource.data) || request.resource.data.requests is bool)
           && (!('following' in request.resource.data) || request.resource.data.following is bool)
           && (!('meetingReminders' in request.resource.data) || request.resource.data.meetingReminders is bool)
-          && (!('replies' in request.resource.data) || request.resource.data.replies is bool))
+          && (!('replies' in request.resource.data) || request.resource.data.replies is bool)
+          && (!('mentions' in request.resource.data) || request.resource.data.mentions is bool))
         // The feed's followed topics, muted and blocked members (FeedPrefs in src/lib/types.ts)
         || (docId == 'feedPrefs'
           && request.resource.data.keys().hasOnly(['topics', 'mutedIds', 'blockedIds', 'privateAccount'])
