@@ -112,6 +112,11 @@ export const SITE_PAGES = {
     description: 'Pages for the businesses, nonprofits, communities and teams w3Develops members run. Find one to join, or create a page for yours.',
     section: 'Find people to work with',
   },
+  '/messages': {
+    title: 'Messages',
+    description: 'Private one-to-one messages between w3Develops members aged 18 and over.',
+    noindex: true,
+  },
   '/meetups': {
     title: 'Meetups',
     description: 'Find and host local and online developer meetups to connect with the w3Develops community.',

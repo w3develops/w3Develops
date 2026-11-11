@@ -11,6 +11,7 @@ export const NOTIFICATION_PREFS = [
   { id: 'following', label: 'People you follow', description: 'When someone you follow joins a group or starts a solo project.', default: true },
   { id: 'replies', label: 'Replies to your posts', description: 'When someone replies to one of your posts on the community feed.', default: true },
   { id: 'mentions', label: 'Mentions', description: 'When someone mentions you with @username in a feed post or reply.', default: true },
+  { id: 'messages', label: 'Messages', description: 'When someone sends you a direct message.', default: true },
   { id: 'meetingReminders', label: 'Meeting reminders', description: 'About 30 minutes before your groups meet, for groups with a set time.', default: false },
 ] as const;
 

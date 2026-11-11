@@ -178,7 +178,7 @@ export interface FeedEntry {
     id: string;
     type: 'follow' | 'group_join' | 'group_leave' | 'checkin' | 'task_added' | 'task_done'
         | 'request' | 'request_accepted' | 'solo_project' | 'reminder'
-        | 'follow_request' | 'reply' | 'moderation' | 'appeal' | 'mention';
+        | 'follow_request' | 'reply' | 'moderation' | 'appeal' | 'mention' | 'message';
     actorId: string;
     actorName: string;
     actorPhoto: string;
@@ -445,6 +445,10 @@ export interface Report {
   /** Set when the report is about a post, or a reply to one (with replyId) */
   postId?: string;
   replyId?: string;
+  /** Set when the report is about a direct message: a copy of that one message */
+  conversationId?: string;
+  messageId?: string;
+  messageText?: string;
   reason: string;
   details: string;
   page: string;
@@ -572,5 +576,26 @@ export interface OrgJoinRequest {
   name: string;
   photo: string;
   note: string;
+  createdAt: Timestamp;
+}
+
+/** A one-to-one conversation (conversations/<uid>_<uid>) */
+export interface Conversation {
+  id: string;
+  /** The two members, sorted */
+  memberIds: string[];
+  lastMessageAt?: Timestamp;
+  /** The start of the latest message, for the list */
+  lastMessageText?: string;
+  lastSenderId?: string;
+  /** When each member last opened it */
+  readAt?: Record<string, Timestamp>;
+  createdAt: Timestamp;
+}
+
+export interface DirectMessage {
+  id: string;
+  senderId: string;
+  text: string;
   createdAt: Timestamp;
 }

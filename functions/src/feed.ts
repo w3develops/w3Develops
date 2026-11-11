@@ -9,7 +9,7 @@ const KEEP_DAYS = 60;
 
 export type FeedType = 'follow' | 'group_join' | 'group_leave' | 'checkin' | 'task_added' | 'task_done'
   | 'request' | 'request_accepted' | 'solo_project' | 'reminder'
-  | 'follow_request' | 'reply' | 'moderation' | 'appeal' | 'mention';
+  | 'follow_request' | 'reply' | 'moderation' | 'appeal' | 'mention' | 'message';
 
 export interface FeedEntry {
   /** The member whose feed it goes in */
