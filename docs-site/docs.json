@@ -1,0 +1,51 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "w3Develops Docs",
+  "colors": {
+    "primary": "#F5C31B",
+    "light": "#F9D65A",
+    "dark": "#C99A06"
+  },
+  "logo": {
+    "light": "/logo/logo.png",
+    "dark": "/logo/logo.png",
+    "href": "https://w3develops.org"
+  },
+  "favicon": "/logo/logo.png",
+  "navbar": {
+    "links": [
+      { "label": "Discord", "href": "https://w3develops.org/chat" },
+      { "label": "GitHub", "href": "https://github.com/w3develops/w3Develops" }
+    ],
+    "primary": { "type": "button", "label": "Open w3Develops", "href": "https://w3develops.org" }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          { "group": "Getting started", "pages": ["index", "quickstart"] },
+          {
+            "group": "Using w3Develops",
+            "pages": ["guides/study-groups", "guides/group-projects", "guides/community-feed", "guides/events", "guides/connections", "guides/services-and-orgs"]
+          },
+          { "group": "Keeping it safe", "pages": ["guides/safety", "guides/moderators"] }
+        ]
+      },
+      {
+        "tab": "Contributing",
+        "groups": [
+          { "group": "Start here", "pages": ["contributing/overview", "contributing/local-setup", "contributing/git-workflow"] },
+          { "group": "How the site works", "pages": ["contributing/architecture", "contributing/firestore-rules"] }
+        ]
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/w3develops",
+      "github": "https://github.com/w3develops/w3Develops"
+    }
+  }
+}

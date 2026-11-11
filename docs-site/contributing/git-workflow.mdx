@@ -1,0 +1,16 @@
+---
+title: "Git workflow"
+description: "How changes get into main."
+---
+
+Every push to `main` deploys the live site, so `main` must always work.
+
+1. Nobody commits to `main` directly; every change is a pull request.
+2. Pull requests need one approving review and passing checks (lint, type check, build, rules tests).
+3. If your pull request breaks a check or gets change requests, you fix it in the same pull request.
+4. Keep pull requests small and about one thing.
+5. Changes to `firestore.rules` need tests in `tests/rules`.
+
+Name branches `feature/<name>`, `fix/<name>` or `docs/<name>`, and add a line to the changelog's **Unreleased** section.
+
+The full version is [docs/GIT_WORKFLOW.md](https://github.com/w3develops/w3Develops/blob/main/docs/GIT_WORKFLOW.md).

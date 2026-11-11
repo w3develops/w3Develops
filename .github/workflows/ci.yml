@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm ci
+        working-directory: functions
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm run build
+        working-directory: functions
+      - run: npm run build
+      # The rules tests run in the Firestore emulator, which needs the Firebase CLI
+      - run: npm install -g firebase-tools
+      - run: npm run test:rules
