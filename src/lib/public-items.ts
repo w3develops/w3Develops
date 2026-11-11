@@ -106,7 +106,7 @@ export function profileHasContent(profile: { bio?: unknown; skills?: unknown }):
  * (milliseconds; round it, so the cache gets reused).
  */
 export interface PublicListQuery {
-  collection: PublicCollection | 'soloProjects' | 'announcements' | 'memberPosts';
+  collection: PublicCollection | 'soloProjects' | 'announcements' | 'memberPosts' | 'serviceListings';
   /**
    * Only documents whose fields have these values. Member posts must pass
    * status == 'visible' and audience == 'public': the Admin SDK skips the

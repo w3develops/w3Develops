@@ -183,9 +183,9 @@ export const SITE_PAGES = {
     section: 'Get involved',
   },
   '/marketplace': {
-    title: 'Marketplace',
-    description: 'A community-driven marketplace for services and products from w3Develops members.',
-    noindex: true,
+    title: 'Services Directory',
+    description: 'Hire w3Develops members for websites, apps, design, marketing and more. Free to list and free to browse; you contact members directly.',
+    section: 'Find people to work with',
   },
   '/donate': {
     title: 'Donate',

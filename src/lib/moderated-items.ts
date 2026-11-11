@@ -70,6 +70,14 @@ export const MODERATED_ITEMS = {
       projectUrl: { label: 'Project link', max: 500 },
     },
   },
+  serviceListings: {
+    noun: 'service listing', listPath: '/marketplace', ownerField: 'ownerId', parts: [],
+    fields: {
+      title: { label: 'Title', max: 80 },
+      description: { label: 'Description', max: 1000, long: true },
+      priceNote: { label: 'Price', max: 60 },
+    },
+  },
 } satisfies Record<string, ModeratedItemType>;
 
 export type ModeratedKind = keyof typeof MODERATED_ITEMS;
