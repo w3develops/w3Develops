@@ -1,8 +1,7 @@
 ---
-title: "Group and solo projects"
-description: "Build something real, alone or with a team."
+title: Group and solo projects
+description: Build something real, alone or with a team.
 ---
-
 ## Group projects
 
 [Group projects](https://w3develops.org/groupprojects) are teams building one application together, which gives you Git, teamwork and portfolio experience. They have the same check-ins and tasks as study groups. Start one at [/groupprojects/create](https://w3develops.org/groupprojects/create).

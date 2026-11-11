@@ -1,0 +1,52 @@
+[
+  {
+    "tab": "Guides",
+    "groups": [
+      {
+        "group": "Getting started",
+        "pages": [
+          "index",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "Using w3Develops",
+        "pages": [
+          "guides/study-groups",
+          "guides/group-projects",
+          "guides/community-feed",
+          "guides/events",
+          "guides/connections",
+          "guides/services-and-orgs"
+        ]
+      },
+      {
+        "group": "Keeping it safe",
+        "pages": [
+          "guides/safety",
+          "guides/moderators"
+        ]
+      }
+    ]
+  },
+  {
+    "tab": "Contributing",
+    "groups": [
+      {
+        "group": "Start here",
+        "pages": [
+          "contributing/overview",
+          "contributing/local-setup",
+          "contributing/git-workflow"
+        ]
+      },
+      {
+        "group": "How the site works",
+        "pages": [
+          "contributing/architecture",
+          "contributing/firestore-rules"
+        ]
+      }
+    ]
+  }
+]

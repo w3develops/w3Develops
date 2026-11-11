@@ -1,8 +1,7 @@
 ---
-title: "Safety and reporting"
-description: "How we keep w3Develops a good place to learn."
+title: Safety and reporting
+description: How we keep w3Develops a good place to learn.
 ---
-
 ## Report
 
 Use **Report** on a profile, post, reply or listing. Reports are private and go to the moderation team. A post with reports from three different members is hidden until a moderator reviews it.

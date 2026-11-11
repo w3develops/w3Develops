@@ -54,7 +54,7 @@ next dev` (see `src/firebase/initialize-app.ts` for the port settings).
 | `src/lib/types.ts` | Firestore document types |
 | `firestore.rules` | Who can read and write what |
 | `tests/rules` | Emulator tests for `firestore.rules` |
-| `docs-site` | The public docs at docs.w3develops.org (Mintlify: `docs.json` and `.mdx` pages) |
+| `src/content/docs` | The public docs at /docs: Markdown pages and `menu.json`, rendered by `src/app/docs` |
 | `src/lib/member-posts.ts` | Limits, blocked words and report reasons for the community feed (`/feed`) and `/moderation` |
 
 ## Rules to follow

@@ -1,8 +1,7 @@
 ---
-title: "Services and organizations"
-description: "Offer your services, and give your team a page."
+title: Services and organizations
+description: Offer your services, and give your team a page.
 ---
-
 ## Services directory
 
 On the [services directory](https://w3develops.org/marketplace), members list up to five services they offer, like websites, design or tutoring. Listing and browsing are free, and people contact you through your profile. w3Develops doesn't take a cut or handle payments, so agree on the work and price before starting.

@@ -1,8 +1,7 @@
 ---
-title: "Events, meetups and competitions"
-description: "Meet up and compete with other members."
+title: Events, meetups and competitions
+description: Meet up and compete with other members.
 ---
-
 - **[Events](https://w3develops.org/events)** shows upcoming meetups and competitions together, by day, in your time zone. Use **Add to calendar** to save one.
 - **[Meetups](https://w3develops.org/meetups)** are online or in-person gatherings that anyone can host. Say you're going to join its task list and check-ins.
 - **[Competitions](https://w3develops.org/competitions)** are community coding challenges with a start date, an end date and entries.

@@ -1,8 +1,7 @@
 ---
-title: "Architecture"
-description: "How w3develops.org is built."
+title: Architecture
+description: How w3develops.org is built.
 ---
-
 - **Next.js 16** (App Router) with **React 19** and TypeScript, styled with Tailwind and shadcn/ui.
 - **Firebase:** Auth for sign-in, Firestore for data, Storage for images, Cloud Functions for background jobs, and App Hosting for the site.
 - The browser talks to Firestore directly, so `firestore.rules` is the security boundary.
