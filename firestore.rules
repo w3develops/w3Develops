@@ -639,6 +639,23 @@ service cloud.firestore {
                     || isModeratorEditing('soloProjects', soloProjectId, ['name', 'description', 'projectUrl']);
       allow delete: if (request.auth != null && resource.data.userId == request.auth.uid)
                     || isModeratorDeleting('soloProjects', soloProjectId);
+
+      // The project owner's to-do list (src/components/TaskList.tsx), public
+      // like the project
+      match /tasks/{taskId} {
+        allow read: if true;
+        allow create: if isVerified() && isSoloProjectOwner(soloProjectId)
+                      && request.resource.data.creatorId == request.auth.uid
+                      && request.resource.data.isCompleted == false;
+        allow update: if isSoloProjectOwner(soloProjectId);
+        allow delete: if isSoloProjectOwner(soloProjectId)
+                      || isModeratorDeletingPart('soloProjects', soloProjectId, 'tasks', taskId);
+      }
+    }
+
+    function isSoloProjectOwner(soloProjectId) {
+      return request.auth != null
+             && get(/databases/$(database)/documents/soloProjects/$(soloProjectId)).data.userId == request.auth.uid;
     }
 
     match /users/{userId}/notifications/{notificationId} {
