@@ -497,6 +497,88 @@ export interface Moderator {
   addedAt: Timestamp;
 }
 
+/** An application to write articles for /news (writerApplications/{uid}) */
+export interface WriterApplication {
+  id: string;
+  /** About them and what they'd like to write */
+  about: string;
+  /** 1 to 3 https links to things they've written */
+  links: string[];
+  topics: string[];
+  status: 'pending' | 'approved' | 'rejected';
+  reviewedBy?: string;
+  reviewedAt?: Timestamp;
+  /** The moderator's note, shown to the applicant */
+  note?: string;
+  createdAt: Timestamp;
+}
+
+/** A member's article for /news (articles/{id}); body is Markdown */
+export interface Article {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorPhoto: string;
+  title: string;
+  summary: string;
+  body: string;
+  topic: import('./articles').ArticleTopic;
+  status: 'draft' | 'submitted' | 'published' | 'rejected';
+  /** The editor's note when sending it back */
+  editorNote?: string;
+  reviewedBy?: string;
+  publishedAt?: Timestamp;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+/** A service a member offers in the directory on /marketplace (serviceListings/<uid>_<1-5>) */
+export interface ServiceListing {
+  id: string;
+  ownerId: string;
+  /** The member's username and photo when they last saved it */
+  ownerName: string;
+  ownerPhoto: string;
+  title: string;
+  description: string;
+  category: import('./services').ServiceCategory;
+  /** Up to 8 lowercase skills, like "react" */
+  skills: string[];
+  /** Free text, like "From $200" or "Free for nonprofits"; may be empty */
+  priceNote: string;
+  /** An optional https link to their portfolio or booking page */
+  contactUrl?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+/** An organization's page (organizations/{slug}) */
+export interface Organization {
+  id: string;
+  name: string;
+  kind: import('./organizations').OrgKind;
+  tagline: string;
+  about: string;
+  /** An https link, or empty */
+  website: string;
+  location: string;
+  ownerId: string;
+  /** Run the page; always includes the owner, and are all members */
+  adminIds: string[];
+  memberIds: string[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+/** A member asking to join an organization (organizations/{slug}/joinRequests/{uid}) */
+export interface OrgJoinRequest {
+  id: string;
+  name: string;
+  photo: string;
+  note: string;
+  createdAt: Timestamp;
+}
+
 /** A one-to-one conversation (conversations/<uid>_<uid>) */
 export interface Conversation {
   id: string;

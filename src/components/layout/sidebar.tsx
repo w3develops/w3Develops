@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Users, Code, BookOpen, MessageSquare, MessagesSquare, GraduationCap, Hammer, Trophy, GitBranch, Rss, Briefcase, Podcast, Factory, School } from "lucide-react";
+import { Building2, CalendarDays, Menu, Users, Code, BookOpen, MessageSquare, MessagesSquare, GraduationCap, Hammer, Trophy, GitBranch, Rss, Briefcase, Podcast, Factory, School } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -16,6 +16,8 @@ const navLinks = [
     { href: "/solo-projects", label: "Solo Projects", icon: Code },
     { href: "/book-clubs", label: "Book Clubs", icon: BookOpen },
     { href: "/meetups", label: "Meetups", icon: Users },
+    { href: "/events", label: "Events", icon: CalendarDays },
+    { href: "/orgs", label: "Organizations", icon: Building2 },
     { href: "/chat", label: "Chat", icon: MessageSquare },
     { href: "/pair-programming", label: "Pair Programming", icon: GitBranch },
     { href: "/competitions", label: "Competitions", icon: Trophy },

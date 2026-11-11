@@ -18,4 +18,5 @@ export { setModerator } from './moderators.js';
 export { onMemberPostWritten } from './post-checks.js';
 export { onReplyWritten } from './replies.js';
 export { onAppealWritten } from './appeals.js';
+export { onWriterApplication, onArticleWritten } from './writing.js';
 export { onDirectMessage } from './messages.js';

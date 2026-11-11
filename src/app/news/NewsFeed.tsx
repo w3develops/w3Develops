@@ -1,5 +1,6 @@
 'use client';
 
+import CommunityArticles, { type ArticleSummary } from '@/components/articles/CommunityArticles';
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Rss, Megaphone, History, ChevronLeft, ChevronRight, Heart, Share2, Sparkles, Pin } from "lucide-react";
@@ -109,11 +110,13 @@ function NewsItem({ item, user, userProfile }: { item: Post, user: User | null, 
  * w3Develops' own newest posts, and `communityPost` the latest community
  * insights post (src/lib/posts.ts).
  */
-export default function NewsFeed({ newsItems, initialAnnouncements, latestPosts, communityPost }: {
+export default function NewsFeed({ newsItems, initialAnnouncements, latestPosts, communityPost, communityArticles = [] }: {
     newsItems: Post[];
     initialAnnouncements: unknown[] | null;
     latestPosts: PostView[];
     communityPost: PostView | null;
+    /** Members' newest published articles (src/app/news/write) */
+    communityArticles?: ArticleSummary[];
 }) {
     const firestore = useFirestore();
     const { user } = useUser();
@@ -183,6 +186,8 @@ export default function NewsFeed({ newsItems, initialAnnouncements, latestPosts,
             </Card>
 
             <PostCarousel posts={latestPosts} />
+
+            <CommunityArticles articles={communityArticles} />
 
             <section className="space-y-8" aria-label="Headlines">
                 {newsItems.length === 0 ? (

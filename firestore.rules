@@ -356,6 +356,97 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+
+    // ---- Member articles on /news (src/lib/articles.ts) ----
+    // Members apply to write; moderators approve them as writers; writers
+    // draft and submit articles; moderators publish or send them back.
+
+    function isWriter(userId) {
+      return exists(/databases/$(database)/documents/writers/$(userId));
+    }
+
+    function isValidWriterApplication(data) {
+      return data.about is string && data.about.size() > 0 && data.about.size() <= 1000
+             && !hasBlockedWord(data.about)
+             && data.links is list && data.links.size() >= 1 && data.links.size() <= 3
+             && data.links.join(' ').matches('https://[^\\s]{1,300}( https://[^\\s]{1,300}){0,2}')
+             && data.topics is list && data.topics.size() <= 5;
+    }
+
+    match /writerApplications/{userId} {
+      allow read: if isOwner(userId) || isModerator();
+      allow create: if isOwner(userId) && isVerified()
+                    && request.resource.data.keys().hasOnly(['about', 'links', 'topics', 'status', 'createdAt'])
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.createdAt == request.time
+                    && isValidWriterApplication(request.resource.data);
+      // Applying again after a "not yet", or a moderator's decision
+      allow update: if (isOwner(userId) && resource.data.status == 'rejected'
+                        && changedKeys().hasOnly(['about', 'links', 'topics', 'status', 'createdAt', 'reviewedBy', 'reviewedAt', 'note'])
+                        && request.resource.data.keys().hasOnly(['about', 'links', 'topics', 'status', 'createdAt'])
+                        && request.resource.data.status == 'pending'
+                        && request.resource.data.createdAt == request.time
+                        && isValidWriterApplication(request.resource.data))
+                    || (isModerator() && resource.data.status == 'pending'
+                        && changedKeys().hasOnly(['status', 'reviewedBy', 'reviewedAt', 'note'])
+                        && request.resource.data.status in ['approved', 'rejected']
+                        && request.resource.data.reviewedBy == request.auth.uid
+                        && request.resource.data.reviewedAt == request.time
+                        && request.resource.data.note is string && request.resource.data.note.size() <= 500
+                        && (request.resource.data.status == 'rejected' || existsAfter(/databases/$(database)/documents/writers/$(userId))));
+      allow delete: if isOwner(userId);
+    }
+
+    // Approved writers, public so their articles can say so
+    match /writers/{userId} {
+      allow read: if true;
+      allow create: if isModerator()
+                    && request.resource.data.keys().hasOnly(['approvedBy', 'approvedAt'])
+                    && request.resource.data.approvedBy == request.auth.uid
+                    && request.resource.data.approvedAt == request.time;
+      allow update: if false;
+      allow delete: if isModerator();
+    }
+
+    function isValidArticle(data) {
+      return data.title is string && data.title.size() >= 10 && data.title.size() <= 120
+             && data.summary is string && data.summary.size() > 0 && data.summary.size() <= 300
+             && data.body is string && data.body.size() > 0 && data.body.size() <= 20000
+             && data.topic in ['programming', 'career', 'ai', 'security', 'open-source', 'community', 'other']
+             && !hasBlockedWord(data.title) && !hasBlockedWord(data.summary) && !hasBlockedWord(data.body);
+    }
+
+    match /articles/{articleId} {
+      allow read: if resource.data.status == 'published'
+                  || isModerator()
+                  || (request.auth != null && resource.data.authorId == request.auth.uid);
+      allow create: if isVerified() && isWriter(request.auth.uid)
+                    && request.resource.data.keys().hasOnly(['authorId', 'authorName', 'authorPhoto', 'title', 'summary', 'body', 'topic', 'status', 'createdAt', 'updatedAt'])
+                    && request.resource.data.authorId == request.auth.uid
+                    && request.resource.data.authorName == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username
+                    && request.resource.data.authorPhoto == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('profilePictureUrl', '')
+                    && request.resource.data.status in ['draft', 'submitted']
+                    && request.resource.data.createdAt == request.time
+                    && request.resource.data.updatedAt == request.time
+                    && isValidArticle(request.resource.data);
+      // Writers change their drafts, submit them, and fix ones sent back;
+      // moderators publish or send back submitted ones
+      allow update: if (request.auth != null && resource.data.authorId == request.auth.uid
+                        && isWriter(request.auth.uid)
+                        && resource.data.status in ['draft', 'submitted', 'rejected']
+                        && changedKeys().hasOnly(['title', 'summary', 'body', 'topic', 'status', 'updatedAt'])
+                        && request.resource.data.status in ['draft', 'submitted']
+                        && request.resource.data.updatedAt == request.time
+                        && isValidArticle(request.resource.data))
+                    || (isModerator()
+                        && changedKeys().hasOnly(['status', 'editorNote', 'publishedAt', 'reviewedBy'])
+                        && request.resource.data.reviewedBy == request.auth.uid
+                        && request.resource.data.get('editorNote', '') is string && request.resource.data.get('editorNote', '').size() <= 500
+                        && ((resource.data.status == 'submitted' && request.resource.data.status == 'published' && request.resource.data.publishedAt == request.time)
+                            || (resource.data.status in ['submitted', 'published'] && request.resource.data.status == 'rejected')));
+      allow delete: if (request.auth != null && resource.data.authorId == request.auth.uid && resource.data.status != 'published')
+                    || isModerator();
+    }
     
     match /mentorshipRequests/{requestId} {
         allow read: if request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid;
@@ -508,6 +599,106 @@ service cloud.firestore {
                     || isModeratorDeleting('jobs', jobId);
     }
 
+    // The free services directory on /marketplace (src/lib/services.ts).
+    // Each member has up to 5 listings, named "<uid>_1" to "<uid>_5". People
+    // contact them through their profile or the optional https link; no
+    // email addresses are stored, and no payments are handled.
+    function isValidServiceListing(data) {
+      return data.title is string && data.title.size() > 0 && data.title.size() <= 80
+             && data.description is string && data.description.size() > 0 && data.description.size() <= 1000
+             && !hasBlockedWord(data.title) && !hasBlockedWord(data.description)
+             && data.category in ['websites', 'mobile', 'design', 'marketing', 'writing', 'data', 'devops', 'tutoring', 'tasks', 'other']
+             && data.skills is list && data.skills.size() <= 8
+             && (data.skills.size() == 0 || data.skills.join(',').matches('[a-z0-9.+# -]{1,30}(,[a-z0-9.+# -]{1,30}){0,7}'))
+             && data.priceNote is string && data.priceNote.size() <= 60
+             && (!('contactUrl' in data) || (data.contactUrl is string && data.contactUrl.size() <= 300 && data.contactUrl.matches('https://[^\\s]+')));
+    }
+
+    match /serviceListings/{listingId} {
+      allow read: if true;
+      allow create: if isVerified()
+                    && listingId.matches(request.auth.uid + '_[1-5]')
+                    && request.resource.data.keys().hasOnly(['ownerId', 'ownerName', 'ownerPhoto', 'title', 'description', 'category', 'skills', 'priceNote', 'contactUrl', 'createdAt', 'updatedAt'])
+                    && request.resource.data.ownerId == request.auth.uid
+                    && request.resource.data.ownerName == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username
+                    && request.resource.data.ownerPhoto == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('profilePictureUrl', '')
+                    && request.resource.data.createdAt == request.time
+                    && request.resource.data.updatedAt == request.time
+                    && isValidServiceListing(request.resource.data);
+      allow update: if (request.auth != null && resource.data.ownerId == request.auth.uid
+                        && changedKeys().hasOnly(['title', 'description', 'category', 'skills', 'priceNote', 'contactUrl', 'updatedAt'])
+                        && request.resource.data.updatedAt == request.time
+                        && isValidServiceListing(request.resource.data))
+                    || isModeratorEditing('serviceListings', listingId, ['title', 'description', 'priceNote']);
+      allow delete: if (request.auth != null && resource.data.ownerId == request.auth.uid)
+                    || isModeratorDeleting('serviceListings', listingId);
+    }
+
+    // ---- Organizations (/orgs): businesses, nonprofits, communities and
+    // teams. Named by their URL slug. The owner and admins run the page;
+    // members ask to join (joinRequests) and admins add them. See
+    // src/lib/organizations.ts.
+    function isValidOrganization(data) {
+      return data.name is string && data.name.size() >= 2 && data.name.size() <= 80
+             && data.kind in ['business', 'nonprofit', 'community', 'team']
+             && data.tagline is string && data.tagline.size() <= 120
+             && data.about is string && data.about.size() <= 2000
+             && data.location is string && data.location.size() <= 100
+             && (data.website == '' || (data.website is string && data.website.size() <= 300 && data.website.matches('https://[^\\s]+')))
+             && !hasBlockedWord(data.name) && !hasBlockedWord(data.tagline) && !hasBlockedWord(data.about)
+             && data.memberIds is list && data.memberIds.size() <= 500
+             && data.adminIds is list && data.adminIds.size() >= 1 && data.adminIds.size() <= 10
+             && data.memberIds.hasAll(data.adminIds)
+             && data.adminIds.hasAny([data.ownerId]);
+    }
+
+    function isOrgAdmin(orgId) {
+      return request.auth != null
+             && get(/databases/$(database)/documents/organizations/$(orgId)).data.adminIds.hasAny([request.auth.uid]);
+    }
+
+    match /organizations/{orgId} {
+      allow read: if true;
+      allow create: if isVerified()
+                    && orgId.matches('[a-z0-9]([a-z0-9-]{1,38})[a-z0-9]') && !isReservedUsername(orgId.replace('-', ''))
+                    && request.resource.data.keys().hasOnly(['name', 'kind', 'tagline', 'about', 'website', 'location', 'ownerId', 'adminIds', 'memberIds', 'createdAt', 'updatedAt'])
+                    && request.resource.data.ownerId == request.auth.uid
+                    && request.resource.data.adminIds == [request.auth.uid]
+                    && request.resource.data.memberIds == [request.auth.uid]
+                    && request.resource.data.createdAt == request.time
+                    && request.resource.data.updatedAt == request.time
+                    && isValidOrganization(request.resource.data);
+      allow update: if (request.auth != null && resource.data.adminIds.hasAny([request.auth.uid])
+                        && changedKeys().hasOnly(['name', 'kind', 'tagline', 'about', 'website', 'location', 'adminIds', 'memberIds', 'updatedAt'])
+                        && request.resource.data.updatedAt == request.time
+                        // Only the owner chooses admins
+                        && (!changedKeys().hasAny(['adminIds']) || resource.data.ownerId == request.auth.uid)
+                        && isValidOrganization(request.resource.data))
+                    // A member who isn't an admin leaves
+                    || (changedKeys().hasOnly(['memberIds'])
+                        && !resource.data.adminIds.hasAny([request.auth.uid])
+                        && isRemovingSelfFromList(request.resource.data.memberIds, resource.data.memberIds))
+                    || isModeratorEditing('organizations', orgId, ['name', 'tagline', 'about']);
+      allow delete: if (request.auth != null && resource.data.ownerId == request.auth.uid)
+                    || isModeratorDeleting('organizations', orgId);
+
+      // Asking to join, named by the member's uid; admins accept by adding
+      // them to memberIds and deleting the request
+      match /joinRequests/{userId} {
+        allow read: if isOwner(userId) || isOrgAdmin(orgId);
+        allow create: if isOwner(userId) && isVerified()
+                      && request.resource.data.keys().hasOnly(['name', 'photo', 'note', 'createdAt'])
+                      && request.resource.data.name == get(/databases/$(database)/documents/users/$(userId)).data.username
+                      && request.resource.data.photo == get(/databases/$(database)/documents/users/$(userId)).data.get('profilePictureUrl', '')
+                      && request.resource.data.note is string && request.resource.data.note.size() <= 300
+                      && !hasBlockedWord(request.resource.data.note)
+                      && request.resource.data.createdAt == request.time
+                      && !get(/databases/$(database)/documents/organizations/$(orgId)).data.memberIds.hasAny([userId]);
+        allow update: if false;
+        allow delete: if isOwner(userId) || isOrgAdmin(orgId) || isModeratorDeletingPart('organizations', orgId, 'joinRequests', userId);
+      }
+    }
+
     match /studyGroups/{groupId} {
       allow read: if true;
       allow create: if canCreateGroup() && hasNoAnytimeJoin();
@@ -639,6 +830,23 @@ service cloud.firestore {
                     || isModeratorEditing('soloProjects', soloProjectId, ['name', 'description', 'projectUrl']);
       allow delete: if (request.auth != null && resource.data.userId == request.auth.uid)
                     || isModeratorDeleting('soloProjects', soloProjectId);
+
+      // The project owner's to-do list (src/components/TaskList.tsx), public
+      // like the project
+      match /tasks/{taskId} {
+        allow read: if true;
+        allow create: if isVerified() && isSoloProjectOwner(soloProjectId)
+                      && request.resource.data.creatorId == request.auth.uid
+                      && request.resource.data.isCompleted == false;
+        allow update: if isSoloProjectOwner(soloProjectId);
+        allow delete: if isSoloProjectOwner(soloProjectId)
+                      || isModeratorDeletingPart('soloProjects', soloProjectId, 'tasks', taskId);
+      }
+    }
+
+    function isSoloProjectOwner(soloProjectId) {
+      return request.auth != null
+             && get(/databases/$(database)/documents/soloProjects/$(soloProjectId)).data.userId == request.auth.uid;
     }
 
     match /users/{userId}/notifications/{notificationId} {
@@ -1171,7 +1379,7 @@ service cloud.firestore {
     // "meetups/abc/checkIns/xyz"
     function isModeratedContentPath(path) {
       return path is string
-             && path.matches('(studyGroups|groupProjects|bookClubs|meetups|competitions|jobs|soloProjects)/[A-Za-z0-9_-]+(/(tasks|checkIns|updates|entries)/[A-Za-z0-9_-]+)?');
+             && path.matches('(studyGroups|groupProjects|bookClubs|meetups|competitions|jobs|soloProjects|serviceListings|organizations)/[A-Za-z0-9_-]+(/(tasks|checkIns|updates|entries|joinRequests)/[A-Za-z0-9_-]+)?');
     }
 
     // Every moderator action, for the record. Written by moderators with the

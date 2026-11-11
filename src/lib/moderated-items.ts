@@ -63,11 +63,27 @@ export const MODERATED_ITEMS = {
     },
   },
   soloProjects: {
-    noun: 'solo project', listPath: '/solo-projects', ownerField: 'userId', parts: [],
+    noun: 'solo project', listPath: '/solo-projects', ownerField: 'userId', parts: ['tasks'],
     fields: {
       name: { label: 'Name', max: 100 },
       description: { label: 'Description', max: 2000, long: true },
       projectUrl: { label: 'Project link', max: 500 },
+    },
+  },
+  serviceListings: {
+    noun: 'service listing', listPath: '/marketplace', ownerField: 'ownerId', parts: [],
+    fields: {
+      title: { label: 'Title', max: 80 },
+      description: { label: 'Description', max: 1000, long: true },
+      priceNote: { label: 'Price', max: 60 },
+    },
+  },
+  organizations: {
+    noun: 'organization', listPath: '/orgs', ownerField: 'ownerId', parts: ['joinRequests'],
+    fields: {
+      name: { label: 'Name', max: 80 },
+      tagline: { label: 'Tagline', max: 120 },
+      about: { label: 'About', max: 2000, long: true },
     },
   },
 } satisfies Record<string, ModeratedItemType>;
