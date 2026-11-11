@@ -634,6 +634,71 @@ service cloud.firestore {
                     || isModeratorDeleting('serviceListings', listingId);
     }
 
+    // ---- Organizations (/orgs): businesses, nonprofits, communities and
+    // teams. Named by their URL slug. The owner and admins run the page;
+    // members ask to join (joinRequests) and admins add them. See
+    // src/lib/organizations.ts.
+    function isValidOrganization(data) {
+      return data.name is string && data.name.size() >= 2 && data.name.size() <= 80
+             && data.kind in ['business', 'nonprofit', 'community', 'team']
+             && data.tagline is string && data.tagline.size() <= 120
+             && data.about is string && data.about.size() <= 2000
+             && data.location is string && data.location.size() <= 100
+             && (data.website == '' || (data.website is string && data.website.size() <= 300 && data.website.matches('https://[^\\s]+')))
+             && !hasBlockedWord(data.name) && !hasBlockedWord(data.tagline) && !hasBlockedWord(data.about)
+             && data.memberIds is list && data.memberIds.size() <= 500
+             && data.adminIds is list && data.adminIds.size() >= 1 && data.adminIds.size() <= 10
+             && data.memberIds.hasAll(data.adminIds)
+             && data.adminIds.hasAny([data.ownerId]);
+    }
+
+    function isOrgAdmin(orgId) {
+      return request.auth != null
+             && get(/databases/$(database)/documents/organizations/$(orgId)).data.adminIds.hasAny([request.auth.uid]);
+    }
+
+    match /organizations/{orgId} {
+      allow read: if true;
+      allow create: if isVerified()
+                    && orgId.matches('[a-z0-9]([a-z0-9-]{1,38})[a-z0-9]') && !isReservedUsername(orgId.replace('-', ''))
+                    && request.resource.data.keys().hasOnly(['name', 'kind', 'tagline', 'about', 'website', 'location', 'ownerId', 'adminIds', 'memberIds', 'createdAt', 'updatedAt'])
+                    && request.resource.data.ownerId == request.auth.uid
+                    && request.resource.data.adminIds == [request.auth.uid]
+                    && request.resource.data.memberIds == [request.auth.uid]
+                    && request.resource.data.createdAt == request.time
+                    && request.resource.data.updatedAt == request.time
+                    && isValidOrganization(request.resource.data);
+      allow update: if (request.auth != null && resource.data.adminIds.hasAny([request.auth.uid])
+                        && changedKeys().hasOnly(['name', 'kind', 'tagline', 'about', 'website', 'location', 'adminIds', 'memberIds', 'updatedAt'])
+                        && request.resource.data.updatedAt == request.time
+                        // Only the owner chooses admins
+                        && (!changedKeys().hasAny(['adminIds']) || resource.data.ownerId == request.auth.uid)
+                        && isValidOrganization(request.resource.data))
+                    // A member who isn't an admin leaves
+                    || (changedKeys().hasOnly(['memberIds'])
+                        && !resource.data.adminIds.hasAny([request.auth.uid])
+                        && isRemovingSelfFromList(request.resource.data.memberIds, resource.data.memberIds))
+                    || isModeratorEditing('organizations', orgId, ['name', 'tagline', 'about']);
+      allow delete: if (request.auth != null && resource.data.ownerId == request.auth.uid)
+                    || isModeratorDeleting('organizations', orgId);
+
+      // Asking to join, named by the member's uid; admins accept by adding
+      // them to memberIds and deleting the request
+      match /joinRequests/{userId} {
+        allow read: if isOwner(userId) || isOrgAdmin(orgId);
+        allow create: if isOwner(userId) && isVerified()
+                      && request.resource.data.keys().hasOnly(['name', 'photo', 'note', 'createdAt'])
+                      && request.resource.data.name == get(/databases/$(database)/documents/users/$(userId)).data.username
+                      && request.resource.data.photo == get(/databases/$(database)/documents/users/$(userId)).data.get('profilePictureUrl', '')
+                      && request.resource.data.note is string && request.resource.data.note.size() <= 300
+                      && !hasBlockedWord(request.resource.data.note)
+                      && request.resource.data.createdAt == request.time
+                      && !get(/databases/$(database)/documents/organizations/$(orgId)).data.memberIds.hasAny([userId]);
+        allow update: if false;
+        allow delete: if isOwner(userId) || isOrgAdmin(orgId) || isModeratorDeletingPart('organizations', orgId, 'joinRequests', userId);
+      }
+    }
+
     match /studyGroups/{groupId} {
       allow read: if true;
       allow create: if canCreateGroup() && hasNoAnytimeJoin();
@@ -1228,7 +1293,7 @@ service cloud.firestore {
     // "meetups/abc/checkIns/xyz"
     function isModeratedContentPath(path) {
       return path is string
-             && path.matches('(studyGroups|groupProjects|bookClubs|meetups|competitions|jobs|soloProjects|serviceListings)/[A-Za-z0-9_-]+(/(tasks|checkIns|updates|entries)/[A-Za-z0-9_-]+)?');
+             && path.matches('(studyGroups|groupProjects|bookClubs|meetups|competitions|jobs|soloProjects|serviceListings|organizations)/[A-Za-z0-9_-]+(/(tasks|checkIns|updates|entries|joinRequests)/[A-Za-z0-9_-]+)?');
     }
 
     // Every moderator action, for the record. Written by moderators with the

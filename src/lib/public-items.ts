@@ -22,6 +22,7 @@ export const PUBLIC_ITEM_PAGES = {
   competitions: '/competitions',
   jobs: '/job-board',
   posts: '/news/posts',
+  organizations: '/orgs',
 } as const;
 export type PublicCollection = keyof typeof PUBLIC_ITEM_PAGES;
 
