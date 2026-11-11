@@ -63,7 +63,7 @@ export const MODERATED_ITEMS = {
     },
   },
   soloProjects: {
-    noun: 'solo project', listPath: '/solo-projects', ownerField: 'userId', parts: [],
+    noun: 'solo project', listPath: '/solo-projects', ownerField: 'userId', parts: ['tasks'],
     fields: {
       name: { label: 'Name', max: 100 },
       description: { label: 'Description', max: 2000, long: true },

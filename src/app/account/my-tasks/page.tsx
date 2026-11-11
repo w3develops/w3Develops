@@ -79,7 +79,8 @@ function CategoryTaskList({ collectionPath, route, groupIds, categoryTitle }: { 
             {Array.from(tasksByGroup.entries()).map(([groupId, { parent, tasks }]) => (
                 <AccordionItem key={groupId} value={groupId} className="border rounded-lg bg-card">
                     <AccordionTrigger className="px-4 hover:no-underline">
-                        <Link href={`${route}/${groupId}`} className="font-semibold hover:underline">
+                        {/* Solo projects have no page of their own; they're all on /solo-projects */}
+                        <Link href={collectionPath === 'soloProjects' ? route : `${route}/${groupId}`} className="font-semibold hover:underline">
                             {('name' in parent && parent.name) || `Session from ${parent.createdAt ? new Date(parent.createdAt.seconds * 1000).toLocaleDateString() : ''}` }
                         </Link>
                     </AccordionTrigger>
@@ -136,6 +137,13 @@ export default function MyTasksPage() {
     const { data: studyGroups } = useCollection<Group>(studyGroupsQuery);
     const { data: groupProjects } = useCollection<Group>(groupProjectsQuery);
     const { data: bookClubs } = useCollection<Group>(bookClubsQuery);
+    // Meetups they're going to, and their own solo projects
+    const meetupsQuery = useMemo(() => (user ? query(collection(firestore, 'meetups'), where('attendeeIds', 'array-contains', user.uid)) : null), [user, firestore]);
+    const soloProjectsQuery = useMemo(() => (user ? query(collection(firestore, 'soloProjects'), where('userId', '==', user.uid)) : null), [user, firestore]);
+    const { data: meetups } = useCollection<{ id: string }>(meetupsQuery);
+    const { data: soloProjects } = useCollection<{ id: string }>(soloProjectsQuery);
+    const meetupIds = useMemo(() => (meetups || []).map(m => m.id), [meetups]);
+    const soloProjectIds = useMemo(() => (soloProjects || []).map(p => p.id), [soloProjects]);
     const studyGroupIds = useMemo(() => (studyGroups || []).map(g => g.id), [studyGroups]);
     const groupProjectIds = useMemo(() => (groupProjects || []).map(g => g.id), [groupProjects]);
     const bookClubIds = useMemo(() => (bookClubs || []).map(g => g.id), [bookClubs]);
@@ -156,6 +164,8 @@ export default function MyTasksPage() {
         { value: 'studyGroups', title: 'Study Groups', ids: studyGroupIds, path: 'studyGroups', route: '/studygroups' },
         { value: 'groupProjects', title: 'Group Projects', ids: groupProjectIds, path: 'groupProjects', route: '/groupprojects' },
         { value: 'bookClubs', title: 'Book Clubs', ids: bookClubIds, path: 'bookClubs', route: '/book-clubs' },
+        { value: 'soloProjects', title: 'Solo Projects', ids: soloProjectIds, path: 'soloProjects', route: '/solo-projects' },
+        { value: 'meetups', title: 'Meetups', ids: meetupIds, path: 'meetups', route: '/meetups' },
         { value: 'mentorships', title: 'Mentorships', ids: mentorshipIds, path: 'mentorships', route: '/mentorships' },
         { value: 'tutorships', title: 'Tutorships', ids: tutorshipIds, path: 'tutorships', route: '/tutorships' },
         { value: 'pairings', title: 'Pairings', ids: pairingIds, path: 'pairings', route: '/pairings' },
@@ -171,7 +181,7 @@ export default function MyTasksPage() {
                 <CardContent>
                     {tabsData.length > 0 ? (
                         <Tabs defaultValue={tabsData[0].value}>
-                            <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 h-auto flex-wrap">
+                            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto flex-wrap">
                                 {tabsData.map(tab => <TabsTrigger key={tab.value} value={tab.value}>{tab.title}</TabsTrigger>)}
                             </TabsList>
                             {tabsData.map(tab => (
