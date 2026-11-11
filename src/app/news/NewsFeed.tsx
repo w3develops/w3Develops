@@ -159,9 +159,17 @@ export default function NewsFeed({ newsItems, initialAnnouncements, latestPosts,
                             Exciting new developments from the w3Develops ecosystem and beyond.
                         </p>
                     </div>
-                    <Button asChild variant="outline">
-                        <Link href="/news/archive">View Archive</Link>
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                        {/* Google's "preferred sources": people who add us see more of our stories in Google's Top Stories */}
+                        <Button asChild variant="outline">
+                            <a href="https://www.google.com/preferences/source?q=w3develops.org" target="_blank" rel="noopener noreferrer">
+                                Add w3Develops on Google
+                            </a>
+                        </Button>
+                        <Button asChild variant="outline">
+                            <Link href="/news/archive">View Archive</Link>
+                        </Button>
+                    </div>
                 </div>
             </div>
 

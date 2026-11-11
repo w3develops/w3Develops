@@ -20,6 +20,51 @@ export default function SecurityPage() {
 
             <div className="space-y-12">
                 <section>
+                    <h2 className="text-3xl font-bold font-sans mb-4 border-b-2 border-yellow-400 pb-2">Our Program</h2>
+                    <p className="text-gray-300 mb-4">
+                        w3Develops runs a vulnerability disclosure program based on the <Link href="https://disclose.io" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:underline">disclose.io</Link> framework,
+                        like the programs of many larger companies. We&apos;re a free, volunteer-run community, so we don&apos;t pay cash rewards yet. We thank researchers publicly instead:
+                    </p>
+                    <ul className="list-disc list-inside space-y-3 text-gray-300">
+                        <li>Every valid report earns a place in our <Link href="/contribute/security/hall-of-fame" className="text-yellow-400 hover:underline">Security Hall of Fame</Link>, with a link to your profile or site if you like.</li>
+                        <li>Serious findings get a write-up crediting you, once the issue is fixed.</li>
+                        <li>If we start paying bounties, we&apos;ll say so here first.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 className="text-3xl font-bold font-sans mb-4 border-b-2 border-yellow-400 pb-2">Scope</h2>
+                    <h3 className="text-2xl font-semibold mb-3">In scope</h3>
+                    <ul className="list-disc list-inside space-y-2 text-gray-300 mb-6">
+                        <li><code>w3develops.org</code> and <code>www.w3develops.org</code>, including signed-in pages</li>
+                        <li>The site&apos;s data access rules: reading or changing data you shouldn&apos;t be able to, through the site or directly against our Firebase project</li>
+                        <li>The site&apos;s server routes (<code>w3develops.org/api/...</code>) and background functions</li>
+                        <li>Our open-source code at <Link href="https://github.com/w3develops/w3Develops" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:underline">github.com/w3develops/w3Develops</Link></li>
+                    </ul>
+                    <h3 className="text-2xl font-semibold mb-3">Out of scope</h3>
+                    <ul className="list-disc list-inside space-y-2 text-gray-300">
+                        <li>Services we use but don&apos;t run: Discord, YouTube, Google and Firebase themselves, GitHub, Zoho Mail, Cloudflare. Report those to their owners.</li>
+                        <li>Denial-of-service, spam, or anything that degrades the site for others</li>
+                        <li>Other members&apos; accounts or data: test only with accounts you own</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 className="text-3xl font-bold font-sans mb-4 border-b-2 border-yellow-400 pb-2">Safe Harbor</h2>
+                    <p className="text-gray-300 mb-4">When you research and report in good faith under this policy, we consider your work authorized, and:</p>
+                    <ul className="list-disc list-inside space-y-3 text-gray-300">
+                        <li>We won&apos;t take legal action against you or ask anyone else to, for research that follows this policy.</li>
+                        <li>We consider it authorized under anti-hacking laws such as the Computer Fraud and Abuse Act, and won&apos;t bring a claim for getting around technical measures in the course of it.</li>
+                        <li>We waive the parts of our <Link href="/terms" className="text-yellow-400 hover:underline">Terms of Use</Link> that would otherwise forbid that research, only as far as needed for it.</li>
+                        <li>If someone else takes legal action over research you did under this policy, we&apos;ll make it known that it was authorized.</li>
+                    </ul>
+                    <p className="text-gray-400 mt-4">
+                        Good faith means: you follow the rules below, avoid privacy violations and disruption, stop and tell us as soon as you reach other
+                        people&apos;s data, and give us reasonable time to fix an issue before you share it. If you&apos;re unsure whether something is allowed, ask us first.
+                    </p>
+                </section>
+
+                <section>
                     <h2 className="text-3xl font-bold font-sans mb-4 border-b-2 border-yellow-400 pb-2">Research Guidelines</h2>
                     <p className="text-gray-300 mb-6">Follow these guidelines when testing and reporting vulnerabilities:</p>
                     <h3 className="text-2xl font-semibold mb-4">Rules</h3>

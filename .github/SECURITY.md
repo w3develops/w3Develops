@@ -1,20 +1,13 @@
 # Security Policy
 
-## Supported Versions
+w3develops.org is deployed continuously from `main`, so only the live site
+and the latest code are supported.
 
-These versions of the project are
-currently being supported with security updates.
+## Reporting a vulnerability
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 3.0.x   | :white_check_mark: |
-| 2.0.x   | :x:                |
-| < 1.0   | :x:                |
+Please don't open a public issue. Follow our vulnerability disclosure
+policy, which covers scope, safe harbor and how we credit researchers:
+<https://w3develops.org/contribute/security>
 
-## Reporting a Vulnerability
-
-> [!NOTE]
->
-> Please report security issues responsibly.
->
-> Our community-wide security policy is available here: <https://w3develops.org/contribute/security>
+Contact details are also in
+<https://w3develops.org/.well-known/security.txt>.

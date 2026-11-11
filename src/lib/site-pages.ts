@@ -244,7 +244,7 @@ export const SITE_PAGES = {
   },
   '/contribute/security': {
     title: 'Security Disclosure Policy',
-    description: 'How to test for and responsibly report security vulnerabilities in w3Develops.',
+    description: 'The w3Develops vulnerability disclosure program: scope, safe harbor, how to report, and how we credit researchers.',
     section: 'About and policies',
   },
   '/contribute/security/hall-of-fame': {

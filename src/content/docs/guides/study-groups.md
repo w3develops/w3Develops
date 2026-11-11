@@ -14,3 +14,5 @@ A study group is a small group learning the same thing, like JavaScript or syste
 - **Check-ins:** post daily or weekly updates on what you did. Members of groups with a set time get a reminder before meetings.
 - **Tasks:** a shared to-do list. Everyone in the group can add and tick off tasks; see all of yours on [My tasks](https://w3develops.org/account/my-tasks).
 - **Leaving:** you can leave any time from the group page.
+
+Running one? Follow the [study group workflow](/docs/guides/running-a-study-group) and pick a [curriculum template](/docs/guides/curriculum-templates).
