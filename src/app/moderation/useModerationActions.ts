@@ -55,6 +55,9 @@ export function useModerationActions() {
         batch.update(postRef, { status: 'visible', hiddenBy: deleteField(), moderationLogId: logRef.id });
       } else if (postRef && action === 'delete') {
         batch.delete(postRef);
+      } else if (postRef && action === 'remove-image') {
+        // functions/src/post-checks.ts then deletes the file
+        batch.update(postRef, { imageUrl: deleteField(), imagePath: deleteField(), moderationLogId: logRef.id });
       }
 
       if (action === 'warn' || action === 'suspend' || action === 'unsuspend') {

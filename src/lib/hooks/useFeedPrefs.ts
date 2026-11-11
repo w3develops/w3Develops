@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
-import { arrayRemove, arrayUnion, doc, setDoc, writeBatch } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, collection, doc, getDocs, query, setDoc, where, writeBatch } from 'firebase/firestore';
 import { useDoc, useFirestore, useUser } from '@/firebase';
 import type { FeedPrefs } from '@/lib/types';
 
@@ -24,7 +24,7 @@ export function useFeedPrefs() {
   const blockedIds = data?.blockedIds ?? NONE;
 
   const update = useCallback(
-    (changes: Partial<Record<keyof FeedPrefs, ReturnType<typeof arrayUnion>>>) => {
+    (changes: Partial<Record<'topics' | 'mutedIds' | 'blockedIds', ReturnType<typeof arrayUnion>>>) => {
       if (!prefsRef) return Promise.reject(new Error('Not signed in'));
       return setDoc(prefsRef, changes, { merge: true });
     },
@@ -43,8 +43,33 @@ export function useFeedPrefs() {
     [firestore, prefsRef, user],
   );
 
+  /**
+   * Makes the account private or public. Going private also makes every
+   * public post they've made followers-only, since a private account's posts
+   * are for followers (firestore.rules: isAllowedAudience). Going public
+   * leaves their posts as they are; they can open each one up.
+   */
+  const setPrivateAccount = useCallback(
+    async (isPrivate: boolean) => {
+      if (!user || !prefsRef) throw new Error('Not signed in');
+      if (isPrivate) {
+        const publicPosts = await getDocs(query(collection(firestore, 'memberPosts'), where('authorId', '==', user.uid), where('audience', '==', 'public')));
+        const refs = publicPosts.docs.map(post => post.ref);
+        for (let i = 0; i < refs.length; i += 450) {
+          const batch = writeBatch(firestore);
+          refs.slice(i, i + 450).forEach(ref => batch.update(ref, { audience: 'followers' }));
+          await batch.commit();
+        }
+      }
+      await setDoc(prefsRef, { privateAccount: isPrivate }, { merge: true });
+    },
+    [firestore, prefsRef, user],
+  );
+
   return {
     isLoading,
+    privateAccount: data?.privateAccount === true,
+    setPrivateAccount,
     topics,
     mutedIds,
     blockedIds,

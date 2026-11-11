@@ -1,10 +1,27 @@
 rules_version = '2';
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
+    // Images on community feed posts (src/components/posts/PostComposer.tsx),
+    // at memberPosts/<uid>/<postId>/<file>. Anyone with the link can view
+    // one, like the post. The author uploads it before saving the post; it
+    // can't be replaced. functions/src/post-checks.ts deletes it when the
+    // post is deleted or the image is removed, and checks it with Cloud
+    // Vision SafeSearch.
+    match /memberPosts/{userId}/{postId}/{fileName} {
+      allow read: if true;
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && resource == null
+                    && (request.auth.token.email_verified == true
+                        || request.auth.token.firebase.sign_in_provider in ['google.com', 'github.com'])
+                    && request.resource.size < 5 * 1024 * 1024
+                    && request.resource.contentType.matches('image/(jpeg|png|gif|webp)');
+      allow update: if false;
+      allow delete: if request.auth != null
+                    && (request.auth.uid == userId || request.auth.token.get('moderator', false) == true);
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

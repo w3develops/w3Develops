@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-w3develops-rules \"node --test tests/rules/*.test.mjs\""
+    "test:rules": "firebase emulators:exec --only firestore,storage --project demo-w3develops-rules \"node --test tests/rules/*.test.mjs\""
   },
   "engines": {
     "node": ">=20.9.0"

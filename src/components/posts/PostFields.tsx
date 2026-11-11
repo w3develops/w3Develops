@@ -1,9 +1,34 @@
 'use client';
 
+import { Globe, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { MAX_POST_LENGTH, MAX_POST_TOPICS, findBlockedWord, parseTopics } from '@/lib/member-posts';
+import type { PostAudience } from '@/lib/types';
+
+/**
+ * Who a post is for. Private accounts can only post to followers, so the
+ * choice is locked for them.
+ */
+export function AudienceSelect({ value, onChange, locked, idPrefix }: { value: PostAudience; onChange: (value: PostAudience) => void; locked: boolean; idPrefix: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <Label htmlFor={`${idPrefix}-audience`} className="sr-only">Who can see it</Label>
+      <Select value={value} onValueChange={next => onChange(next as PostAudience)} disabled={locked}>
+        <SelectTrigger id={`${idPrefix}-audience`} className="h-9 w-[150px]" aria-label="Who can see it">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="public"><span className="flex items-center gap-2"><Globe className="h-3 w-3" aria-hidden="true" /> Public</span></SelectItem>
+          <SelectItem value="followers"><span className="flex items-center gap-2"><Users className="h-3 w-3" aria-hidden="true" /> Followers</span></SelectItem>
+        </SelectContent>
+      </Select>
+      {locked && <span className="text-xs text-muted-foreground">Your account is private</span>}
+    </div>
+  );
+}
 
 export interface PostDraft {
   text: string;

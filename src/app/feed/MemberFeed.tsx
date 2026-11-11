@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 import PostCard from '@/components/posts/PostCard';
 import PostComposer from '@/components/posts/PostComposer';
@@ -26,6 +27,23 @@ const FOLLOWED_LIMIT = 20;
 const MAX_QUERY_VALUES = 30;
 
 const newestFirst = (a: MemberPost, b: MemberPost) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0);
+
+/** Whether the member's posts are for followers only */
+function PrivateAccountSetting({ isPrivate, onChange }: { isPrivate: boolean; onChange: (isPrivate: boolean) => void }) {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between gap-2">
+        <Label htmlFor="private-account">Private account</Label>
+        <Switch id="private-account" checked={isPrivate} onCheckedChange={onChange} />
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {isPrivate
+          ? 'Only your followers see your posts. Turning this off keeps your old posts followers-only; you can open each one up.'
+          : 'Anyone can see your posts unless you choose Followers on a post. Turning this on makes all your posts followers-only.'}
+      </p>
+    </div>
+  );
+}
 
 /** The topics a member follows, with a box to add more */
 function TopicSettings({ topics, onFollow, onUnfollow }: { topics: string[]; onFollow: (topic: string) => void; onUnfollow: (topic: string) => void }) {
@@ -90,25 +108,42 @@ export default function MemberFeed({ initial }: { initial: unknown[] | null }) {
   const { data: standing } = useDoc<MemberStanding>(standingRef);
 
   const recentQuery = useMemo(
-    () => query(collection(firestore, 'memberPosts'), where('status', '==', 'visible'), orderBy('createdAt', 'desc'), limit(RECENT_LIMIT)),
+    () => query(collection(firestore, 'memberPosts'), where('status', '==', 'visible'), where('audience', '==', 'public'),
+      orderBy('createdAt', 'desc'), limit(RECENT_LIMIT)),
     [firestore],
   );
-  const { data: recent, isLoading } = useCollection<MemberPost>(recentQuery, initial);
+  const { data: publicRecent, isLoading } = useCollection<MemberPost>(recentQuery, initial);
+
+  // The member's own posts, including followers-only ones the public list leaves out
+  const ownQuery = useMemo(
+    () => (user ? query(collection(firestore, 'memberPosts'), where('status', '==', 'visible'), where('authorId', '==', user.uid),
+      orderBy('createdAt', 'desc'), limit(FOLLOWED_LIMIT)) : null),
+    [firestore, user],
+  );
+  const { data: ownPosts } = useCollection<MemberPost>(ownQuery);
 
   const following = profile?.following ?? [];
   const followingKey = following.slice(0, MAX_QUERY_VALUES).join(',');
-  const followingQuery = useMemo(() => {
+  const followedPostsQuery = (audience: 'public' | 'followers') => {
     if (!followingKey) return null;
-    return query(collection(firestore, 'memberPosts'), where('status', '==', 'visible'), where('authorId', 'in', followingKey.split(',')),
-      orderBy('createdAt', 'desc'), limit(FOLLOWED_LIMIT));
-  }, [firestore, followingKey]);
-  const { data: fromFollowing } = useCollection<MemberPost>(followingQuery);
+    return query(collection(firestore, 'memberPosts'), where('status', '==', 'visible'), where('audience', '==', audience),
+      where('authorId', 'in', followingKey.split(',')), orderBy('createdAt', 'desc'), limit(FOLLOWED_LIMIT));
+  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const followingPublicQuery = useMemo(() => followedPostsQuery('public'), [firestore, followingKey]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const followingFollowersQuery = useMemo(() => followedPostsQuery('followers'), [firestore, followingKey]);
+  const { data: followingPublic } = useCollection<MemberPost>(followingPublicQuery);
+  // Refused as a whole if someone they follow no longer lists them as a
+  // follower (say, after blocking them); the public posts above still show
+  const { data: followingPrivate } = useCollection<MemberPost>(followingFollowersQuery);
+  const fromFollowing = useMemo(() => [...(followingPublic ?? []), ...(followingPrivate ?? [])], [followingPublic, followingPrivate]);
 
   const topicsKey = prefs.topics.slice(0, MAX_QUERY_VALUES).join(',');
   const topicsQuery = useMemo(() => {
     if (!topicsKey) return null;
-    return query(collection(firestore, 'memberPosts'), where('status', '==', 'visible'), where('topics', 'array-contains-any', topicsKey.split(',')),
-      orderBy('createdAt', 'desc'), limit(FOLLOWED_LIMIT));
+    return query(collection(firestore, 'memberPosts'), where('status', '==', 'visible'), where('audience', '==', 'public'),
+      where('topics', 'array-contains-any', topicsKey.split(',')), orderBy('createdAt', 'desc'), limit(FOLLOWED_LIMIT));
   }, [firestore, topicsKey]);
   const { data: fromTopics } = useCollection<MemberPost>(topicsQuery);
 
@@ -119,11 +154,17 @@ export default function MemberFeed({ initial }: { initial: unknown[] | null }) {
   );
   const { data: ownHidden } = useCollection<MemberPost>(ownHiddenQuery);
 
+  const recent = useMemo(() => {
+    if (!publicRecent) return null;
+    const byId = new Map([...publicRecent, ...(ownPosts ?? [])].map(post => [post.id, post]));
+    return [...byId.values()].sort(newestFirst).slice(0, RECENT_LIMIT);
+  }, [publicRecent, ownPosts]);
+
   const { followed, rest } = useMemo(() => {
     const skip = new Set([...prefs.mutedIds, ...prefs.blockedIds]);
     const shown = (post: MemberPost) => !skip.has(post.authorId);
     const followedById = new Map<string, MemberPost>();
-    for (const post of [...(fromFollowing ?? []), ...(fromTopics ?? [])]) {
+    for (const post of [...fromFollowing, ...(fromTopics ?? [])]) {
       if (shown(post) && post.authorId !== user?.uid) followedById.set(post.id, post);
     }
     return {
@@ -170,9 +211,9 @@ export default function MemberFeed({ initial }: { initial: unknown[] | null }) {
             </Alert>
           )}
 
-          <PostComposer profile={profile} standing={standing} />
+          <PostComposer profile={profile} standing={standing} privateAccount={prefs.privateAccount} />
 
-          {(ownHidden ?? []).sort(newestFirst).map(post => <PostCard key={post.id} post={post} />)}
+          {(ownHidden ?? []).sort(newestFirst).map(post => <PostCard key={post.id} post={post} privateAccount={prefs.privateAccount} />)}
 
           {followed.length > 0 && (
             <section aria-labelledby="followed-heading" className="space-y-4">
@@ -185,7 +226,7 @@ export default function MemberFeed({ initial }: { initial: unknown[] | null }) {
             <h2 id="recent-heading" className="text-lg font-semibold">Recent posts</h2>
             {isLoading && !recent && <p className="text-muted-foreground">Loading posts...</p>}
             {recent && rest.length === 0 && <p className="text-muted-foreground">No posts yet. Say hello!</p>}
-            {rest.map(post => <PostCard key={post.id} post={post} {...memberActions} />)}
+            {rest.map(post => <PostCard key={post.id} post={post} {...memberActions} privateAccount={prefs.privateAccount} />)}
           </section>
         </main>
 
@@ -194,6 +235,11 @@ export default function MemberFeed({ initial }: { initial: unknown[] | null }) {
             <Card>
               <CardHeader className="pb-2"><CardTitle className="text-base">Your feed</CardTitle></CardHeader>
               <CardContent className="space-y-4">
+                <PrivateAccountSetting
+                  isPrivate={prefs.privateAccount}
+                  onChange={isPrivate => run(() => prefs.setPrivateAccount(isPrivate),
+                    isPrivate ? 'Your account is private. Your posts are for followers only.' : 'Your account is public. New posts can be for everyone.')}
+                />
                 <TopicSettings
                   topics={prefs.topics}
                   onFollow={topic => run(() => prefs.followTopic(topic), `Following #${topic}`)}
@@ -209,7 +255,7 @@ export default function MemberFeed({ initial }: { initial: unknown[] | null }) {
           ) : null}
           <Card>
             <CardContent className="p-4 text-sm text-muted-foreground space-y-2">
-              <p>Posts are public and follow our <Link href="/code-of-conduct" className="underline">Code of Conduct</Link>. There are no private messages.</p>
+              <p>Posts are public unless their author shares them with followers only, and follow our <Link href="/code-of-conduct" className="underline">Code of Conduct</Link>. There are no private messages.</p>
               <p>See something wrong? Use <strong>Report</strong> on the post. Posts with several reports are hidden until a moderator reviews them.</p>
             </CardContent>
           </Card>

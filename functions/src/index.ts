@@ -15,3 +15,4 @@ export { meetingReminders } from './reminders.js';
 export { onReport } from './reports.js';
 export { scheduledPosts } from './posts.js';
 export { setModerator } from './moderators.js';
+export { onMemberPostWritten } from './post-checks.js';

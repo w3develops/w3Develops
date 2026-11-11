@@ -79,6 +79,11 @@ next dev` (see `src/firebase/initialize-app.ts` for the port settings).
 - Reserved usernames are listed in both `src/lib/usernames.ts` and
   `firestore.rules`; keep the two lists the same. So are the feed's blocked
   words and post limits (`src/lib/member-posts.ts`).
+- Feed posts are public or followers-only (`audience`), and a private
+  account's posts are always followers-only. Server reads skip the rules, so
+  the server-rendered feed must filter `audience == 'public'`. Images live in
+  Storage (`storage.rules`); `functions/src/post-checks.ts` runs the Natural
+  Language and Vision safety checks and deletes images of removed posts.
 - Moderators have a `moderator` custom claim. Admins (the `admin` claim) add
   and remove them on the Team tab of `/moderation`; `scripts/set-moderator.mjs`
   makes someone an admin. Every moderator change is saved with a

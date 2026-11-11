@@ -108,31 +108,41 @@ export function profileHasContent(profile: { bio?: unknown; skills?: unknown }):
 export interface PublicListQuery {
   collection: PublicCollection | 'soloProjects' | 'announcements' | 'memberPosts';
   /**
-   * Only documents whose field has this value. Member posts must pass
-   * status == 'visible': the Admin SDK skips the rules, which would
-   * otherwise keep hidden posts out. Needs a composite index with orderBy.
+   * Only documents whose fields have these values. Member posts must pass
+   * status == 'visible' and audience == 'public': the Admin SDK skips the
+   * rules, which would otherwise keep hidden and followers-only posts out.
+   * Needs a composite index with orderBy.
    */
-  equals?: { field: string; value: string };
+  equals?: { field: string; value: string } | { field: string; value: string }[];
   orderBy: string;
   direction: 'asc' | 'desc';
   limit: number;
   after?: { field: string; op: '<' | '<=' | '>' | '>='; millis: number };
 }
 
-const fetchList = unstable_cache(
-  async (list: PublicListQuery) => {
-    const docs = await readList({
-      collection: list.collection,
-      where: list.after,
-      equals: list.equals,
-      orderBy: { field: list.orderBy, direction: list.direction },
-      limit: list.limit,
-    });
-    return docs.map(item => toPlain({ ...item.data, id: item.id }));
-  },
-  ['public-list'],
-  { revalidate: ITEM_CACHE_SECONDS },
-);
+async function readPublicList(list: PublicListQuery) {
+  const docs = await readList({
+    collection: list.collection,
+    where: list.after,
+    equals: list.equals,
+    orderBy: { field: list.orderBy, direction: list.direction },
+    limit: list.limit,
+  });
+  return docs.map(item => toPlain({ ...item.data, id: item.id }));
+}
+
+const fetchList = unstable_cache(readPublicList, ['public-list'], { revalidate: ITEM_CACHE_SECONDS });
+
+/**
+ * Tag on the cached community feed posts. functions/src/post-checks.ts asks
+ * /api/revalidate/feed to clear it whenever a post leaves the public feed,
+ * so a hidden or deleted post doesn't linger in the page's HTML.
+ */
+export const MEMBER_POSTS_CACHE_TAG = 'member-posts';
+const fetchMemberPosts = unstable_cache(readPublicList, ['public-list-member-posts'], {
+  revalidate: ITEM_CACHE_SECONDS,
+  tags: [MEMBER_POSTS_CACHE_TAG],
+});
 
 /**
  * A list page's items as plain objects for a browser component, which shows
@@ -141,7 +151,7 @@ const fetchList = unstable_cache(
  */
 export async function getPublicList(list: PublicListQuery): Promise<unknown[] | null> {
   try {
-    return await fetchList(list);
+    return await (list.collection === 'memberPosts' ? fetchMemberPosts(list) : fetchList(list));
   } catch (error) {
     console.warn(`Could not list ${list.collection} on the server:`, error);
     return null;
