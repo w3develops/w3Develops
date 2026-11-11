@@ -492,3 +492,30 @@ export interface Moderator {
   addedBy: string;
   addedAt: Timestamp;
 }
+
+/** An organization's page (organizations/{slug}) */
+export interface Organization {
+  id: string;
+  name: string;
+  kind: import('./organizations').OrgKind;
+  tagline: string;
+  about: string;
+  /** An https link, or empty */
+  website: string;
+  location: string;
+  ownerId: string;
+  /** Run the page; always includes the owner, and are all members */
+  adminIds: string[];
+  memberIds: string[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+/** A member asking to join an organization (organizations/{slug}/joinRequests/{uid}) */
+export interface OrgJoinRequest {
+  id: string;
+  name: string;
+  photo: string;
+  note: string;
+  createdAt: Timestamp;
+}
