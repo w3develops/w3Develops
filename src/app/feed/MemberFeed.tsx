@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { collection, doc, limit, orderBy, query, where } from 'firebase/firestore';
+import { collection, doc, getDocs, limit, orderBy, query, startAfter, where } from 'firebase/firestore';
 import { ShieldCheck, X } from 'lucide-react';
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -24,6 +24,8 @@ import { MAX_FOLLOWED_TOPICS, parseTopics } from '@/lib/member-posts';
 import type { MemberPost, MemberStanding, UserProfile } from '@/lib/types';
 
 const RECENT_LIMIT = 50;
+/** How many older posts each "Load more" adds */
+const OLDER_PAGE = 30;
 const FOLLOWED_LIMIT = 20;
 // Firestore's "in" and "array-contains-any" filters take at most 30 values
 const MAX_QUERY_VALUES = 30;
@@ -116,6 +118,34 @@ export default function MemberFeed({ initial }: { initial: unknown[] | null }) {
   );
   const { data: publicRecent, isLoading } = useCollection<MemberPost>(recentQuery, initial);
 
+  // Older public posts, loaded a page at a time below the live list. These
+  // are read once rather than kept live, so a post hidden after it loaded
+  // stays until the page is reloaded.
+  const [older, setOlder] = useState<MemberPost[]>([]);
+  const [noMoreOlder, setNoMoreOlder] = useState(false);
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false);
+  const canLoadOlder = !noMoreOlder && (publicRecent?.length ?? 0) >= RECENT_LIMIT;
+  const loadOlder = async () => {
+    const loaded = [...(publicRecent ?? []), ...older];
+    const oldest = loaded.reduce<MemberPost | null>(
+      (last, post) => (!last || (post.createdAt?.toMillis?.() ?? 0) < (last.createdAt?.toMillis?.() ?? 0) ? post : last), null);
+    if (!oldest?.createdAt) return;
+    setIsLoadingOlder(true);
+    try {
+      const page = await getDocs(query(collection(firestore, 'memberPosts'), where('status', '==', 'visible'), where('audience', '==', 'public'),
+        orderBy('createdAt', 'desc'), startAfter(oldest.createdAt), limit(OLDER_PAGE)));
+      const posts = page.docs.map(post => ({ ...post.data(), id: post.id }) as MemberPost);
+      // Keep the posts already on screen too: when new posts arrive, the
+      // live list's oldest ones drop off it and would otherwise vanish
+      setOlder([...loaded, ...posts]);
+      if (posts.length < OLDER_PAGE) setNoMoreOlder(true);
+    } catch {
+      toast({ variant: 'destructive', title: "Couldn't load older posts", description: 'Please try again.' });
+    } finally {
+      setIsLoadingOlder(false);
+    }
+  };
+
   // The member's own posts, including followers-only ones the public list leaves out
   const ownQuery = useMemo(
     () => (user ? query(collection(firestore, 'memberPosts'), where('status', '==', 'visible'), where('authorId', '==', user.uid),
@@ -158,9 +188,11 @@ export default function MemberFeed({ initial }: { initial: unknown[] | null }) {
 
   const recent = useMemo(() => {
     if (!publicRecent) return null;
-    const byId = new Map([...publicRecent, ...(ownPosts ?? [])].map(post => [post.id, post]));
-    return [...byId.values()].sort(newestFirst).slice(0, RECENT_LIMIT);
-  }, [publicRecent, ownPosts]);
+    // Older pages first, so the live copy of a post wins
+    const byId = new Map([...older, ...publicRecent, ...(ownPosts ?? [])].map(post => [post.id, post]));
+    const all = [...byId.values()].sort(newestFirst);
+    return older.length ? all : all.slice(0, RECENT_LIMIT);
+  }, [publicRecent, ownPosts, older]);
 
   const { followed, rest } = useMemo(() => {
     const skip = new Set([...prefs.mutedIds, ...prefs.blockedIds]);
@@ -238,6 +270,14 @@ export default function MemberFeed({ initial }: { initial: unknown[] | null }) {
             {isLoading && !recent && <p className="text-muted-foreground">Loading posts...</p>}
             {recent && rest.length === 0 && <p className="text-muted-foreground">No posts yet. Say hello!</p>}
             {rest.map(post => <PostCard key={post.id} post={post} {...memberActions} privateAccount={prefs.privateAccount} />)}
+            {canLoadOlder && (
+              <div className="flex justify-center">
+                <Button variant="outline" onClick={loadOlder} disabled={isLoadingOlder}>
+                  {isLoadingOlder ? 'Loading...' : 'Load more'}
+                </Button>
+              </div>
+            )}
+            {noMoreOlder && <p className="text-center text-sm text-muted-foreground">You&apos;ve reached the first posts.</p>}
           </section>
         </main>
 
