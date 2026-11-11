@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
-import { arrayRemove, arrayUnion, collection, doc, getDocs, query, setDoc, where, writeBatch } from 'firebase/firestore';
+import { useCallback, useEffect, useMemo } from 'react';
+import { arrayRemove, arrayUnion, collection, doc, getDocs, query, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { useDoc, useFirestore, useUser } from '@/firebase';
-import type { FeedPrefs } from '@/lib/types';
+import type { FeedPrefs, UserProfile } from '@/lib/types';
 
 const NONE: string[] = [];
 
@@ -18,6 +18,15 @@ export function useFeedPrefs() {
   const firestore = useFirestore();
   const prefsRef = useMemo(() => (user ? doc(firestore, 'users', user.uid, 'private', 'feedPrefs') : null), [firestore, user]);
   const { data, isLoading } = useDoc<FeedPrefs>(prefsRef);
+  const profileRef = useMemo(() => (user ? doc(firestore, 'users', user.uid) : null), [firestore, user]);
+  const { data: profile } = useDoc<UserProfile>(profileRef);
+  // The flag is on the public profile, so others' Follow buttons know to ask.
+  // Accounts made private before that only have it in feedPrefs: copy it over.
+  const privateAccount = profile?.privateAccount === true || data?.privateAccount === true;
+  const needsCopy = !!profile && data?.privateAccount === true && profile.privateAccount !== true;
+  useEffect(() => {
+    if (needsCopy && profileRef) updateDoc(profileRef, { privateAccount: true }).catch(() => {});
+  }, [needsCopy, profileRef]);
 
   const topics = data?.topics ?? NONE;
   const mutedIds = data?.mutedIds ?? NONE;
@@ -47,7 +56,8 @@ export function useFeedPrefs() {
    * Makes the account private or public. Going private also makes every
    * public post they've made followers-only, since a private account's posts
    * are for followers (firestore.rules: isAllowedAudience). Going public
-   * leaves their posts as they are; they can open each one up.
+   * leaves their posts as they are; they can open each one up. People who
+   * already follow them keep following; new people have to ask.
    */
   const setPrivateAccount = useCallback(
     async (isPrivate: boolean) => {
@@ -61,14 +71,17 @@ export function useFeedPrefs() {
           await batch.commit();
         }
       }
-      await setDoc(prefsRef, { privateAccount: isPrivate }, { merge: true });
+      const batch = writeBatch(firestore);
+      batch.update(doc(firestore, 'users', user.uid), { privateAccount: isPrivate });
+      batch.set(prefsRef, { privateAccount: isPrivate }, { merge: true });
+      await batch.commit();
     },
     [firestore, prefsRef, user],
   );
 
   return {
     isLoading,
-    privateAccount: data?.privateAccount === true,
+    privateAccount,
     setPrivateAccount,
     topics,
     mutedIds,

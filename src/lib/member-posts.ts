@@ -9,6 +9,12 @@ export const MAX_POST_TOPICS = 3;
 export const TOPIC_PATTERN = /^[a-z0-9-]{1,30}$/;
 /** Most posts per member per hour (firestore.rules: match /postLimits) */
 export const POSTS_PER_HOUR = 5;
+/** Longest reply, in characters (firestore.rules: canCreateReply) */
+export const MAX_REPLY_LENGTH = 500;
+/** Most replies per member per hour (firestore.rules: match /replyLimits) */
+export const REPLIES_PER_HOUR = 30;
+/** Longest appeal, in characters (firestore.rules: match /appeals) */
+export const MAX_APPEAL_LENGTH = 1000;
 /** Largest image on a post (storage.rules) */
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 /** Image types a post can have (storage.rules) */

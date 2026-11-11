@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { collection, doc, limit, orderBy, query, where } from 'firebase/firestore';
+import { collection, doc, limit, orderBy, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,12 +22,29 @@ import { useNow } from '@/lib/hooks/useClientValues';
 import { useDocsByIds } from '@/lib/hooks/useDocsByIds';
 import { MODERATION_ACTIONS, POST_REPORT_REASONS, SUSPENSION_DAYS } from '@/lib/member-posts';
 import { formatTimestamp } from '@/lib/utils';
-import type { MemberPost, MemberStanding, ModerationLogEntry, Report, UserProfile } from '@/lib/types';
+import type { Appeal, MemberPost, MemberStanding, ModerationLogEntry, PostReply, Report, UserProfile } from '@/lib/types';
 import ModerationTeam from './ModerationTeam';
 import { useModerationActions, type ActionRequest, type ModeratorAction } from './useModerationActions';
 import { MODERATED_ITEMS, type ModeratedKind } from '@/lib/moderated-items';
 
 const REASON_LABELS: Record<string, string> = { ...REPORT_REASONS, ...POST_REPORT_REASONS };
+
+/** Reports the automatic text and image checks filed (functions/src/post-checks.ts) */
+const AUTO_CHECK_REPORTER = 'auto-check';
+
+const REPLY_BUTTONS: Partial<Record<ModeratorAction, string>> = {
+  hide: 'Hide reply',
+  restore: 'Restore reply',
+  delete: 'Delete reply',
+};
+
+const APPEALED: Record<Appeal['action'], string> = {
+  hide: 'A moderator hid their post',
+  'auto-hide': 'Their post was hidden automatically',
+  'remove-image': "A moderator removed their post's image",
+  warn: 'A moderator warned them',
+  suspend: 'A moderator paused their posting',
+};
 
 const ACTION_BUTTONS: Record<ModeratorAction, string> = {
   hide: 'Hide post',
@@ -55,7 +73,7 @@ function ActionDialog({ pending, onClose }: { pending: Pending | null; onClose: 
     setIsWorking(true);
     try {
       await act({ ...pending, note, days: Number(days) });
-      toast({ title: 'Done', description: `${MODERATION_ACTIONS[pending.action]}. It's in the log.` });
+      toast({ title: 'Done', description: `${pending.replyId ? pending.title : MODERATION_ACTIONS[pending.action]}. It's in the log.` });
       setNote('');
       onClose();
     } catch {
@@ -122,12 +140,12 @@ function StandingSummary({ userId }: { userId: string }) {
   );
 }
 
-function ActionButtons({ actions, onPick }: { actions: ModeratorAction[]; onPick: (action: ModeratorAction) => void }) {
+function ActionButtons({ actions, onPick, labels = {} }: { actions: ModeratorAction[]; onPick: (action: ModeratorAction) => void; labels?: Partial<Record<ModeratorAction, string>> }) {
   return (
     <div className="flex flex-wrap gap-2">
       {actions.map(action => (
         <Button key={action} size="sm" variant={action === 'delete' || action === 'suspend' ? 'destructive' : 'outline'} onClick={() => onPick(action)}>
-          {ACTION_BUTTONS[action]}
+          {labels[action] ?? ACTION_BUTTONS[action]}
         </Button>
       ))}
     </div>
@@ -139,6 +157,7 @@ function ReportList({ reports }: { reports: Report[] }) {
     <ul className="space-y-1 text-sm">
       {reports.map(report => (
         <li key={report.id}>
+          {report.reporterId === AUTO_CHECK_REPORTER && <Badge variant="secondary" className="mr-2">Automatic check</Badge>}
           <Badge variant="outline" className="mr-2">{REASON_LABELS[report.reason] ?? report.reason}</Badge>
           {report.details && <span className="text-muted-foreground">“{report.details}”</span>}
           <span className="ml-2 text-xs text-muted-foreground"><ZonedText render={tz => formatTimestamp(report.createdAt, true, tz)} /></span>
@@ -200,6 +219,110 @@ function ReviewPost({ postId, reports, onAction }: { postId: string; reports: Re
   );
 }
 
+/** One reply with its open reports and what a moderator can do about it */
+function ReviewReply({ postId, replyId, reports, onAction }: { postId: string; replyId: string; reports: Report[]; onAction: (pending: Pending) => void }) {
+  const firestore = useFirestore();
+  const ref = useMemo(() => doc(firestore, 'memberPosts', postId, 'replies', replyId), [firestore, postId, replyId]);
+  const { data: reply, isLoading } = useDoc<PostReply>(ref);
+  const authorId = reply?.authorId ?? reports[0]?.reportedUserId;
+  const pick = (action: ModeratorAction) => onAction({
+    action,
+    postId,
+    replyId,
+    targetUserId: authorId,
+    reportIds: reports.map(report => report.id),
+    title: REPLY_BUTTONS[action] ?? ACTION_BUTTONS[action],
+  });
+  if (isLoading) return <Card><CardContent className="p-4 text-sm text-muted-foreground">Loading reply...</CardContent></Card>;
+  return (
+    <Card className={!reply || reply.status === 'hidden' ? 'border-dashed' : undefined}>
+      <CardContent className="p-4 space-y-3">
+        <p className="text-xs text-muted-foreground">
+          Reply on <Link href={`/feed/${postId}`} className="underline">a post</Link>
+          {reply?.status === 'hidden' && ' · hidden'}
+        </p>
+        {reply ? (
+          <div className="flex items-start gap-2">
+            <Avatar className="h-7 w-7">
+              <AvatarImage src={reply.authorPhoto || undefined} alt="" />
+              <AvatarFallback>{reply.authorName.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <Link href={`/users/${reply.authorId}`} className="text-sm font-semibold hover:underline">{reply.authorName}</Link>
+              <p className="whitespace-pre-wrap break-words text-sm">{reply.text}</p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">This reply was deleted.</p>
+        )}
+        <div className="space-y-3 border-t pt-3">
+          <p className="text-sm font-medium">{reports.length} open {reports.length === 1 ? 'report' : 'reports'}</p>
+          <ReportList reports={reports} />
+          <div className="flex items-center gap-2"><span className="text-xs">Author:</span><StandingSummary userId={authorId} /></div>
+        </div>
+        <ActionButtons
+          labels={REPLY_BUTTONS}
+          actions={[...(reply ? [reply.status === 'visible' ? 'hide' as const : 'restore' as const, 'delete' as const] : []), 'dismiss', 'warn', 'suspend', 'unsuspend']}
+          onPick={pick}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+/** A member's appeal, with the post it's about, and the moderator's answer */
+function AppealCard({ appeal, onAction }: { appeal: Appeal; onAction: (pending: Pending) => void }) {
+  const firestore = useFirestore();
+  const { user } = useUser();
+  const { toast } = useToast();
+  const { data: members } = useDocsByIds<UserProfile>('users', [appeal.userId]);
+  const [response, setResponse] = useState('');
+  const [isWorking, setIsWorking] = useState(false);
+  const name = members?.[0]?.username ?? 'A member';
+
+  const answer = async (status: 'upheld' | 'reversed') => {
+    if (!user) return;
+    setIsWorking(true);
+    try {
+      await updateDoc(doc(firestore, 'appeals', appeal.id), { status, response: response.trim(), closedBy: user.uid, closedAt: serverTimestamp() });
+      toast({ title: status === 'reversed' ? 'Appeal accepted' : 'Decision kept', description: 'The member is told, with your note.' });
+    } catch {
+      toast({ variant: 'destructive', title: "Couldn't answer the appeal", description: 'Please reload and try again.' });
+    } finally {
+      setIsWorking(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent className="p-4 space-y-3">
+        <p className="text-sm">
+          <Link href={`/users/${appeal.userId}`} className="font-semibold underline">{name}</Link>: {APPEALED[appeal.action]}.
+          <span className="ml-2 text-xs text-muted-foreground"><ZonedText render={tz => formatTimestamp(appeal.createdAt, true, tz)} /></span>
+        </p>
+        <blockquote className="border-l-2 pl-3 text-sm whitespace-pre-wrap break-words">{appeal.text}</blockquote>
+        <StandingSummary userId={appeal.userId} />
+        {appeal.postId && <ReviewPost postId={appeal.postId} reports={[]} onAction={onAction} />}
+        {(appeal.action === 'suspend' || appeal.action === 'warn') && (
+          <ActionButtons actions={['unsuspend']} onPick={action => onAction({ action, targetUserId: appeal.userId, title: ACTION_BUTTONS[action] })} />
+        )}
+        <div className="grid gap-1">
+          <Label htmlFor={`appeal-answer-${appeal.id}`}>Answer to the member</Label>
+          <Textarea id={`appeal-answer-${appeal.id}`} value={response} onChange={e => setResponse(e.target.value)} maxLength={500}
+            placeholder="What you decided and why, kindly and briefly." />
+          <p className="text-xs text-muted-foreground">
+            Reversing doesn&apos;t undo anything by itself: restore the post or lift the suspension above first.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" onClick={() => answer('reversed')} disabled={isWorking}>Accept appeal</Button>
+          <Button size="sm" variant="outline" onClick={() => answer('upheld')} disabled={isWorking}>Keep decision</Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 /** Names the item an edit or deletion was about, with a link while it still exists */
 function ContentPathLabel({ path, deleted }: { path: string; deleted: boolean }) {
   const [kind, id, part] = path.split('/');
@@ -219,7 +342,7 @@ function LogEntries({ entries }: { entries: ModerationLogEntry[] }) {
   const memberIds = [...new Set(entries.flatMap(entry => [entry.actorId, entry.targetUserId]).filter(id => id !== 'system'))];
   const { data: members } = useDocsByIds<UserProfile>('users', memberIds);
   const names = new Map((members ?? []).map(member => [member.id, member.username]));
-  const name = (id: string) => (id === 'system' ? 'Auto-hide' : names.get(id) ?? id.slice(0, 8));
+  const name = (id: string) => (id === 'system' ? 'Automatic' : names.get(id) ?? id.slice(0, 8));
   if (entries.length === 0) return <p className="text-muted-foreground">Nothing yet.</p>;
   return (
     <ul className="divide-y">
@@ -228,7 +351,11 @@ function LogEntries({ entries }: { entries: ModerationLogEntry[] }) {
           <span className="text-xs text-muted-foreground mr-2"><ZonedText render={tz => formatTimestamp(entry.createdAt, true, tz)} /></span>
           <strong>{name(entry.actorId)}</strong>: {MODERATION_ACTIONS[entry.action] ?? entry.action}
           {' · '}<Link href={`/users/${entry.targetUserId}`} className="underline">{name(entry.targetUserId)}</Link>
-          {entry.postId && <span className="text-xs text-muted-foreground"> (post {entry.postId.slice(0, 8)})</span>}
+          {entry.postId && (
+            <span className="text-xs text-muted-foreground">
+              {' '}(<Link href={`/feed/${entry.postId}`} className="underline">{entry.replyId ? 'a reply on post' : 'post'} {entry.postId.slice(0, 8)}</Link>)
+            </span>
+          )}
           {entry.contentPath && <ContentPathLabel path={entry.contentPath} deleted={entry.action === 'delete-content'} />}
           {entry.note && <p className="text-muted-foreground">“{entry.note}”</p>}
         </li>
@@ -247,16 +374,31 @@ function Queue({ isAdmin }: { isAdmin: boolean }) {
   const { data: hidden } = useCollection<MemberPost>(hiddenQuery);
   const logQuery = useMemo(() => query(collection(firestore, 'moderationLog'), orderBy('createdAt', 'desc'), limit(100)), [firestore]);
   const { data: log } = useCollection<ModerationLogEntry>(logQuery);
+  const appealsQuery = useMemo(() => query(collection(firestore, 'appeals'), where('status', '==', 'open'), limit(200)), [firestore]);
+  const { data: appealList } = useCollection<Appeal>(appealsQuery);
+  const appeals = useMemo(
+    () => [...(appealList ?? [])].sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0)),
+    [appealList],
+  );
 
-  // Post reports grouped by post, most-reported first; profile reports apart
-  const { byPost, memberReports } = useMemo(() => {
-    const groups = new Map<string, Report[]>();
+  // Post and reply reports grouped by what they're about, most-reported
+  // first; profile reports apart
+  const { byPost, byReply, memberReports } = useMemo(() => {
+    const posts = new Map<string, Report[]>();
+    const replies = new Map<string, Report[]>();
     const others: Report[] = [];
     for (const report of reports ?? []) {
-      if (report.postId) groups.set(report.postId, [...(groups.get(report.postId) ?? []), report]);
-      else others.push(report);
+      if (report.postId && report.replyId) {
+        const key = `${report.postId}/${report.replyId}`;
+        replies.set(key, [...(replies.get(key) ?? []), report]);
+      } else if (report.postId) {
+        posts.set(report.postId, [...(posts.get(report.postId) ?? []), report]);
+      } else {
+        others.push(report);
+      }
     }
-    return { byPost: [...groups.entries()].sort((a, b) => b[1].length - a[1].length), memberReports: others };
+    const mostFirst = (groups: Map<string, Report[]>) => [...groups.entries()].sort((a, b) => b[1].length - a[1].length);
+    return { byPost: mostFirst(posts), byReply: mostFirst(replies), memberReports: others };
   }, [reports]);
   const reportedIds = new Set(byPost.map(([postId]) => postId));
   const otherHidden = (hidden ?? []).filter(post => !reportedIds.has(post.id));
@@ -265,16 +407,26 @@ function Queue({ isAdmin }: { isAdmin: boolean }) {
     <>
       <Tabs defaultValue="posts">
         <TabsList>
-          <TabsTrigger value="posts">Reported posts ({byPost.length})</TabsTrigger>
+          <TabsTrigger value="posts">Reported posts ({byPost.length + byReply.length})</TabsTrigger>
           <TabsTrigger value="members">Member reports ({memberReports.length})</TabsTrigger>
+          <TabsTrigger value="appeals">Appeals ({appeals.length})</TabsTrigger>
           <TabsTrigger value="hidden">Hidden ({otherHidden.length})</TabsTrigger>
           <TabsTrigger value="log">Log</TabsTrigger>
           <TabsTrigger value="team">Team</TabsTrigger>
         </TabsList>
 
         <TabsContent value="posts" className="space-y-4">
-          {reports && byPost.length === 0 && <p className="text-muted-foreground">No reported posts. Nice.</p>}
+          {reports && byPost.length + byReply.length === 0 && <p className="text-muted-foreground">No reported posts or replies. Nice.</p>}
           {byPost.map(([postId, postReports]) => <ReviewPost key={postId} postId={postId} reports={postReports} onAction={setPending} />)}
+          {byReply.map(([key, replyReports]) => {
+            const [postId, replyId] = key.split('/');
+            return <ReviewReply key={key} postId={postId} replyId={replyId} reports={replyReports} onAction={setPending} />;
+          })}
+        </TabsContent>
+
+        <TabsContent value="appeals" className="space-y-4">
+          {appealList && appeals.length === 0 && <p className="text-muted-foreground">No open appeals.</p>}
+          {appeals.map(appeal => <AppealCard key={appeal.id} appeal={appeal} onAction={setPending} />)}
         </TabsContent>
 
         <TabsContent value="members" className="space-y-4">

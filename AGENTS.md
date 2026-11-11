@@ -78,7 +78,12 @@ next dev` (see `src/firebase/initialize-app.ts` for the port settings).
   is public by design.)
 - Reserved usernames are listed in both `src/lib/usernames.ts` and
   `firestore.rules`; keep the two lists the same. So are the feed's blocked
-  words and post limits (`src/lib/member-posts.ts`).
+  words and post and reply limits (`src/lib/member-posts.ts`).
+- **Feed counts and follows:** a post's `likeCount` changes in the same save
+  as the like (the rules check it); `replyCount` is kept by
+  `functions/src/replies.ts`. A private account (`users.privateAccount`) can
+  only be followed through `followRequests`; accepting adds the follower,
+  and `functions/src/follows.ts` fills in their `following`.
 - Feed posts are public or followers-only (`audience`), and a private
   account's posts are always followers-only. Server reads skip the rules, so
   the server-rendered feed must filter `audience == 'public'`. Images live in

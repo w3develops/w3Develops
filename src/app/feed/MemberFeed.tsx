@@ -15,8 +15,10 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 import PostCard from '@/components/posts/PostCard';
 import PostComposer from '@/components/posts/PostComposer';
+import FollowRequests from '@/components/posts/FollowRequests';
+import AppealButton from '@/components/posts/AppealButton';
 import { useFeedPrefs } from '@/lib/hooks/useFeedPrefs';
-import { useIsModerator } from '@/lib/hooks/useIsModerator';
+import { useModerationCount } from '@/lib/hooks/useIsModerator';
 import { useDocsByIds } from '@/lib/hooks/useDocsByIds';
 import { MAX_FOLLOWED_TOPICS, parseTopics } from '@/lib/member-posts';
 import type { MemberPost, MemberStanding, UserProfile } from '@/lib/types';
@@ -38,8 +40,8 @@ function PrivateAccountSetting({ isPrivate, onChange }: { isPrivate: boolean; on
       </div>
       <p className="text-xs text-muted-foreground">
         {isPrivate
-          ? 'Only your followers see your posts. Turning this off keeps your old posts followers-only; you can open each one up.'
-          : 'Anyone can see your posts unless you choose Followers on a post. Turning this on makes all your posts followers-only.'}
+          ? 'Only your followers see your posts, and new people ask to follow you. Turning this off keeps your old posts followers-only; you can open each one up.'
+          : 'Anyone can see your posts unless you choose Followers on a post. Turning this on makes all your posts followers-only, and new people have to ask to follow you.'}
       </p>
     </div>
   );
@@ -99,7 +101,7 @@ export default function MemberFeed({ initial }: { initial: unknown[] | null }) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const isModerator = useIsModerator();
+  const moderationCount = useModerationCount();
   const prefs = useFeedPrefs();
 
   const profileRef = useMemo(() => (user ? doc(firestore, 'users', user.uid) : null), [firestore, user]);
@@ -192,9 +194,14 @@ export default function MemberFeed({ initial }: { initial: unknown[] | null }) {
           <h1 className="text-3xl font-headline">Community Feed</h1>
           <p className="text-muted-foreground">Short posts from w3Develops members: what they&apos;re learning, building and sharing.</p>
         </div>
-        {isModerator && (
+        {moderationCount !== null && (
           <Button asChild variant="outline">
-            <Link href="/moderation"><ShieldCheck className="mr-2 h-4 w-4" aria-hidden="true" /> Moderation</Link>
+            <Link href="/moderation">
+              <ShieldCheck className="mr-2 h-4 w-4" aria-hidden="true" /> Moderation
+              {moderationCount > 0 && (
+                <Badge variant="destructive" className="ml-2" aria-label={`${moderationCount} waiting for review`}>{moderationCount}</Badge>
+              )}
+            </Link>
           </Button>
         )}
       </div>
@@ -206,7 +213,11 @@ export default function MemberFeed({ initial }: { initial: unknown[] | null }) {
               <AlertTitle>A moderator sent you a warning</AlertTitle>
               <AlertDescription>
                 {standing.lastWarning} Please read the <Link href="/code-of-conduct" className="underline">Code of Conduct</Link>.
-                To appeal, email <a href="mailto:w3DevelopsSupport@googlegroups.com" className="underline">w3DevelopsSupport@googlegroups.com</a>.
+                {standing.warnLogId ? (
+                  <span className="mt-2 block"><AppealButton logId={standing.warnLogId} action="warn" /></span>
+                ) : (
+                  <> To appeal, email <a href="mailto:w3DevelopsSupport@googlegroups.com" className="underline">w3DevelopsSupport@googlegroups.com</a>.</>
+                )}
               </AlertDescription>
             </Alert>
           )}
@@ -235,6 +246,7 @@ export default function MemberFeed({ initial }: { initial: unknown[] | null }) {
             <Card>
               <CardHeader className="pb-2"><CardTitle className="text-base">Your feed</CardTitle></CardHeader>
               <CardContent className="space-y-4">
+                <FollowRequests />
                 <PrivateAccountSetting
                   isPrivate={prefs.privateAccount}
                   onChange={isPrivate => run(() => prefs.setPrivateAccount(isPrivate),
@@ -256,7 +268,7 @@ export default function MemberFeed({ initial }: { initial: unknown[] | null }) {
           <Card>
             <CardContent className="p-4 text-sm text-muted-foreground space-y-2">
               <p>Posts are public unless their author shares them with followers only, and follow our <Link href="/code-of-conduct" className="underline">Code of Conduct</Link>. There are no private messages.</p>
-              <p>See something wrong? Use <strong>Report</strong> on the post. Posts with several reports are hidden until a moderator reviews them.</p>
+              <p>See something wrong? Use <strong>Report</strong> on the post or reply. Ones with several reports are hidden until a moderator reviews them. If a moderator acts on something of yours, you can appeal.</p>
             </CardContent>
           </Card>
         </aside>

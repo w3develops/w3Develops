@@ -332,7 +332,7 @@ export default function UserProfilePage({ userId, initialProfile }: { userId: st
             </div>
           </div>
           <div className="flex flex-col gap-2 self-center md:self-start">
-             <FollowButton targetUserId={userProfile.id} targetUserFollowers={userProfile.followers || []} />
+             <FollowButton targetUserId={userProfile.id} targetUserFollowers={userProfile.followers || []} targetIsPrivate={userProfile.privateAccount === true} />
              <ReportUserButton reportedUserId={userProfile.id} username={userProfile.username} />
           </div>
         </CardContent>

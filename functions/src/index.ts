@@ -6,7 +6,7 @@ initializeApp();
 // Same region as the Firestore database; one instance at a time is plenty
 setGlobalOptions({ region: 'us-central1', maxInstances: 5 });
 
-export { onFollow } from './follows.js';
+export { onFollow, onFollowRequest } from './follows.js';
 export { onStudyGroupMembers, onGroupProjectMembers, onBookClubMembers } from './groups.js';
 export { onCheckIn, onTaskAdded, onTaskDone } from './activity.js';
 export { onMentorshipRequest, onTutorRequest, onPairRequest } from './connections.js';
@@ -16,3 +16,5 @@ export { onReport } from './reports.js';
 export { scheduledPosts } from './posts.js';
 export { setModerator } from './moderators.js';
 export { onMemberPostWritten } from './post-checks.js';
+export { onReplyWritten } from './replies.js';
+export { onAppealWritten } from './appeals.js';
