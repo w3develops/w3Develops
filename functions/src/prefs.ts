@@ -11,6 +11,7 @@ export const PREF_DEFAULTS = {
   following: true,
   meetingReminders: false,
   replies: true,
+  mentions: true,
 };
 export type PrefId = keyof typeof PREF_DEFAULTS;
 

@@ -4,6 +4,7 @@ import { applicationDefault } from 'firebase-admin/app';
 import { FieldValue, getFirestore, type DocumentData, type DocumentReference } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { AUTO_CHECK_REPORTER } from './reports.js';
+import { notifyMentions } from './mentions.js';
 
 // Runs whenever a community feed post (memberPosts) is created, changed or
 // deleted:
@@ -171,7 +172,14 @@ export const onMemberPostWritten = onDocumentWritten({ document: 'memberPosts/{p
     await getFirestore().recursiveDelete(getFirestore().doc(`memberPosts/${postId}`))
       .catch(error => logger.error('Could not delete a post\'s likes and replies', { postId, error: String(error) }));
   }
-  if (after) await checkPost(postId, before, after);
+  if (after) {
+    await checkPost(postId, before, after);
+    // Mentions go out once the checks are done, and not if they hid it
+    if (after.text !== before?.text) {
+      const current = (await getFirestore().doc(`memberPosts/${postId}`).get()).data();
+      if (current) await notifyMentions(event.id, { postId, after: current, before, post: current });
+    }
+  }
   // A post that was on the public feed and isn't any more: hidden, deleted,
   // or switched to followers only
   if (isPublic(before) && !isPublic(after)) await refreshFeedPage(postId);

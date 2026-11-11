@@ -17,6 +17,7 @@ import ZonedText from '@/components/ZonedText';
 import PostFields, { AudienceSelect, draftFields, draftProblem, type PostDraft } from './PostFields';
 import { LikeButton, RepliesToggle, ReplyThread } from './PostReplies';
 import AppealButton from './AppealButton';
+import MentionText from './MentionText';
 import { formatTimestamp } from '@/lib/utils';
 import type { MemberPost, PostAudience } from '@/lib/types';
 
@@ -148,7 +149,7 @@ export default function PostCard({ post, onMute, onBlock, children, privateAccou
           )}
         </div>
 
-        <p className="whitespace-pre-wrap break-words">{post.text}</p>
+        <p className="whitespace-pre-wrap break-words"><MentionText text={post.text} /></p>
 
         {post.imageUrl && (
           <a href={post.imageUrl} target="_blank" rel="noopener noreferrer" className="block w-fit">

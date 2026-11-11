@@ -1,8 +1,9 @@
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { logger } from 'firebase-functions';
-import { FieldValue, getFirestore, type DocumentReference } from 'firebase-admin/firestore';
+import { FieldValue, getFirestore, type DocumentData, type DocumentReference } from 'firebase-admin/firestore';
 import { excerpt, getMembers, writeFeed } from './feed.js';
 import { flagText, hideAfterCheck, inEmulator } from './post-checks.js';
+import { notifyMentions } from './mentions.js';
 
 /**
  * Runs when a reply to a feed post (memberPosts/{postId}/replies/{replyId})
@@ -10,7 +11,8 @@ import { flagText, hideAfterCheck, inEmulator } from './post-checks.js';
  * - keeps replyCount on the post up to date;
  * - tells the post's author about a new reply (unless they wrote it);
  * - checks a new or edited reply's text like a post's, and hides it if
- *   it's flagged.
+ *   it's flagged;
+ * - tells members it @mentions.
  */
 export const onReplyWritten = onDocumentWritten('memberPosts/{postId}/replies/{replyId}', async event => {
   const { postId, replyId } = event.params;
@@ -20,7 +22,10 @@ export const onReplyWritten = onDocumentWritten('memberPosts/{postId}/replies/{r
   if (before && after) {
     // The author edited it: check the new text. (A moderator hiding or
     // restoring it changes nothing else.)
-    if (after.text !== before.text && after.status === 'visible') await checkReply(event.data!.after.ref, postId, replyId, after.text);
+    if (after.text !== before.text && after.status === 'visible') {
+      await checkReply(event.data!.after.ref, postId, replyId, after.text);
+      await notifyReplyMentions(event.id, event.data!.after.ref, postId, replyId, before);
+    }
     return;
   }
 
@@ -45,7 +50,15 @@ export const onReplyWritten = onDocumentWritten('memberPosts/{postId}/replies/{r
   }
 
   await checkReply(event.data!.after.ref, postId, replyId, after.text);
+  await notifyReplyMentions(event.id, event.data!.after.ref, postId, replyId, undefined);
 });
+
+/** Notifies members mentioned in a reply, once its check is done and if it's still visible */
+async function notifyReplyMentions(eventId: string, ref: DocumentReference, postId: string, replyId: string, before: DocumentData | undefined) {
+  const [reply, post] = await Promise.all([ref.get(), getFirestore().doc(`memberPosts/${postId}`).get()]);
+  if (!reply.exists || !post.exists) return;
+  await notifyMentions(eventId, { postId, replyId, after: reply.data()!, before, post: post.data()! });
+}
 
 /** Hides a reply whose text the automatic check flags; never throws */
 async function checkReply(ref: DocumentReference, postId: string, replyId: string, text: unknown) {

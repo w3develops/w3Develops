@@ -12,6 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 import ReportUserButton from '@/components/ReportUserButton';
 import ZonedText from '@/components/ZonedText';
 import AppealButton from './AppealButton';
+import MentionText from './MentionText';
 import { useVerifiedGuard } from '@/lib/hooks/useVerifiedGuard';
 import { useIsModerator } from '@/lib/hooks/useIsModerator';
 import { useModerationActions } from '@/app/moderation/useModerationActions';
@@ -150,7 +151,7 @@ function ReplyItem({ post, reply }: { post: MemberPost; reply: PostReply }) {
           {reply.status === 'hidden' && <span className="text-xs text-muted-foreground">· hidden, only you and moderators see it</span>}
         </div>
         {draft === null ? (
-          <p className="whitespace-pre-wrap break-words text-sm">{reply.text}</p>
+          <p className="whitespace-pre-wrap break-words text-sm"><MentionText text={reply.text} /></p>
         ) : (
           <form className="mt-1 space-y-2" onSubmit={e => { e.preventDefault(); saveEdit(); }}>
             <Textarea value={draft} onChange={e => setDraft(e.target.value)} maxLength={MAX_REPLY_LENGTH} rows={2} aria-label="Edit your reply" autoFocus />

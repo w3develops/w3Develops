@@ -178,7 +178,7 @@ export interface FeedEntry {
     id: string;
     type: 'follow' | 'group_join' | 'group_leave' | 'checkin' | 'task_added' | 'task_done'
         | 'request' | 'request_accepted' | 'solo_project' | 'reminder'
-        | 'follow_request' | 'reply' | 'moderation' | 'appeal';
+        | 'follow_request' | 'reply' | 'moderation' | 'appeal' | 'mention';
     actorId: string;
     actorName: string;
     actorPhoto: string;
