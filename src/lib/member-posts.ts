@@ -9,8 +9,10 @@ export const MAX_POST_TOPICS = 3;
 export const TOPIC_PATTERN = /^[a-z0-9-]{1,30}$/;
 /** Most posts per member per hour (firestore.rules: match /postLimits) */
 export const POSTS_PER_HOUR = 5;
-/** How old an account must be before it can post (firestore.rules: isOldEnoughToPost) */
-export const MIN_ACCOUNT_AGE_MS = 24 * 60 * 60 * 1000;
+/** Largest image on a post (storage.rules) */
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+/** Image types a post can have (storage.rules) */
+export const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 /** Open reports from different members that hide a post until a moderator looks (functions/src/reports.ts) */
 export const AUTO_HIDE_REPORTS = 3;
 /** Most topics a member can follow, which is also Firestore's limit for one array-contains-any query */
@@ -23,10 +25,13 @@ export const MAX_FOLLOWED_TOPICS = 30;
  * word here is refused, so add new words to both.
  */
 export const BLOCKED_WORDS = [
+  // Profanity, sexual content, slurs, self-harm and scams. Matched as whole words.
   'fuck', 'fucking', 'fucker', 'motherfucker', 'shit', 'bullshit', 'cunt', 'bitch', 'whore', 'slut',
-  'porn', 'porno', 'nudes', 'onlyfans', 'xxx',
-  'nigger', 'nigga', 'faggot', 'fag', 'retard', 'kys',
-  'free robux', 'free vbucks',
+  'porn', 'porno', 'nudes', 'onlyfans', 'xxx', 'nigger', 'nigga', 'faggot', 'fag', 'retard', 'kys',
+  'free robux', 'free vbucks', 'asshole', 'dickhead', 'dumbass', 'jackass', 'bastard', 'twat',
+  'wanker', 'pussy', 'blowjob', 'handjob', 'cumshot', 'hentai', 'nsfw', 'sexting',
+  'send nudes', 'dick pic', 'chink', 'spic', 'kike', 'wetback', 'tranny', 'dyke', 'retarded',
+  'kill yourself', 'go die', 'free nitro', 'cashapp me', 'dm me for money',
 ];
 
 /** The first blocked word in the text, or null */
@@ -65,7 +70,8 @@ export const MODERATION_ACTIONS = {
   warn: 'Warned a member',
   suspend: 'Suspended a member',
   unsuspend: 'Lifted a suspension',
-  'auto-hide': 'Hid a post after reports',
+  'auto-hide': 'Hid a post automatically',
+  'remove-image': "Removed a post's image",
   'add-moderator': 'Made a member a moderator',
   'remove-moderator': 'Removed a moderator',
   'edit-content': 'Edited',

@@ -350,6 +350,8 @@ export interface BlogPost {
  * moderators and the auto-hide job (functions/src/reports.ts) change
  * `status`. Hidden posts are readable only by moderators and the author.
  */
+export type PostAudience = 'public' | 'followers';
+
 export interface MemberPost {
   id: string;
   authorId: string;
@@ -361,9 +363,14 @@ export interface MemberPost {
   topics: string[];
   /** An optional https link shown under the text */
   linkUrl?: string;
+  /** Everyone, or only the author's followers (always followers for a private account) */
+  audience: PostAudience;
+  /** An optional image in Storage at imagePath (memberPosts/<uid>/<postId>/<file>) */
+  imageUrl?: string;
+  imagePath?: string;
   status: 'visible' | 'hidden';
-  /** Who hid it: a moderator, or the auto-hide after several reports */
-  hiddenBy?: 'moderator' | 'reports';
+  /** Who hid it: a moderator, the auto-hide after several reports, or the automatic text and image checks */
+  hiddenBy?: 'moderator' | 'reports' | 'auto-check';
   /** The moderationLog entry for the latest moderator action on it */
   moderationLogId?: string;
   createdAt: Timestamp;
@@ -378,6 +385,8 @@ export interface FeedPrefs {
   mutedIds?: string[];
   /** Like muted, and these members also can't follow them */
   blockedIds?: string[];
+  /** All their posts are for followers only */
+  privateAccount?: boolean;
 }
 
 /** A report a member filed about another member or one of their posts (src/components/ReportUserButton.tsx) */

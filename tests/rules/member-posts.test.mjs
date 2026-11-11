@@ -65,6 +65,7 @@ function post(authorId, extra = {}) {
     authorPhoto: '',
     text: 'Just shipped my first React app!',
     topics: ['react'],
+    audience: 'public',
     status: 'visible',
     createdAt: serverTimestamp(),
     ...extra,
@@ -121,8 +122,8 @@ describe('reading posts', () => {
     await assertSucceeds(getDoc(doc(anon(), 'memberPosts', 'visible1')));
   });
 
-  test('anyone can list visible posts', async () => {
-    await assertSucceeds(getDocs(query(collection(anon(), 'memberPosts'), where('status', '==', 'visible'))));
+  test('anyone can list visible public posts', async () => {
+    await assertSucceeds(getDocs(query(collection(anon(), 'memberPosts'), where('status', '==', 'visible'), where('audience', '==', 'public'))));
   });
 
   test('listing without the visible filter is refused', async () => {
@@ -163,13 +164,8 @@ describe('creating posts', () => {
     await assertFails(createPost(as('unverified'), 'unverified', 'p1'));
   });
 
-  test('an account under a day old cannot post', async () => {
-    await assertFails(createPost(as('newbie'), 'newbie', 'p1'));
-  });
-
-  test('an account with no createdAt cannot post', async () => {
-    await seed(db => updateDoc(doc(db, 'users', 'alice'), { createdAt: deleteField() }));
-    await assertFails(createPost(as('alice'), 'alice', 'p1'));
+  test('a brand-new account can post straight away', async () => {
+    await assertSucceeds(createPost(as('newbie'), 'newbie', 'p1'));
   });
 
   test('posting as someone else is refused', async () => {
@@ -588,5 +584,136 @@ describe('the moderation team list', () => {
 
   test('team changes are logged by the server only', async () => {
     await assertFails(setDoc(doc(as('mod'), 'moderationLog', 'l1'), { actorId: 'mod', action: 'add-moderator', targetUserId: 'alice', note: '', createdAt: serverTimestamp() }));
+  });
+});
+
+describe('followers-only posts and private accounts', () => {
+  beforeEach(async () => {
+    await seed(async db => {
+      // carol follows bob; alice doesn't
+      await updateDoc(doc(db, 'users', 'bob'), { followers: ['carol'] });
+      await setDoc(doc(db, 'memberPosts', 'followers1'), { ...post('bob'), audience: 'followers', createdAt: Timestamp.now() });
+    });
+  });
+
+  test('followers can read and list them', async () => {
+    await assertSucceeds(getDoc(doc(as('carol'), 'memberPosts', 'followers1')));
+    await assertSucceeds(getDocs(query(collection(as('carol'), 'memberPosts'), where('status', '==', 'visible'), where('authorId', 'in', ['bob']))));
+  });
+
+  test('visitors and members who do not follow the author cannot', async () => {
+    await assertFails(getDoc(doc(anon(), 'memberPosts', 'followers1')));
+    await assertFails(getDoc(doc(as('alice'), 'memberPosts', 'followers1')));
+    await assertFails(getDocs(query(collection(as('alice'), 'memberPosts'), where('status', '==', 'visible'), where('authorId', 'in', ['bob']))));
+  });
+
+  test('listing visible posts without the public filter is refused', async () => {
+    await assertFails(getDocs(query(collection(as('carol'), 'memberPosts'), where('status', '==', 'visible'))));
+  });
+
+  test('the author and moderators can read them', async () => {
+    await assertSucceeds(getDoc(doc(as('bob'), 'memberPosts', 'followers1')));
+    await assertSucceeds(getDoc(doc(as('mod'), 'memberPosts', 'followers1')));
+  });
+
+  test('a hidden followers-only post is refused to followers', async () => {
+    await seed(db => updateDoc(doc(db, 'memberPosts', 'followers1'), { status: 'hidden' }));
+    await assertFails(getDoc(doc(as('carol'), 'memberPosts', 'followers1')));
+  });
+
+  test('a public account can post to everyone or to followers', async () => {
+    await assertSucceeds(createPost(as('alice'), 'alice', 'p1', { audience: 'followers' }));
+    await assertSucceeds(createPost(as('carol'), 'carol', 'p2', { audience: 'public' }));
+  });
+
+  test('the audience must be public or followers', async () => {
+    await assertFails(createPost(as('alice'), 'alice', 'p1', { audience: 'friends' }));
+    const missing = post('alice');
+    delete missing.audience;
+    const db = as('alice');
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'memberPosts', 'p2'), missing);
+    batch.set(doc(db, 'postLimits', 'alice'), { windowStart: serverTimestamp(), count: 1, lastPostId: 'p2' });
+    await assertFails(batch.commit());
+  });
+
+  test('a private account can only post to followers', async () => {
+    await seed(db => setDoc(doc(db, 'users/alice/private/feedPrefs'), { privateAccount: true }));
+    await assertFails(createPost(as('alice'), 'alice', 'p1', { audience: 'public' }));
+    await assertSucceeds(createPost(as('alice'), 'alice', 'p2', { audience: 'followers' }));
+  });
+
+  test('a private account cannot make a post public by editing it', async () => {
+    await seed(async db => {
+      await setDoc(doc(db, 'users/bob/private/feedPrefs'), { privateAccount: true });
+    });
+    await assertFails(updateDoc(doc(as('bob'), 'memberPosts', 'followers1'), { audience: 'public', updatedAt: serverTimestamp() }));
+  });
+
+  test('changing only the audience needs no updatedAt (it is not shown as edited)', async () => {
+    await assertSucceeds(updateDoc(doc(as('bob'), 'memberPosts', 'visible1'), { audience: 'followers' }));
+    await assertFails(updateDoc(doc(as('bob'), 'memberPosts', 'visible1'), { audience: 'followers', text: 'sneaky' }));
+  });
+
+  test('a public account can change a post between public and followers', async () => {
+    await assertSucceeds(updateDoc(doc(as('bob'), 'memberPosts', 'followers1'), { audience: 'public', updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(as('bob'), 'memberPosts', 'visible1'), { audience: 'followers', updatedAt: serverTimestamp() }));
+  });
+
+  test('members can turn their private account on and off', async () => {
+    await assertSucceeds(setDoc(doc(as('alice'), 'users/alice/private/feedPrefs'), { privateAccount: true }, { merge: true }));
+    await assertSucceeds(setDoc(doc(as('alice'), 'users/alice/private/feedPrefs'), { privateAccount: false }, { merge: true }));
+    await assertFails(setDoc(doc(as('alice'), 'users/alice/private/feedPrefs'), { privateAccount: 'yes' }, { merge: true }));
+  });
+});
+
+describe('images on posts', () => {
+  const image = (uid, postId) => ({
+    imagePath: `memberPosts/${uid}/${postId}/photo.jpg`,
+    imageUrl: `https://firebasestorage.googleapis.com/v0/b/bucket/o/memberPosts%2F${uid}%2F${postId}%2Fphoto.jpg?alt=media`,
+  });
+
+  test('a post can have an image stored under its own path', async () => {
+    await assertSucceeds(createPost(as('alice'), 'alice', 'p1', image('alice', 'p1')));
+  });
+
+  test("an image from someone else's or another post's folder is refused", async () => {
+    await assertFails(createPost(as('alice'), 'alice', 'p1', image('bob', 'p1')));
+    await assertFails(createPost(as('alice'), 'alice', 'p2', image('alice', 'other')));
+  });
+
+  test('the image link must point at Firebase Storage', async () => {
+    await assertFails(createPost(as('alice'), 'alice', 'p1', { ...image('alice', 'p1'), imageUrl: 'https://evil.example/x.jpg' }));
+  });
+
+  test('an image needs both its path and its link', async () => {
+    const { imagePath } = image('alice', 'p1');
+    await assertFails(createPost(as('alice'), 'alice', 'p1', { imagePath }));
+  });
+
+  test('authors can remove the image when editing', async () => {
+    await seed(db => setDoc(doc(db, 'memberPosts', 'withImage'), { ...post('bob'), ...image('bob', 'withImage'), createdAt: Timestamp.now() }));
+    await assertSucceeds(updateDoc(doc(as('bob'), 'memberPosts', 'withImage'), { imageUrl: deleteField(), imagePath: deleteField(), updatedAt: serverTimestamp() }));
+  });
+
+  test('a moderator can remove just the image with a log entry', async () => {
+    await seed(db => setDoc(doc(db, 'memberPosts', 'withImage'), { ...post('bob'), ...image('bob', 'withImage'), createdAt: Timestamp.now() }));
+    const db = as('mod');
+    await assertFails(updateDoc(doc(db, 'memberPosts', 'withImage'), { imageUrl: deleteField(), imagePath: deleteField(), moderationLogId: 'l1' }));
+    await assertSucceeds(moderate(db, 'l1', { action: 'remove-image', postId: 'withImage' }, b =>
+      b.update(doc(db, 'memberPosts', 'withImage'), { imageUrl: deleteField(), imagePath: deleteField(), moderationLogId: 'l1' })));
+  });
+
+  test("a moderator's image removal cannot change the text", async () => {
+    await seed(db => setDoc(doc(db, 'memberPosts', 'withImage'), { ...post('bob'), ...image('bob', 'withImage'), createdAt: Timestamp.now() }));
+    const db = as('mod');
+    await assertFails(moderate(db, 'l1', { action: 'remove-image', postId: 'withImage' }, b =>
+      b.update(doc(db, 'memberPosts', 'withImage'), { imageUrl: deleteField(), imagePath: deleteField(), moderationLogId: 'l1', text: 'x' })));
+  });
+});
+
+describe('blocked words that look like ordinary words', () => {
+  test('names and everyday words that contain or resemble blocked words are fine', async () => {
+    await assertSucceeds(createPost(as('alice'), 'alice', 'p1', { text: 'Reading Philip K. Dick and Moby Dick; a cocktail of classics in Scunthorpe' }));
   });
 });

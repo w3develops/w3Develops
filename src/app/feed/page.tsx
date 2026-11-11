@@ -9,10 +9,10 @@ export const revalidate = 300;
 export const metadata: Metadata = pageMetadata('/feed');
 
 export default async function FeedPage() {
-  // Only visible posts: the server reads skip the Firestore rules
+  // Only visible public posts: the server reads skip the Firestore rules
   const initial = await getPublicList({
     collection: 'memberPosts',
-    equals: { field: 'status', value: 'visible' },
+    equals: [{ field: 'status', value: 'visible' }, { field: 'audience', value: 'public' }],
     orderBy: 'createdAt',
     direction: 'desc',
     limit: 50,

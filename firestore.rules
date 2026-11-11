@@ -274,7 +274,7 @@ service cloud.firestore {
     // Profiles are public, so they must never hold an email address.
     // Firebase Auth already keeps each member's email privately.
     // `createdAt` is when the account was made, set once at signup and never
-    // changed, so the rules can tell how old an account is (isOldEnoughToPost).
+    // changed.
     match /users/{userId} {
       allow read: if true;
       allow create: if isOwner(userId) && !('email' in request.resource.data)
@@ -657,7 +657,8 @@ service cloud.firestore {
           && (!('meetingReminders' in request.resource.data) || request.resource.data.meetingReminders is bool))
         // The feed's followed topics, muted and blocked members (FeedPrefs in src/lib/types.ts)
         || (docId == 'feedPrefs'
-          && request.resource.data.keys().hasOnly(['topics', 'mutedIds', 'blockedIds'])
+          && request.resource.data.keys().hasOnly(['topics', 'mutedIds', 'blockedIds', 'privateAccount'])
+          && request.resource.data.get('privateAccount', false) is bool
           && request.resource.data.get('topics', []) is list && request.resource.data.get('topics', []).size() <= 30
           && request.resource.data.get('mutedIds', []) is list && request.resource.data.get('mutedIds', []).size() <= 500
           && request.resource.data.get('blockedIds', []) is list && request.resource.data.get('blockedIds', []).size() <= 500)
@@ -720,7 +721,7 @@ service cloud.firestore {
     // Words a post can't contain, as whole words in any case. Keep in step
     // with BLOCKED_WORDS in src/lib/member-posts.ts.
     function hasBlockedWord(text) {
-      return text.lower().matches('(?s)(.*[^a-z0-9_])?(fuck|fucking|fucker|motherfucker|shit|bullshit|cunt|bitch|whore|slut|porn|porno|nudes|onlyfans|xxx|nigger|nigga|faggot|fag|retard|kys|free\\s+robux|free\\s+vbucks)([^a-z0-9_].*)?');
+      return text.lower().matches('(?s)(.*[^a-z0-9_])?(fuck|fucking|fucker|motherfucker|shit|bullshit|cunt|bitch|whore|slut|porn|porno|nudes|onlyfans|xxx|nigger|nigga|faggot|fag|retard|kys|free\\s+robux|free\\s+vbucks|asshole|dickhead|dumbass|jackass|bastard|twat|wanker|pussy|blowjob|handjob|cumshot|hentai|nsfw|sexting|send\\s+nudes|dick\\s+pic|chink|spic|kike|wetback|tranny|dyke|retarded|kill\\s+yourself|go\\s+die|free\\s+nitro|cashapp\\s+me|dm\\s+me\\s+for\\s+money)([^a-z0-9_].*)?');
     }
 
     // Text up to 500 characters, up to 3 topics, and an optional https link
@@ -732,10 +733,33 @@ service cloud.firestore {
              && (!('linkUrl' in data) || (data.linkUrl is string && data.linkUrl.size() <= 500 && data.linkUrl.matches('https://[^\\s]+')));
     }
 
-    // Accounts must be at least a day old to post (MIN_ACCOUNT_AGE_MS)
-    function isOldEnoughToPost(profile) {
-      return profile.createdAt is timestamp
-             && profile.createdAt < request.time - duration.value(1, 'd');
+    // A private account's posts are for followers only (feedPrefs.privateAccount)
+    function hasPrivateAccount(userId) {
+      let prefsPath = /databases/$(database)/documents/users/$(userId)/private/feedPrefs;
+      return exists(prefsPath) && get(prefsPath).data.get('privateAccount', false) == true;
+    }
+
+    // Who a post is for: everyone, or the author's followers. Members with a
+    // private account can only post to followers.
+    function isAllowedAudience(data) {
+      return data.audience in ['public', 'followers']
+             && (data.audience == 'followers' || !hasPrivateAccount(request.auth.uid));
+    }
+
+    // An optional image the author uploaded to Storage for this post, at
+    // memberPosts/<uid>/<postId>/<file> (storage.rules)
+    function isValidPostImage(data, postId) {
+      return (!('imageUrl' in data) && !('imagePath' in data))
+             || (data.imagePath is string
+                 && data.imagePath.matches('memberPosts/' + data.authorId + '/' + postId + '/[A-Za-z0-9._-]{1,100}')
+                 && data.imageUrl is string && data.imageUrl.size() <= 1000
+                 && data.imageUrl.matches('(https://firebasestorage[.]googleapis[.]com|http://127[.]0[.]0[.]1:[0-9]+)/v0/b/.+'));
+    }
+
+    // True when `userId` lists the signed-in member as a follower
+    function isFollowerOf(userId) {
+      return request.auth != null
+             && get(/databases/$(database)/documents/users/$(userId)).data.get('followers', []).hasAny([request.auth.uid]);
     }
 
     function isSuspended(userId) {
@@ -757,26 +781,30 @@ service cloud.firestore {
       let data = request.resource.data;
       let profile = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
       return isVerified()
-             && data.keys().hasOnly(['authorId', 'authorName', 'authorPhoto', 'text', 'topics', 'linkUrl', 'status', 'createdAt'])
+             && data.keys().hasOnly(['authorId', 'authorName', 'authorPhoto', 'text', 'topics', 'linkUrl', 'audience', 'imageUrl', 'imagePath', 'status', 'createdAt'])
              && data.authorId == request.auth.uid
              && data.authorName == profile.username
              && data.authorPhoto == profile.get('profilePictureUrl', '')
              && data.status == 'visible'
              && data.createdAt == request.time
              && isValidPostContent(data)
-             && isOldEnoughToPost(profile)
+             && isAllowedAudience(data)
+             && isValidPostImage(data, postId)
              && !isSuspended(request.auth.uid)
              && isCountedPost(postId);
     }
 
     // Authors can change what their post says, not who wrote it or whether
     // it's hidden
-    function isEditingOwnPost() {
+    function isEditingOwnPost(postId) {
       return request.auth != null
              && resource.data.authorId == request.auth.uid
-             && changedKeys().hasOnly(['text', 'topics', 'linkUrl', 'updatedAt'])
-             && request.resource.data.updatedAt == request.time
+             && changedKeys().hasOnly(['text', 'topics', 'linkUrl', 'audience', 'imageUrl', 'imagePath', 'updatedAt'])
+             // Changing only who sees it doesn't mark it as edited
+             && (changedKeys().hasOnly(['audience']) || request.resource.data.updatedAt == request.time)
              && isValidPostContent(request.resource.data)
+             && isAllowedAudience(request.resource.data)
+             && isValidPostImage(request.resource.data, postId)
              && !isSuspended(request.auth.uid);
     }
 
@@ -797,14 +825,31 @@ service cloud.firestore {
              && getAfter(logPath).data.action == (request.resource.data.status == 'hidden' ? 'hide' : 'restore');
     }
 
+    // A moderator removes a post's image, keeping its text, with a
+    // moderationLog entry about it; functions/src/post-checks.ts then
+    // deletes the file
+    function isRemovingPostImage(postId) {
+      let logId = request.resource.data.moderationLogId;
+      let logPath = /databases/$(database)/documents/moderationLog/$(logId);
+      return isModerator()
+             && changedKeys().hasOnly(['imageUrl', 'imagePath', 'moderationLogId'])
+             && !('imageUrl' in request.resource.data) && !('imagePath' in request.resource.data)
+             && logId is string
+             && !exists(logPath)
+             && getAfter(logPath).data.postId == postId
+             && getAfter(logPath).data.action == 'remove-image';
+    }
+
     match /memberPosts/{postId} {
-      // Visible posts are public, like profiles. Hidden ones only to
-      // moderators and the author, so the author can see why.
-      allow read: if resource.data.status == 'visible'
+      // Visible public posts are public, like profiles; visible
+      // followers-only posts are for the author's followers. Hidden ones only
+      // to moderators and the author, so the author can see why.
+      allow read: if (resource.data.status == 'visible'
+                      && (resource.data.audience == 'public' || isFollowerOf(resource.data.authorId)))
                   || isModerator()
                   || (request.auth != null && resource.data.authorId == request.auth.uid);
       allow create: if canCreatePost(postId);
-      allow update: if isEditingOwnPost() || isModeratingPost(postId);
+      allow update: if isEditingOwnPost(postId) || isModeratingPost(postId) || isRemovingPostImage(postId);
       // Moderators log a deletion as moderationLog/delete-<postId>
       allow delete: if (request.auth != null && resource.data.authorId == request.auth.uid)
                     || (isModerator()
@@ -848,7 +893,7 @@ service cloud.firestore {
       allow create: if isModerator()
                     && request.resource.data.keys().hasOnly(['actorId', 'action', 'targetUserId', 'postId', 'contentPath', 'note', 'createdAt'])
                     && request.resource.data.actorId == request.auth.uid
-                    && request.resource.data.action in ['hide', 'restore', 'delete', 'dismiss', 'warn', 'suspend', 'unsuspend', 'edit-content', 'delete-content']
+                    && request.resource.data.action in ['hide', 'restore', 'delete', 'dismiss', 'warn', 'suspend', 'unsuspend', 'remove-image', 'edit-content', 'delete-content']
                     && (!(request.resource.data.action in ['edit-content', 'delete-content']) || isModeratedContentPath(request.resource.data.contentPath))
                     && (request.resource.data.action != 'delete-content'
                         || logId == 'delete-' + request.resource.data.contentPath.replace('/', '-'))

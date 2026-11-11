@@ -3,6 +3,7 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { connectAuthEmulator, getAuth } from 'firebase/auth';
 import { connectFirestoreEmulator, getFirestore, initializeFirestore } from 'firebase/firestore';
 import { connectFunctionsEmulator, getFunctions, type Functions } from 'firebase/functions';
+import { connectStorageEmulator, getStorage, type FirebaseStorage } from 'firebase/storage';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
@@ -12,14 +13,27 @@ let appCheckStarted = false;
 //   NEXT_PUBLIC_USE_EMULATORS=1 npx next dev   (the "dev-emulated" launch config)
 // with `firebase emulators:start --only auth,firestore` running. Ports default
 // to firebase.json's and can be changed with NEXT_PUBLIC_AUTH_EMULATOR_PORT and
-// NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT (and NEXT_PUBLIC_FUNCTIONS_EMULATOR_PORT,
-// with the functions emulator). Never set on the live site.
+// NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT (and NEXT_PUBLIC_FUNCTIONS_EMULATOR_PORT
+// and NEXT_PUBLIC_STORAGE_EMULATOR_PORT, with those emulators). Never set on
+// the live site.
 const useEmulators = process.env.NEXT_PUBLIC_USE_EMULATORS === '1';
 const authEmulatorPort = Number(process.env.NEXT_PUBLIC_AUTH_EMULATOR_PORT || 9099);
 const firestoreEmulatorPort = Number(process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT || 8080);
 const functionsEmulatorPort = Number(process.env.NEXT_PUBLIC_FUNCTIONS_EMULATOR_PORT || 5001);
 let emulatorsConnected = false;
 let functionsEmulatorConnected = false;
+const storageEmulatorPort = Number(process.env.NEXT_PUBLIC_STORAGE_EMULATOR_PORT || 9199);
+let storageEmulatorConnected = false;
+
+/** Cloud Storage, for images on feed posts (storage.rules) */
+export function appStorage(app: FirebaseApp): FirebaseStorage {
+  const storage = getStorage(app);
+  if (useEmulators && !storageEmulatorConnected) {
+    storageEmulatorConnected = true;
+    connectStorageEmulator(storage, '127.0.0.1', storageEmulatorPort);
+  }
+  return storage;
+}
 
 /** Cloud Functions the site calls (functions/src), in the database's region */
 export function appFunctions(app: FirebaseApp): Functions {

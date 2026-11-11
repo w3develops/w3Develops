@@ -36,6 +36,7 @@ const ACTION_BUTTONS: Record<ModeratorAction, string> = {
   warn: 'Warn author',
   suspend: 'Suspend author',
   unsuspend: 'Lift suspension',
+  'remove-image': 'Remove image',
 };
 
 type Pending = Omit<ActionRequest, 'note'> & { title: string };
@@ -185,7 +186,16 @@ function ReviewPost({ postId, reports, onAction }: { postId: string; reports: Re
   return (
     <PostCard post={post}>
       {details}
-      <ActionButtons actions={[post.status === 'visible' ? 'hide' : 'restore', 'delete', ...(reports.length ? ['dismiss' as const] : []), ...memberActions]} onPick={pick} />
+      <ActionButtons
+        actions={[
+          post.status === 'visible' ? 'hide' : 'restore',
+          ...(post.imageUrl ? ['remove-image' as const] : []),
+          'delete',
+          ...(reports.length ? ['dismiss' as const] : []),
+          ...memberActions,
+        ]}
+        onPick={pick}
+      />
     </PostCard>
   );
 }

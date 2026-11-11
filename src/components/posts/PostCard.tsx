@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { deleteDoc, deleteField, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { EyeOff, MoreHorizontal, ExternalLink } from 'lucide-react';
+import { EyeOff, MoreHorizontal, ExternalLink, Users } from 'lucide-react';
 import { useFirestore, useUser } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -14,9 +14,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from '@/components/ui/use-toast';
 import ReportUserButton from '@/components/ReportUserButton';
 import ZonedText from '@/components/ZonedText';
-import PostFields, { draftFields, draftProblem, type PostDraft } from './PostFields';
+import PostFields, { AudienceSelect, draftFields, draftProblem, type PostDraft } from './PostFields';
 import { formatTimestamp } from '@/lib/utils';
-import type { MemberPost } from '@/lib/types';
+import type { MemberPost, PostAudience } from '@/lib/types';
 
 function linkLabel(url: string): string {
   try {
@@ -34,10 +34,12 @@ interface PostCardProps {
   onBlock?: (authorId: string) => void;
   /** Extra controls under the post, like a moderator's buttons */
   children?: React.ReactNode;
+  /** The signed-in member's account is private, so their own posts stay followers-only */
+  privateAccount?: boolean;
 }
 
 /** One post on the feed or the moderation page */
-export default function PostCard({ post, onMute, onBlock, children }: PostCardProps) {
+export default function PostCard({ post, onMute, onBlock, children, privateAccount = false }: PostCardProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -45,6 +47,8 @@ export default function PostCard({ post, onMute, onBlock, children }: PostCardPr
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isConfirmingBlock, setIsConfirmingBlock] = useState(false);
   const [draft, setDraft] = useState<PostDraft>({ text: post.text, topics: post.topics.join(', '), linkUrl: post.linkUrl ?? '' });
+  const [audience, setAudience] = useState<PostAudience>(post.audience);
+  const [keepImage, setKeepImage] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const isAuthor = user?.uid === post.authorId;
 
@@ -60,6 +64,9 @@ export default function PostCard({ post, onMute, onBlock, children }: PostCardPr
       await updateDoc(doc(firestore, 'memberPosts', post.id), {
         ...fields,
         linkUrl: fields.linkUrl ?? deleteField(),
+        audience: privateAccount ? 'followers' : audience,
+        // Removing the image here; functions/src/post-checks.ts deletes the file
+        ...(post.imageUrl && !keepImage && { imageUrl: deleteField(), imagePath: deleteField() }),
         updatedAt: serverTimestamp(),
       });
       setIsEditing(false);
@@ -99,12 +106,19 @@ export default function PostCard({ post, onMute, onBlock, children }: PostCardPr
               <span className="text-xs text-muted-foreground">
                 <ZonedText render={tz => formatTimestamp(post.createdAt, true, tz)} />
                 {post.updatedAt && ' · edited'}
+                {post.audience === 'followers' && (
+                  <span className="ml-2 inline-flex items-center gap-1"><Users className="h-3 w-3" aria-hidden="true" />Followers</span>
+                )}
               </span>
             </div>
             {post.status === 'hidden' && (
               <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                 <EyeOff className="h-3 w-3" aria-hidden="true" />
-                {post.hiddenBy === 'reports' ? 'Hidden after reports, until a moderator reviews it.' : 'Hidden by a moderator.'}
+                {post.hiddenBy === 'reports'
+                  ? 'Hidden after reports, until a moderator reviews it.'
+                  : post.hiddenBy === 'auto-check'
+                    ? 'Hidden by our automatic safety check, until a moderator reviews it.'
+                    : 'Hidden by a moderator.'}
                 {isAuthor && ' Only you and moderators can see it.'}
               </p>
             )}
@@ -125,6 +139,14 @@ export default function PostCard({ post, onMute, onBlock, children }: PostCardPr
         </div>
 
         <p className="whitespace-pre-wrap break-words">{post.text}</p>
+
+        {post.imageUrl && (
+          <a href={post.imageUrl} target="_blank" rel="noopener noreferrer" className="block w-fit">
+            {/* Member images come from Storage at any size; a plain img keeps them simple */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={post.imageUrl} alt={`Image shared by ${post.authorName}`} loading="lazy" className="max-h-96 rounded-md border object-contain" />
+          </a>
+        )}
 
         {post.linkUrl && (
           <a href={post.linkUrl} target="_blank" rel="nofollow ugc noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-primary hover:underline break-all">
@@ -157,6 +179,13 @@ export default function PostCard({ post, onMute, onBlock, children }: PostCardPr
             <DialogDescription>Your post will show as edited.</DialogDescription>
           </DialogHeader>
           <PostFields draft={draft} onChange={setDraft} idPrefix={`edit-${post.id}`} />
+          <AudienceSelect value={privateAccount ? 'followers' : audience} onChange={setAudience} locked={privateAccount} idPrefix={`edit-${post.id}`} />
+          {post.imageUrl && (
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={!keepImage} onChange={e => setKeepImage(!e.target.checked)} />
+              Remove the image
+            </label>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditing(false)} disabled={isSaving}>Cancel</Button>
             <Button onClick={save} disabled={isSaving}>{isSaving ? 'Saving...' : 'Save'}</Button>

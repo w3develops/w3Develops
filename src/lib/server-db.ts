@@ -25,7 +25,7 @@ export interface ServerQuery {
   collection: string;
   where?: { field: string; op: '<' | '<=' | '>' | '>='; millis: number };
   /** Only documents whose field has this value, like status == 'visible' */
-  equals?: { field: string; value: string };
+  equals?: { field: string; value: string } | { field: string; value: string }[];
   orderBy?: { field: string; direction: 'asc' | 'desc' };
   limit: number;
 }
@@ -62,14 +62,14 @@ export async function readDoc(collectionName: string, id: string): Promise<Serve
 export async function readList(list: ServerQuery): Promise<ServerDoc[]> {
   if (onGoogleCloud()) {
     let q: AdminQuery = adminDb().collection(list.collection);
-    if (list.equals) q = q.where(list.equals.field, '==', list.equals.value);
+    for (const equals of [list.equals ?? []].flat()) q = q.where(equals.field, '==', equals.value);
     if (list.where) q = q.where(list.where.field, list.where.op, AdminTimestamp.fromMillis(list.where.millis));
     if (list.orderBy) q = q.orderBy(list.orderBy.field, list.orderBy.direction);
     const snap = await q.limit(list.limit).get();
     return snap.docs.map(d => ({ id: d.id, data: toClientTypes(d.data()) as Record<string, unknown> }));
   }
   const constraints: QueryConstraint[] = [];
-  if (list.equals) constraints.push(where(list.equals.field, '==', list.equals.value));
+  for (const equals of [list.equals ?? []].flat()) constraints.push(where(equals.field, '==', equals.value));
   if (list.where) constraints.push(where(list.where.field, list.where.op, Timestamp.fromMillis(list.where.millis)));
   if (list.orderBy) constraints.push(orderBy(list.orderBy.field, list.orderBy.direction));
   constraints.push(limit(list.limit));
