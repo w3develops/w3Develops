@@ -32,6 +32,10 @@ export const feedsByTopic = {
         'https://www.securityweek.com/feed/',
         'https://krebsonsecurity.com/feed/',
         'https://www.bleepingcomputer.com/feed/',
+        // Vulnerabilities: CISA's advisories (including newly exploited CVEs)
+        // and high-severity CVEs as they're published
+        'https://www.cisa.gov/cybersecurity-advisories/all.xml',
+        'https://cvefeed.io/rssfeed/severity/high.xml',
         // Hacker magazines (Phrack and Hakin9 have no feed)
         'https://feeds.feedburner.com/TheHackersNews',
         'https://www.hackercoolmagazine.com/feed/',
@@ -144,6 +148,8 @@ export const feedNames: Record<string, string> = {
     'https://blog.hubspot.com/marketing/rss.xml': 'HubSpot',
     'https://blog.hubspot.com/sales/rss.xml': 'HubSpot',
     'https://www.eff.org/rss/updates.xml': 'EFF',
+    'https://www.cisa.gov/cybersecurity-advisories/all.xml': 'CISA',
+    'https://cvefeed.io/rssfeed/severity/high.xml': 'CVE Feed',
 };
 
 /** Every feed the news page reads */

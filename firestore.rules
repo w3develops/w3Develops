@@ -599,6 +599,41 @@ service cloud.firestore {
                     || isModeratorDeleting('jobs', jobId);
     }
 
+    // The free services directory on /marketplace (src/lib/services.ts).
+    // Each member has up to 5 listings, named "<uid>_1" to "<uid>_5". People
+    // contact them through their profile or the optional https link; no
+    // email addresses are stored, and no payments are handled.
+    function isValidServiceListing(data) {
+      return data.title is string && data.title.size() > 0 && data.title.size() <= 80
+             && data.description is string && data.description.size() > 0 && data.description.size() <= 1000
+             && !hasBlockedWord(data.title) && !hasBlockedWord(data.description)
+             && data.category in ['websites', 'mobile', 'design', 'marketing', 'writing', 'data', 'devops', 'tutoring', 'tasks', 'other']
+             && data.skills is list && data.skills.size() <= 8
+             && (data.skills.size() == 0 || data.skills.join(',').matches('[a-z0-9.+# -]{1,30}(,[a-z0-9.+# -]{1,30}){0,7}'))
+             && data.priceNote is string && data.priceNote.size() <= 60
+             && (!('contactUrl' in data) || (data.contactUrl is string && data.contactUrl.size() <= 300 && data.contactUrl.matches('https://[^\\s]+')));
+    }
+
+    match /serviceListings/{listingId} {
+      allow read: if true;
+      allow create: if isVerified()
+                    && listingId.matches(request.auth.uid + '_[1-5]')
+                    && request.resource.data.keys().hasOnly(['ownerId', 'ownerName', 'ownerPhoto', 'title', 'description', 'category', 'skills', 'priceNote', 'contactUrl', 'createdAt', 'updatedAt'])
+                    && request.resource.data.ownerId == request.auth.uid
+                    && request.resource.data.ownerName == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username
+                    && request.resource.data.ownerPhoto == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('profilePictureUrl', '')
+                    && request.resource.data.createdAt == request.time
+                    && request.resource.data.updatedAt == request.time
+                    && isValidServiceListing(request.resource.data);
+      allow update: if (request.auth != null && resource.data.ownerId == request.auth.uid
+                        && changedKeys().hasOnly(['title', 'description', 'category', 'skills', 'priceNote', 'contactUrl', 'updatedAt'])
+                        && request.resource.data.updatedAt == request.time
+                        && isValidServiceListing(request.resource.data))
+                    || isModeratorEditing('serviceListings', listingId, ['title', 'description', 'priceNote']);
+      allow delete: if (request.auth != null && resource.data.ownerId == request.auth.uid)
+                    || isModeratorDeleting('serviceListings', listingId);
+    }
+
     match /studyGroups/{groupId} {
       allow read: if true;
       allow create: if canCreateGroup() && hasNoAnytimeJoin();
@@ -730,6 +765,23 @@ service cloud.firestore {
                     || isModeratorEditing('soloProjects', soloProjectId, ['name', 'description', 'projectUrl']);
       allow delete: if (request.auth != null && resource.data.userId == request.auth.uid)
                     || isModeratorDeleting('soloProjects', soloProjectId);
+
+      // The project owner's to-do list (src/components/TaskList.tsx), public
+      // like the project
+      match /tasks/{taskId} {
+        allow read: if true;
+        allow create: if isVerified() && isSoloProjectOwner(soloProjectId)
+                      && request.resource.data.creatorId == request.auth.uid
+                      && request.resource.data.isCompleted == false;
+        allow update: if isSoloProjectOwner(soloProjectId);
+        allow delete: if isSoloProjectOwner(soloProjectId)
+                      || isModeratorDeletingPart('soloProjects', soloProjectId, 'tasks', taskId);
+      }
+    }
+
+    function isSoloProjectOwner(soloProjectId) {
+      return request.auth != null
+             && get(/databases/$(database)/documents/soloProjects/$(soloProjectId)).data.userId == request.auth.uid;
     }
 
     match /users/{userId}/notifications/{notificationId} {
@@ -1176,7 +1228,7 @@ service cloud.firestore {
     // "meetups/abc/checkIns/xyz"
     function isModeratedContentPath(path) {
       return path is string
-             && path.matches('(studyGroups|groupProjects|bookClubs|meetups|competitions|jobs|soloProjects)/[A-Za-z0-9_-]+(/(tasks|checkIns|updates|entries)/[A-Za-z0-9_-]+)?');
+             && path.matches('(studyGroups|groupProjects|bookClubs|meetups|competitions|jobs|soloProjects|serviceListings)/[A-Za-z0-9_-]+(/(tasks|checkIns|updates|entries)/[A-Za-z0-9_-]+)?');
     }
 
     // Every moderator action, for the record. Written by moderators with the

@@ -527,3 +527,23 @@ export interface Article {
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
+
+/** A service a member offers in the directory on /marketplace (serviceListings/<uid>_<1-5>) */
+export interface ServiceListing {
+  id: string;
+  ownerId: string;
+  /** The member's username and photo when they last saved it */
+  ownerName: string;
+  ownerPhoto: string;
+  title: string;
+  description: string;
+  category: import('./services').ServiceCategory;
+  /** Up to 8 lowercase skills, like "react" */
+  skills: string[];
+  /** Free text, like "From $200" or "Free for nonprofits"; may be empty */
+  priceNote: string;
+  /** An optional https link to their portfolio or booking page */
+  contactUrl?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
