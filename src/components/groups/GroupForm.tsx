@@ -183,7 +183,11 @@ export default function GroupForm({ kind, groupId }: { kind: GroupKind; groupId?
       <Card>
         <CardHeader>
           <CardTitle>{isEditing ? `Edit ${config.title}` : `Create a New ${config.title}`}</CardTitle>
-          <CardDescription>Members see the meeting time in their own timezone.</CardDescription>
+          <CardDescription>
+            Members see the meeting time in their own timezone. New to running a group? Read the{' '}
+            <Link href="/docs/guides/running-a-study-group" className="underline">group workflow</Link> and pick a{' '}
+            <Link href="/docs/guides/curriculum-templates" className="underline">curriculum template</Link>.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="grid gap-6">
