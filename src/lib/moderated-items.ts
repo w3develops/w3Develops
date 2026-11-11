@@ -63,11 +63,19 @@ export const MODERATED_ITEMS = {
     },
   },
   soloProjects: {
-    noun: 'solo project', listPath: '/solo-projects', ownerField: 'userId', parts: [],
+    noun: 'solo project', listPath: '/solo-projects', ownerField: 'userId', parts: ['tasks'],
     fields: {
       name: { label: 'Name', max: 100 },
       description: { label: 'Description', max: 2000, long: true },
       projectUrl: { label: 'Project link', max: 500 },
+    },
+  },
+  serviceListings: {
+    noun: 'service listing', listPath: '/marketplace', ownerField: 'ownerId', parts: [],
+    fields: {
+      title: { label: 'Title', max: 80 },
+      description: { label: 'Description', max: 1000, long: true },
+      priceNote: { label: 'Price', max: 60 },
     },
   },
   organizations: {

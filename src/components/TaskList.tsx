@@ -24,7 +24,7 @@ import type { User } from 'firebase/auth';
 
 interface TaskListProps {
   parentId: string;
-  collectionPath: 'studyGroups' | 'groupProjects' | 'bookClubs' | 'mentorships' | 'tutorships' | 'pairings' | 'meetups';
+  collectionPath: 'studyGroups' | 'groupProjects' | 'bookClubs' | 'mentorships' | 'tutorships' | 'pairings' | 'meetups' | 'soloProjects';
   memberIds: string[];
 }
 

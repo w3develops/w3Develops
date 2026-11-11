@@ -21,6 +21,7 @@ import SubmitSoloProjectForm from '@/components/forms/SubmitSoloProjectForm';
 import StarProjectButton from '@/components/StarProjectButton';
 import ZonedText from '@/components/ZonedText';
 import ModeratorItemControls from '@/components/moderation/ModeratorItemControls';
+import TaskList from '@/components/TaskList';
 
 function ProjectList({ userProfile, initial }: { userProfile: UserProfile | null; initial: unknown[] | null }) {
     const firestore = useFirestore();
@@ -88,6 +89,12 @@ function ProjectList({ userProfile, initial }: { userProfile: UserProfile | null
                                      <StarProjectButton projectId={project.id} userProfile={userProfile} />
                                 )}
                             </div>
+                            {userProfile?.id === project.userId && (
+                                <details className="rounded-md border p-2">
+                                    <summary className="cursor-pointer text-sm font-medium">Your tasks for this project</summary>
+                                    <div className="pt-2"><TaskList parentId={project.id} collectionPath="soloProjects" memberIds={[project.userId]} /></div>
+                                </details>
+                            )}
                         </div>
                     </CardContent>
                 </Card>

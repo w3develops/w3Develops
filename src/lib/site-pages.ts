@@ -57,6 +57,16 @@ export const SITE_PAGES = {
     description: 'Build a real application with a remote team. Free collaborative coding projects that give you Git, teamwork and portfolio experience.',
     section: 'Learn and build together',
   },
+  '/algorithms-daily': {
+    title: 'Algorithms Daily',
+    description: 'A new classic coding interview problem every day, with an example and hints. Practice algorithms and data structures with the w3Develops community.',
+    section: 'Learn and build together',
+  },
+  '/project-ideas': {
+    title: 'Project Ideas',
+    description: 'Coding project ideas for beginners to advanced developers, by track: frontend, backend, full stack, DevOps, data and mobile. Build one solo or with a team.',
+    section: 'Learn and build together',
+  },
   '/book-clubs': {
     title: 'Book Clubs',
     description: 'Read programming and tech books together with other developers, talk through each chapter and keep each other going.',
@@ -112,6 +122,11 @@ export const SITE_PAGES = {
     description: 'Join the conversation with w3Develops members on our official Discord server.',
     noindex: true,
   },
+  '/events': {
+    title: 'Events',
+    description: 'Upcoming w3Develops meetups and coding competitions in one calendar, in your time zone, with one-click add to your own calendar.',
+    section: 'Events and challenges',
+  },
   '/competitions': {
     title: 'Coding Competitions',
     description: 'Test your skills in w3Develops community coding challenges. See active and upcoming competitions and submit your entry.',
@@ -140,6 +155,11 @@ export const SITE_PAGES = {
   '/news': {
     title: 'Tech News',
     description: 'The latest tech headlines from dozens of sources, daily w3Develops community insights and topic roundups, an AI community briefing refreshed eight times a day, and announcements.',
+    section: 'News and media',
+  },
+  '/news/write': {
+    title: 'Write for w3Develops',
+    description: 'Apply to write tutorials, career stories and developer guides for the w3Develops news page, then submit articles for review.',
     section: 'News and media',
   },
   '/news/ai-community-brief': {
@@ -188,9 +208,9 @@ export const SITE_PAGES = {
     section: 'Get involved',
   },
   '/marketplace': {
-    title: 'Marketplace',
-    description: 'A community-driven marketplace for services and products from w3Develops members.',
-    noindex: true,
+    title: 'Services Directory',
+    description: 'Hire w3Develops members for websites, apps, design, marketing and more. Free to list and free to browse; you contact members directly.',
+    section: 'Find people to work with',
   },
   '/donate': {
     title: 'Donate',
