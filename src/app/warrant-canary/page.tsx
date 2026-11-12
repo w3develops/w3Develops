@@ -1,21 +1,14 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 import type { Metadata } from 'next';
 import { Bird } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { pageMetadata } from '@/lib/site-pages';
+import { readCanary } from '@/lib/warrant-canary';
 
 export const metadata: Metadata = pageMetadata('/warrant-canary');
 
-// The statement is the PGP-signed public/warrant-canary.txt. Renew it with
+// The statement is the PGP-signed src/content/warrant-canary.txt. Renew it with
 // `node scripts/sign-canary.mjs`, which updates both dates and signs it.
 const CANARY_KEY_FINGERPRINT = '0338 7035 FF2C 83D9 A6B1  BFF2 E605 65B7 AFB0 10CA';
-
-function readCanary() {
-  const signed = readFileSync(path.join(process.cwd(), 'public/warrant-canary.txt'), 'utf8');
-  const field = (name: string) => signed.match(new RegExp(`^${name}: (.+)$`, 'm'))?.[1] ?? '';
-  return { signed, lastUpdated: field('Last updated'), nextUpdate: field('Next update') };
-}
 
 export default function WarrantCanaryPage() {
     const { signed, lastUpdated, nextUpdate } = readCanary();
