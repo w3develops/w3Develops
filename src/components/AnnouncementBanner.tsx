@@ -28,10 +28,10 @@ const DISMISSED_KEY = 'w3-dismissed-announcement';
 export default function AnnouncementBanner() {
   const firestore = useFirestore();
   // Closed announcements stay closed on this browser (by id), so a new one still shows
-  const [dismissedId, setDismissedId] = useState<string | null>(null);
-  useEffect(() => {
-    try { setDismissedId(localStorage.getItem(DISMISSED_KEY)); } catch { /* storage blocked */ }
-  }, []);
+  // (read on first render: the banner renders nothing until its query loads, so the server and browser still match)
+  const [dismissedId, setDismissedId] = useState<string | null>(() => {
+    try { return typeof window === 'undefined' ? null : localStorage.getItem(DISMISSED_KEY); } catch { return null; }
+  });
   const [now, setNow] = useState<Timestamp>(Timestamp.now());
 
   // Update 'now' every minute to handle time-based expiration
