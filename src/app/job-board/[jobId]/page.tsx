@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import JobDetailsPageClient from './client';
-import { getPublicItem, itemMetadata } from '@/lib/public-items';
+import { notFound } from 'next/navigation';
+import { getPublicItem, getPublicItemOrMissing, itemMetadata } from '@/lib/public-items';
 
 type Props = { params: Promise<{ jobId: string }> };
 
@@ -24,6 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { jobId } = await params;
-  const item = await getPublicItem('jobs', jobId);
+  const { item, missing } = await getPublicItemOrMissing('jobs', jobId);
+  // A real 404 for ones that don't exist, so search engines drop them
+  if (missing) notFound();
   return <JobDetailsPageClient params={{ jobId }} initialJob={item ?? undefined} />;
 }

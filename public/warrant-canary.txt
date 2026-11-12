@@ -1,0 +1,32 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+w3Develops Warrant Canary
+
+Last updated: November 12, 2026
+Next update: February 12, 2027
+
+As of November 12, 2026:
+
+* w3Develops has never received a National Security Letter, a FISA court
+  order, or any other secret legal process that we would be prohibited from
+  disclosing.
+* w3Develops has never received a warrant, subpoena or court order for
+  information about our members.
+* w3Develops has never been ordered to change our systems to allow access
+  to, or monitoring of, our members' information.
+
+The next update to this statement will be published on or before
+February 12, 2027.
+
+This statement is signed with the w3Develops Warrant Canary key,
+fingerprint 0338 7035 FF2C 83D9 A6B1 BFF2 E605 65B7 AFB0 10CA,
+published at https://w3develops.org/warrant-canary-key.asc
+-----BEGIN PGP SIGNATURE-----
+
+iJEEARYKADkWIQQDOHA1/yyD2aaxv/LmBWW3r7AQygUCavUg+BsUgAAAAAAEAA5t
+YW51MiwyLjUrMS4xMiwwLDMACgkQ5gVlt6+wEMrU1wEAuqL0oEu/uNHvx8xLPCjw
+gCIbLYMGR75bgU+jVMWKOowA/2A4jUgayBIQDbe2NiAEgDbBlXziygvfGcuHK/kA
+PP8D
+=S/bQ
+-----END PGP SIGNATURE-----
