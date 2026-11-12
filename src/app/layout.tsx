@@ -9,6 +9,7 @@ import Header from "@/components/layout/header";
 import EmailVerificationBanner from "@/components/EmailVerificationBanner";
 import Footer from "@/components/layout/footer";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
+import ConsentBanner from "@/components/ConsentBanner";
 import { HOME_DESCRIPTION, HOME_TITLE, SITE_NAME, SITE_URL, sharePreview } from "@/lib/site-pages";
 import JsonLd from "@/components/JsonLd";
 import ErrorReporter from "@/components/ErrorReporter";
@@ -125,6 +126,7 @@ export default function RootLayout({
               {children}
             </main>
             <Footer />
+          <ConsentBanner />
           <Toaster />
         </FirebaseClientProvider>
       </body>

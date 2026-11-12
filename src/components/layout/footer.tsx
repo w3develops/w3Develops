@@ -2,6 +2,7 @@
 'use client';
 
 import { Github, Youtube, Facebook, Instagram, Linkedin, Twitter, Podcast } from 'lucide-react';
+import { CookieSettingsButton } from '@/components/ConsentBanner';
 import Link from 'next/link';
 
 // Corrected SVGs for icons ensuring centering and brand accuracy
@@ -97,6 +98,7 @@ export default function Footer() {
               <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
               <Link href="/terms" className="text-primary hover:underline">Terms of Use</Link>
               <Link href="/cookies" className="text-primary hover:underline">Cookies</Link>
+              <CookieSettingsButton className="text-primary hover:underline text-left" />
               <Link href="/newsletter" className="text-primary hover:underline">Newsletter</Link>
               <Link href="/donate" className="text-primary hover:underline">Donate</Link>
               <Link href="/marketplace" className="text-primary hover:underline">Marketplace</Link>
@@ -108,8 +110,7 @@ export default function Footer() {
               <Link href="/code-of-conduct" className="text-primary hover:underline">Code of Conduct</Link>
               <Link href="/time-converter" className="text-primary hover:underline">Time Converter</Link>
               <Link href="/warrant-canary" className="text-primary hover:underline">Warrant Canary</Link>
-              {/* The Tor onion service (issue #345); the same address is in next.config.js */}
-              <a href="http://byexy3vcngbhih4hbp4ssfefum2liaegw4hn4mm3q5apetxtgz4bq2yd.onion" className="text-primary hover:underline" title="byexy3vcngbhih4hbp4ssfefum2liaegw4hn4mm3q5apetxtgz4bq2yd.onion (open in Tor Browser)">Tor (.onion)</a>
+              <Link href="/tor" className="text-primary hover:underline">Tor (.onion)</Link>
             </div>
           </div>
 

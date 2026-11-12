@@ -30,6 +30,20 @@ const storage = [
         howLong: 'Until you clear site data',
         needed: 'No',
     },
+    {
+        name: 'reCAPTCHA (App Check)',
+        where: 'Browser storage and Google cookies',
+        why: 'Checks that requests to our database come from the real site, not bots.',
+        howLong: 'Set by Google',
+        needed: 'Yes',
+    },
+    {
+        name: 'w3-consent-*, w3-dismissed-*',
+        where: 'Browser storage (localStorage)',
+        why: 'Remembers your cookie choice, that you read the Tor notice, and notices you closed.',
+        howLong: 'Until you clear site data',
+        needed: 'Yes',
+    },
 ];
 
 export default function CookiesPage() {
@@ -37,11 +51,11 @@ export default function CookiesPage() {
         <LegalPage
             icon={<Cookie className="h-10 w-10" />}
             title="Cookies"
-            lastUpdated="November 2, 2026"
+            lastUpdated="November 12, 2026"
             intro={
                 <p>
-                    We use a small amount of browser storage to keep you signed in, and Google Analytics to count visits. That's
-                    it. There are no advertising cookies, no social media trackers, and nothing that follows you around the web.
+                    We use a small amount of browser storage to keep you signed in and keep out bots, and, only if you allow it,
+                    Google Analytics to count visits. That's it. There are no advertising cookies, no social media trackers, and nothing that follows you around the web.
                 </p>
             }
         >
@@ -88,9 +102,15 @@ export default function CookiesPage() {
             </LegalSection>
 
             <LegalSection
-                title="Turning them off"
-                summary="Block the optional ones and the site still works. Block the sign-in storage and you'll just need to sign in again."
+                title="Your choice"
+                summary="Google Analytics is off until you allow it. Change your mind any time with Cookie settings at the bottom of every page."
             >
+                <p>
+                    The first time you visit, we ask whether Google Analytics may count your visits. Until you say yes, it
+                    doesn't load and sets no cookies. If your browser sends Global Privacy Control, we treat that as a no and
+                    don't ask. You can change your answer any time with <strong>Cookie settings</strong> at the bottom of every
+                    page; saying no later stops Analytics and deletes its cookies.
+                </p>
                 <p>
                     You can block or delete cookies and site data in your browser's settings, or use a content blocker. Blocking
                     Google Analytics won't change anything about how w3Develops works for you. If you block all site storage,

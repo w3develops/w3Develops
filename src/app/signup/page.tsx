@@ -96,6 +96,7 @@ function SignupPageContent() {
   const [usernameError, setUsernameError] = useState<string | null>(null);
   // New members confirm they meet the minimum age in the Terms of Use
   const [isOldEnough, setIsOldEnough] = useState(false);
+  const [agreesToTerms, setAgreesToTerms] = useState(false);
   const [isUsernameChecking, setIsUsernameChecking] = useState(false);
   const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -181,6 +182,10 @@ function SignupPageContent() {
     }
     if (needsAgeCheck && !isOldEnough) {
       toast({ variant: "destructive", title: "Age requirement", description: "You need to be 13 or older to join w3Develops." });
+      return;
+    }
+    if (needsAgeCheck && !agreesToTerms) {
+      toast({ variant: "destructive", title: "Terms of Use", description: "Please agree to the Terms of Use and Privacy Policy to join." });
       return;
     }
     
@@ -347,7 +352,18 @@ function SignupPageContent() {
               </div>
               )}
 
-              <Button type="submit" className="w-full" disabled={isSubmitting || (needsUsername && !isUsernameAvailable) || (needsTimezone && !timezone) || (needsAgeCheck && !isOldEnough)}>
+              {needsAgeCheck && (
+                <div className="flex items-start gap-2">
+                  <Checkbox id="agreeTerms" checked={agreesToTerms} onCheckedChange={checked => setAgreesToTerms(!!checked)} disabled={isSubmitting} className="mt-0.5" />
+                  <Label htmlFor="agreeTerms" className="text-sm font-normal leading-snug">
+                    I agree to the{' '}
+                    <Link href="/terms" target="_blank" className="underline">Terms of Use</Link> and{' '}
+                    <Link href="/privacy" target="_blank" className="underline">Privacy Policy</Link>
+                  </Label>
+                </div>
+              )}
+
+              <Button type="submit" className="w-full" disabled={isSubmitting || (needsUsername && !isUsernameAvailable) || (needsTimezone && !timezone) || (needsAgeCheck && (!isOldEnough || !agreesToTerms))}>
                 {isSubmitting ? 'Creating Account...' : isFinishing ? 'Finish' : 'Create Account'}
               </Button>
             </form>

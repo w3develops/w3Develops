@@ -5,6 +5,7 @@ import { connectFirestoreEmulator, getFirestore, initializeFirestore } from 'fir
 import { connectFunctionsEmulator, getFunctions, type Functions } from 'firebase/functions';
 import { connectStorageEmulator, getStorage, type FirebaseStorage } from 'firebase/storage';
 import { getAnalytics, isSupported } from 'firebase/analytics';
+import { whenAnalyticsAllowed } from '@/lib/consent';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
 let appCheckStarted = false;
@@ -94,9 +95,10 @@ export function getSdks(firebaseApp: FirebaseApp) {
     connectAuthEmulator(auth, `http://127.0.0.1:${authEmulatorPort}`, { disableWarnings: true });
   }
 
-  // Conditionally initialize Analytics only on the client and if supported.
-  const analytics = typeof window !== 'undefined' && firebaseConfig.measurementId 
-    ? isSupported().then(yes => yes ? getAnalytics(app) : null)
+  // Analytics starts only in the browser, and only once the visitor accepts
+  // it in the cookie banner (src/lib/consent.ts)
+  const analytics = typeof window !== 'undefined' && firebaseConfig.measurementId
+    ? whenAnalyticsAllowed().then(() => isSupported()).then(yes => yes ? getAnalytics(app) : null)
     : Promise.resolve(null);
 
   return {

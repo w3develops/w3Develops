@@ -13,7 +13,7 @@ export default function PrivacyPage() {
         <LegalPage
             icon={<ShieldCheck className="h-10 w-10" />}
             title="Privacy Policy"
-            lastUpdated="November 7, 2026"
+            lastUpdated="November 12, 2026"
             intro={
                 <>
                     <p>
@@ -56,8 +56,8 @@ export default function PrivacyPage() {
                     </li>
                     <li>
                         <strong>Basic technical information.</strong> Like almost every website, our hosting keeps short-lived
-                        server logs (such as IP address and browser type) so we can keep the site secure and fix bugs. We also use
-                        Google Analytics to count visits. See <Link href="/cookies" className={linkClass}>our cookie page</Link> for
+                        server logs (such as IP address and browser type) so we can keep the site secure and fix bugs. If you allow
+                        it in the cookie banner, we also use Google Analytics to count visits. See <Link href="/cookies" className={linkClass}>our cookie page</Link> for
                         details.
                     </li>
                 </ul>
@@ -138,8 +138,9 @@ export default function PrivacyPage() {
                         group's work still makes sense.
                     </li>
                     <li>
-                        <strong>Opt out of analytics:</strong> block analytics in your browser or with a content blocker. The site
-                        works the same without it.
+                        <strong>Analytics is opt-in:</strong> Google Analytics stays off unless you allow it in the cookie banner,
+                        and you can change your mind any time with Cookie settings at the bottom of every page. If your browser
+                        sends Global Privacy Control, we treat it as a no. The site works the same without analytics.
                     </li>
                 </ul>
                 <p>
