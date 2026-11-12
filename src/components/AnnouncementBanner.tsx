@@ -23,9 +23,15 @@ const typeIcons = {
   alert: <Megaphone className="h-5 w-5" />,
 };
 
+const DISMISSED_KEY = 'w3-dismissed-announcement';
+
 export default function AnnouncementBanner() {
   const firestore = useFirestore();
-  const [isVisible, setIsVisible] = useState(true);
+  // Closed announcements stay closed on this browser (by id), so a new one still shows
+  const [dismissedId, setDismissedId] = useState<string | null>(null);
+  useEffect(() => {
+    try { setDismissedId(localStorage.getItem(DISMISSED_KEY)); } catch { /* storage blocked */ }
+  }, []);
   const [now, setNow] = useState<Timestamp>(Timestamp.now());
 
   // Update 'now' every minute to handle time-based expiration
@@ -54,7 +60,12 @@ export default function AnnouncementBanner() {
     return item;
   }, [announcements, now]);
 
-  if (isLoading || !activeAnnouncement || !isVisible) {
+  const dismiss = (id: string) => {
+    setDismissedId(id);
+    try { localStorage.setItem(DISMISSED_KEY, id); } catch { /* storage blocked */ }
+  };
+
+  if (isLoading || !activeAnnouncement || activeAnnouncement.id === dismissedId) {
     return null;
   }
 
@@ -76,7 +87,7 @@ export default function AnnouncementBanner() {
         </div>
       </div>
       <button 
-        onClick={() => setIsVisible(false)} 
+        onClick={() => dismiss(activeAnnouncement.id)} 
         className="absolute right-2 p-1 hover:bg-black/10 rounded-full"
         aria-label="Dismiss announcement"
       >
