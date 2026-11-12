@@ -108,6 +108,8 @@ export default function Footer() {
               <Link href="/code-of-conduct" className="text-primary hover:underline">Code of Conduct</Link>
               <Link href="/time-converter" className="text-primary hover:underline">Time Converter</Link>
               <Link href="/warrant-canary" className="text-primary hover:underline">Warrant Canary</Link>
+              {/* The Tor onion service (issue #345); the same address is in next.config.js */}
+              <a href="http://byexy3vcngbhih4hbp4ssfefum2liaegw4hn4mm3q5apetxtgz4bq2yd.onion" className="text-primary hover:underline" title="byexy3vcngbhih4hbp4ssfefum2liaegw4hn4mm3q5apetxtgz4bq2yd.onion (open in Tor Browser)">Tor (.onion)</a>
             </div>
           </div>
 
