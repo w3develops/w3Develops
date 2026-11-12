@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import GroupDashboard from '@/components/groups/GroupDashboard';
-import { getPublicItem, itemMetadata } from '@/lib/public-items';
+import { notFound } from 'next/navigation';
+import { getPublicItem, getPublicItemOrMissing, itemMetadata } from '@/lib/public-items';
 
 type Props = { params: Promise<{ bookClubId: string }> };
 
@@ -24,6 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { bookClubId } = await params;
-  const item = await getPublicItem('bookClubs', bookClubId);
+  const { item, missing } = await getPublicItemOrMissing('bookClubs', bookClubId);
+  // A real 404 for ones that don't exist, so search engines drop them
+  if (missing) notFound();
   return <GroupDashboard kind="bookClub" groupId={bookClubId} initialGroup={item ?? undefined} />;
 }

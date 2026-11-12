@@ -53,6 +53,22 @@ export async function getPublicItem(collectionName: PublicCollection, id: string
   }
 }
 
+/**
+ * The item, and whether it's certainly missing: true only when the read
+ * worked and found nothing, so a page can answer 404 then. A failed read
+ * gives item null but missing false, so the page still renders and the
+ * browser loads the item itself.
+ */
+export async function getPublicItemOrMissing(collectionName: PublicCollection, id: string): Promise<{ item: Record<string, unknown> | null; missing: boolean }> {
+  try {
+    return { item: await fetchItem(collectionName, id), missing: false };
+  } catch (error) {
+    if (error instanceof ItemNotFound) return { item: null, missing: true };
+    console.warn(`Could not read ${collectionName}/${id} on the server:`, error);
+    return { item: null, missing: false };
+  }
+}
+
 // What a member's public profile page shows. Everything else on the user
 // document (timezone, sign-in times, settings, connection IDs) stays out of
 // the page's HTML; members never have an email address stored there.
@@ -88,6 +104,17 @@ export async function getPublicProfile(userId: string): Promise<Record<string, u
   } catch (error) {
     if (!(error instanceof ItemNotFound)) console.warn(`Could not read users/${userId} on the server:`, error);
     return null;
+  }
+}
+
+/** Like getPublicItemOrMissing, for member profiles */
+export async function getPublicProfileOrMissing(userId: string): Promise<{ profile: Record<string, unknown> | null; missing: boolean }> {
+  try {
+    return { profile: await fetchProfile(userId), missing: false };
+  } catch (error) {
+    if (error instanceof ItemNotFound) return { profile: null, missing: true };
+    console.warn(`Could not read users/${userId} on the server:`, error);
+    return { profile: null, missing: false };
   }
 }
 

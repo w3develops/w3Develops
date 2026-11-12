@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import CompetitionDashboardPage from './client';
-import { getPublicItem, itemMetadata } from '@/lib/public-items';
+import { notFound } from 'next/navigation';
+import { getPublicItem, getPublicItemOrMissing, itemMetadata } from '@/lib/public-items';
 
 type Props = { params: Promise<{ competitionId: string }> };
 
@@ -24,6 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { competitionId } = await params;
-  const item = await getPublicItem('competitions', competitionId);
+  const { item, missing } = await getPublicItemOrMissing('competitions', competitionId);
+  // A real 404 for ones that don't exist, so search engines drop them
+  if (missing) notFound();
   return <CompetitionDashboardPage params={{ competitionId }} initialCompetition={item ?? undefined} />;
 }

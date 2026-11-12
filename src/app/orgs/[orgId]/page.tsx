@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { getPublicItem, itemMetadata } from '@/lib/public-items';
+import { notFound } from 'next/navigation';
+import { getPublicItem, getPublicItemOrMissing, itemMetadata } from '@/lib/public-items';
 import OrgPage from './OrgPage';
 
 export const revalidate = 300;
@@ -17,5 +18,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function OrganizationPage({ params }: Props) {
   const { orgId } = await params;
-  return <OrgPage orgId={orgId} initial={await getPublicItem('organizations', orgId)} />;
+  const { item, missing } = await getPublicItemOrMissing('organizations', orgId);
+  // A real 404 for pages that don't exist, so search engines drop them
+  if (missing) notFound();
+  return <OrgPage orgId={orgId} initial={item} />;
 }

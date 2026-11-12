@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import MeetupDashboardPage from './client';
-import { getPublicItem, itemMetadata } from '@/lib/public-items';
+import { notFound } from 'next/navigation';
+import { getPublicItem, getPublicItemOrMissing, itemMetadata } from '@/lib/public-items';
 
 type Props = { params: Promise<{ meetupId: string }> };
 
@@ -24,6 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { meetupId } = await params;
-  const item = await getPublicItem('meetups', meetupId);
+  const { item, missing } = await getPublicItemOrMissing('meetups', meetupId);
+  // A real 404 for ones that don't exist, so search engines drop them
+  if (missing) notFound();
   return <MeetupDashboardPage params={{ meetupId }} initialMeetup={item ?? undefined} />;
 }

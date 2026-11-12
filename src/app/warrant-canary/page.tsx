@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import type { Metadata } from 'next';
 import { Bird } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,11 +7,18 @@ import { pageMetadata } from '@/lib/site-pages';
 
 export const metadata: Metadata = pageMetadata('/warrant-canary');
 
-// Update both dates every time the statement is renewed
-const lastUpdated = 'November 2, 2026';
-const nextUpdate = 'February 1, 2027';
+// The statement is the PGP-signed public/warrant-canary.txt. Renew it with
+// `node scripts/sign-canary.mjs`, which updates both dates and signs it.
+const CANARY_KEY_FINGERPRINT = '0338 7035 FF2C 83D9 A6B1  BFF2 E605 65B7 AFB0 10CA';
+
+function readCanary() {
+  const signed = readFileSync(path.join(process.cwd(), 'public/warrant-canary.txt'), 'utf8');
+  const field = (name: string) => signed.match(new RegExp(`^${name}: (.+)$`, 'm'))?.[1] ?? '';
+  return { signed, lastUpdated: field('Last updated'), nextUpdate: field('Next update') };
+}
 
 export default function WarrantCanaryPage() {
+    const { signed, lastUpdated, nextUpdate } = readCanary();
     return (
         <div className="max-w-3xl mx-auto p-4 md:p-10">
             <Card className="bg-card">
@@ -37,6 +46,21 @@ export default function WarrantCanaryPage() {
                         <p>The next update to this statement will be published on or before {nextUpdate}.</p>
                     </blockquote>
 
+                    <div className="text-sm space-y-3">
+                        <h2 className="font-semibold">Check the signature</h2>
+                        <p className="text-muted-foreground">
+                            This statement is signed with our warrant canary PGP key, fingerprint{' '}
+                            <code className="break-all">{CANARY_KEY_FINGERPRINT}</code>. Download the{' '}
+                            <a href="/warrant-canary.txt" className="text-primary underline">signed statement</a> and the{' '}
+                            <a href="/warrant-canary-key.asc" className="text-primary underline">public key</a>, then run:
+                        </p>
+                        <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs">{`gpg --import warrant-canary-key.asc
+gpg --verify warrant-canary.txt`}</pre>
+                        <details>
+                            <summary className="cursor-pointer text-muted-foreground">Show the signed statement</summary>
+                            <pre className="mt-2 overflow-x-auto rounded-md bg-muted p-3 text-xs">{signed}</pre>
+                        </details>
+                    </div>
                     <div className="text-sm text-muted-foreground pt-4">
                         <h2 className="font-semibold mb-2">What is a Warrant Canary?</h2>
                         <p>

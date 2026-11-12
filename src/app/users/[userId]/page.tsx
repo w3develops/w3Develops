@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import UserProfilePage from './client';
 import JsonLd from '@/components/JsonLd';
-import { getPublicProfile, itemMetadata, profileHasContent } from '@/lib/public-items';
+import { notFound } from 'next/navigation';
+import { getPublicProfile, getPublicProfileOrMissing, itemMetadata, profileHasContent } from '@/lib/public-items';
 import { SITE_URL } from '@/lib/site-pages';
 
 type Props = { params: Promise<{ userId: string }> };
@@ -48,7 +49,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { userId } = await params;
-  const profile = await getPublicProfile(userId);
+  const { profile, missing } = await getPublicProfileOrMissing(userId);
+  // A real 404 for members who don't exist, so search engines drop them
+  if (missing) notFound();
   const publicProfile = profile as PublicProfile | null;
   const name = publicProfile?.username;
   // Discord is a username, not a link, so it isn't one of the profile's other pages
