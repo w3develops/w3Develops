@@ -23,6 +23,7 @@ import { useDocsByIds } from '@/lib/hooks/useDocsByIds';
 import { MODERATION_ACTIONS, POST_REPORT_REASONS, SUSPENSION_DAYS } from '@/lib/member-posts';
 import { formatTimestamp } from '@/lib/utils';
 import type { Appeal, MemberPost, MemberStanding, ModerationLogEntry, PostReply, Report, UserProfile } from '@/lib/types';
+import AnnouncementsAdmin from './AnnouncementsAdmin';
 import ModerationTeam from './ModerationTeam';
 import WritingReview from './WritingReview';
 import { useModerationActions, type ActionRequest, type ModeratorAction } from './useModerationActions';
@@ -422,6 +423,7 @@ function Queue({ isAdmin }: { isAdmin: boolean }) {
           <TabsTrigger value="writing">Writing</TabsTrigger>
           <TabsTrigger value="log">Log</TabsTrigger>
           <TabsTrigger value="team">Team</TabsTrigger>
+          {isAdmin && <TabsTrigger value="announce">Announce</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="posts" className="space-y-4">
@@ -469,6 +471,12 @@ function Queue({ isAdmin }: { isAdmin: boolean }) {
         <TabsContent value="team">
           <ModerationTeam isAdmin={isAdmin} />
         </TabsContent>
+
+        {isAdmin && (
+          <TabsContent value="announce">
+            <AnnouncementsAdmin />
+          </TabsContent>
+        )}
 
         <TabsContent value="log">
           <Card>

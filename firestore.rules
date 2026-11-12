@@ -28,6 +28,12 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.moderator == true;
     }
 
+    // Admins have the `admin` claim too (scripts/set-moderator.mjs); they
+    // manage the moderation team and post site-wide announcements
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
     // ---- Moderators acting on members' groups, meetups and other items ----
     // Every such action is saved with a new moderationLog entry in the same
     // write (src/app/moderation/useItemModeration.ts), so it's on the record.
@@ -345,9 +351,31 @@ service cloud.firestore {
       allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
     }
 
+    // Site-wide announcements, shown in the banner at the top of every page
+    // and on /news. Admins (the `admin` claim) post them from the Announce tab
+    // on /moderation, can end them early, and can delete them.
     match /announcements/{announcementId} {
       allow read: if true;
-      allow write: if false; 
+      allow create: if isAdmin()
+                    && isValidAnnouncement(request.resource.data)
+                    && request.resource.data.createdBy == request.auth.uid
+                    && request.resource.data.createdAt == request.time;
+      allow update: if isAdmin()
+                    && isValidAnnouncement(request.resource.data)
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isActive', 'endTime']);
+      allow delete: if isAdmin();
+    }
+
+    function isValidAnnouncement(data) {
+      return data.keys().hasOnly(['title', 'message', 'type', 'link', 'startTime', 'endTime', 'isActive', 'createdAt', 'createdBy'])
+             && data.keys().hasAll(['title', 'message', 'type', 'startTime', 'endTime', 'isActive', 'createdAt', 'createdBy'])
+             && data.title is string && data.title.size() >= 1 && data.title.size() <= 80
+             && data.message is string && data.message.size() >= 1 && data.message.size() <= 300
+             && data.type in ['info', 'warning', 'success', 'alert']
+             && (!('link' in data) || (data.link is string && data.link.size() <= 300
+                                       && data.link.matches('https://[^\\s]+|/([^/\\s][^\\s]*)?')))
+             && data.startTime is timestamp && data.endTime is timestamp && data.endTime > data.startTime
+             && data.isActive is bool && data.createdAt is timestamp && data.createdBy is string;
     }
 
     // w3Develops' own posts (community insights and news roundups), written

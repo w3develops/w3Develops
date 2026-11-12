@@ -209,6 +209,20 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "announcements",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "isActive",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "endTime",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []
