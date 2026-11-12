@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Renews the warrant canary: writes the statement with today's date and the
 // next update date, signs it with the canary's PGP key (in your local GnuPG
-// keyring), and saves it as public/warrant-canary.txt, which
+// keyring), and saves it as src/content/warrant-canary.txt (served at /warrant-canary.txt), which
 // /warrant-canary shows and anyone can verify against
 // public/warrant-canary-key.asc.
 //
@@ -10,7 +10,7 @@
 //   node scripts/sign-canary.mjs            # next update in 3 months
 //   node scripts/sign-canary.mjs 2027-05-01 # or on a given date
 //
-// Then commit public/warrant-canary.txt and merge it.
+// Then commit src/content/warrant-canary.txt and merge it.
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 
@@ -44,5 +44,5 @@ published at https://w3develops.org/warrant-canary-key.asc
 `;
 
 const signed = execFileSync('gpg', ['--clearsign', '--local-user', KEY, '--output', '-'], { input: statement });
-writeFileSync(new URL('../public/warrant-canary.txt', import.meta.url), signed);
+writeFileSync(new URL('../src/content/warrant-canary.txt', import.meta.url), signed);
 console.log(`Signed. Last updated ${format(today)}, next update by ${format(next)}.`);
