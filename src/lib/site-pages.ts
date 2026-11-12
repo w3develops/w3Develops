@@ -271,6 +271,11 @@ export const SITE_PAGES = {
     description: 'How members treat each other on w3Develops: be kind, no harassment, trolling or spam, and how to report a problem.',
     section: 'About and policies',
   },
+  '/tor': {
+    title: 'Using w3Develops over Tor',
+    description: "w3Develops' onion address for Tor Browser, and what Tor does and doesn't hide when you use the site.",
+    section: 'About and policies',
+  },
   '/warrant-canary': {
     title: 'Warrant Canary',
     description: 'A regularly updated statement that w3Develops has never received a secret legal order.',

@@ -3,7 +3,8 @@
 // Functions), App Check's reCAPTCHA, Google Analytics, and the Discord and
 // YouTube embeds. Images can come from any https address, since profile
 // pictures are links members add.
-// w3Develops' Tor onion service (issue #345), which proxies to this site
+// w3Develops' Tor onion service (issue #345), which proxies to this site.
+// The same address is in src/lib/onion.ts.
 const ONION_HOST = 'byexy3vcngbhih4hbp4ssfefum2liaegw4hn4mm3q5apetxtgz4bq2yd.onion';
 
 const CONTENT_SECURITY_POLICY = [
