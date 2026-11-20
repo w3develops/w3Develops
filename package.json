@@ -10,7 +10,7 @@
     "test:rules": "firebase emulators:exec --only firestore,storage --project demo-w3develops-rules \"node --test tests/rules/*.test.mjs\""
   },
   "engines": {
-    "node": ">=20.9.0"
+    "node": "24.x"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",
