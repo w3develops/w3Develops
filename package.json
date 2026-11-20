@@ -54,6 +54,7 @@
     "typescript": "^5"
   },
   "overrides": {
-    "caniuse-lite": "^1.0.30001648"
+    "caniuse-lite": "^1.0.30001648",
+    "@grpc/grpc-js": "^1.13.6"
   }
 }
