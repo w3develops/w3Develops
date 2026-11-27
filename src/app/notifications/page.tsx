@@ -76,7 +76,7 @@ export default function NotificationSettingsPage() {
                         </div>
                     ))}
                     <p className="text-sm text-muted-foreground">
-                        Email newsletters aren&apos;t sent yet. When they are, you&apos;ll be able to choose them here too.
+                        <Link href="/newsletter" className="underline">Manage your email newsletter subscription</Link>.
                     </p>
                 </CardContent>
             </Card>

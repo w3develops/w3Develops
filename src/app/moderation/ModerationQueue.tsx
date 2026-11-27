@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NewsletterAdmin } from '@/components/newsletter/Newsletter';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
@@ -374,6 +375,7 @@ function LogEntries({ entries }: { entries: ModerationLogEntry[] }) {
 }
 
 function Queue({ isAdmin }: { isAdmin: boolean }) {
+  const { user } = useUser();
   const firestore = useFirestore();
   const [pending, setPending] = useState<Pending | null>(null);
 
@@ -415,7 +417,7 @@ function Queue({ isAdmin }: { isAdmin: boolean }) {
   return (
     <>
       <Tabs defaultValue="posts">
-        <TabsList>
+        <TabsList className="h-auto flex-wrap">
           <TabsTrigger value="posts">Reported posts ({byPost.length + byReply.length})</TabsTrigger>
           <TabsTrigger value="members">Member reports ({memberReports.length})</TabsTrigger>
           <TabsTrigger value="appeals">Appeals ({appeals.length})</TabsTrigger>
@@ -424,6 +426,7 @@ function Queue({ isAdmin }: { isAdmin: boolean }) {
           <TabsTrigger value="log">Log</TabsTrigger>
           <TabsTrigger value="team">Team</TabsTrigger>
           {isAdmin && <TabsTrigger value="announce">Announce</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="newsletter">Newsletter</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="posts" className="space-y-4">
@@ -477,6 +480,8 @@ function Queue({ isAdmin }: { isAdmin: boolean }) {
             <AnnouncementsAdmin />
           </TabsContent>
         )}
+
+        {isAdmin && user && <TabsContent value="newsletter"><NewsletterAdmin user={user} region="us-central1" /></TabsContent>}
 
         <TabsContent value="log">
           <Card>
